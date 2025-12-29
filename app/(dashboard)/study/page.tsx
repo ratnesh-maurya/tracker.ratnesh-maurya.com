@@ -11,20 +11,30 @@ import { Modal } from '@/components/ui/modal';
 import { ArrowLeft, Plus, GraduationCap, Tag } from 'lucide-react';
 import { NavBar } from '@/components/layout/NavBar';
 import { formatDate } from '@/lib/utils';
+import { Pagination } from '@/components/ui/pagination';
+import { Chip } from '@/components/ui/chip';
+
+const TOPIC_OPTIONS = ['DSA', 'Golang', 'System Design', 'Other'];
+const TAG_OPTIONS = ['golang', 'dsa', 'LLD', 'HLD', 'leetcode', 'codechef'];
 
 export default function StudyPage() {
     const queryClient = useQueryClient();
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [topic, setTopic] = useState('');
+    const [selectedTopic, setSelectedTopic] = useState('');
+    const [customTopic, setCustomTopic] = useState('');
     const [timeSpent, setTimeSpent] = useState('');
-    const [tags, setTags] = useState('');
+    const [selectedTags, setSelectedTags] = useState<string[]>([]);
+    const [customTags, setCustomTags] = useState('');
     const [projectReference, setProjectReference] = useState('');
     const [notes, setNotes] = useState('');
 
+    const [page, setPage] = useState(1);
+    const limit = 20;
+
     const { data: studyData, isLoading } = useQuery({
-        queryKey: ['study'],
+        queryKey: ['study', page],
         queryFn: async () => {
-            const res = await fetch('/api/study');
+            const res = await fetch(`/api/study?page=${page}&limit=${limit}`);
             const data = await res.json();
             if (!data.success) throw new Error(data.error);
             return data.data;
@@ -44,10 +54,13 @@ export default function StudyPage() {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['study'] });
+            setPage(1); // Reset to first page after creating new entry
             setIsModalOpen(false);
-            setTopic('');
+            setSelectedTopic('');
+            setCustomTopic('');
             setTimeSpent('');
-            setTags('');
+            setSelectedTags([]);
+            setCustomTags('');
             setProjectReference('');
             setNotes('');
         },
@@ -55,20 +68,52 @@ export default function StudyPage() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        // Validate topic
+        if (!selectedTopic) {
+            alert('Please select a topic');
+            return;
+        }
+        if (selectedTopic === 'Other' && !customTopic.trim()) {
+            alert('Please enter a custom topic');
+            return;
+        }
+
         const today = new Date().toISOString().split('T')[0];
-        const tagArray = tags.split(',').map((t) => t.trim()).filter((t) => t !== '');
+        const finalTopic = selectedTopic === 'Other' ? customTopic.trim() : selectedTopic;
+
+        // Combine selected chip tags with custom tags
+        const customTagArray = customTags
+            .split(',')
+            .map((t) => t.trim())
+            .filter((t) => t !== '');
+        const allTags = [...selectedTags, ...customTagArray];
 
         await createMutation.mutateAsync({
             date: today,
-            topic,
+            topic: finalTopic,
             timeSpent: parseInt(timeSpent),
-            tags: tagArray,
+            tags: allTags,
             projectReference: projectReference || undefined,
             notes: notes || undefined,
         });
     };
 
-    const studyEntries = studyData || [];
+    const toggleTag = (tag: string) => {
+        setSelectedTags((prev) =>
+            prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
+        );
+    };
+
+    const selectTopic = (topic: string) => {
+        setSelectedTopic(topic);
+        if (topic !== 'Other') {
+            setCustomTopic('');
+        }
+    };
+
+    const studyEntries = studyData?.entries || [];
+    const pagination = studyData?.pagination;
     const totalHours = studyEntries.reduce((sum: number, entry: any) => sum + (entry.timeSpent || 0), 0) / 60;
 
     return (
@@ -92,7 +137,7 @@ export default function StudyPage() {
                 </div>
             </header>
 
-            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-20 md:pb-8">
+            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-24 md:pb-20">
                 {studyEntries.length > 0 && (
                     <Card className="mb-6">
                         <CardContent className="py-4">
@@ -168,21 +213,45 @@ export default function StudyPage() {
                         })}
                     </div>
                 )}
+
+                {pagination && pagination.totalPages > 1 && (
+                    <div className="mt-6">
+                        <Pagination
+                            page={page}
+                            totalPages={pagination.totalPages}
+                            onPageChange={setPage}
+                            isLoading={isLoading}
+                        />
+                    </div>
+                )}
             </main>
 
             <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Log Study Session" size="lg">
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
-                        <label htmlFor="topic" className="block text-sm font-medium mb-1">
+                        <label className="block text-sm font-medium mb-2">
                             Topic / What did you study?
                         </label>
-                        <Input
-                            id="topic"
-                            value={topic}
-                            onChange={(e) => setTopic(e.target.value)}
-                            placeholder="e.g., DSA, Backend Development, System Design"
-                            required
-                        />
+                        <div className="flex flex-wrap gap-2 mb-3">
+                            {TOPIC_OPTIONS.map((option) => (
+                                <Chip
+                                    key={option}
+                                    label={option}
+                                    selected={selectedTopic === option}
+                                    onClick={() => selectTopic(option)}
+                                />
+                            ))}
+                        </div>
+                        {selectedTopic === 'Other' && (
+                            <Input
+                                id="customTopic"
+                                value={customTopic}
+                                onChange={(e) => setCustomTopic(e.target.value)}
+                                placeholder="Enter your custom topic"
+                                className="mt-2"
+                                required
+                            />
+                        )}
                     </div>
                     <div>
                         <label htmlFor="timeSpent" className="block text-sm font-medium mb-1">
@@ -198,15 +267,38 @@ export default function StudyPage() {
                         />
                     </div>
                     <div>
-                        <label htmlFor="tags" className="block text-sm font-medium mb-1">
-                            Tags (comma-separated)
+                        <label className="block text-sm font-medium mb-2">
+                            Tags
                         </label>
-                        <Input
-                            id="tags"
-                            value={tags}
-                            onChange={(e) => setTags(e.target.value)}
-                            placeholder="e.g., DSA, Backend, Golang"
-                        />
+                        <div className="flex flex-wrap gap-2 mb-3">
+                            {TAG_OPTIONS.map((tag) => (
+                                <Chip
+                                    key={tag}
+                                    label={tag}
+                                    selected={selectedTags.includes(tag)}
+                                    onClick={() => toggleTag(tag)}
+                                />
+                            ))}
+                        </div>
+                        <div>
+                            <label htmlFor="customTags" className="block text-xs text-gray-600 mb-1">
+                                Add custom tags (comma-separated)
+                            </label>
+                            <Input
+                                id="customTags"
+                                value={customTags}
+                                onChange={(e) => setCustomTags(e.target.value)}
+                                placeholder="e.g., react, nodejs, mongodb"
+                                className="text-sm"
+                            />
+                        </div>
+                        {(selectedTags.length > 0 || customTags.trim()) && (
+                            <p className="text-xs text-gray-500 mt-2">
+                                Selected: {selectedTags.join(', ')}
+                                {selectedTags.length > 0 && customTags.trim() && ', '}
+                                {customTags.split(',').map((t) => t.trim()).filter((t) => t !== '').join(', ')}
+                            </p>
+                        )}
                     </div>
                     <div>
                         <label htmlFor="projectReference" className="block text-sm font-medium mb-1">

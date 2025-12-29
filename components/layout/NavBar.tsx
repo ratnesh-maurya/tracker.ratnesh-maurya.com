@@ -6,7 +6,7 @@ import {
     Home,
     Sparkles,
     IndianRupee,
-    Bed,
+    GraduationCap,
     Coffee
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -15,7 +15,7 @@ const navItems = [
     { name: 'Home', href: '/dashboard', icon: Home },
     { name: 'Habits', href: '/habits', icon: Sparkles },
     { name: 'Expenses', href: '/expenses', icon: IndianRupee },
-    { name: 'Sleep', href: '/sleep', icon: Bed },
+    { name: 'Study', href: '/study', icon: GraduationCap },
     { name: 'Food', href: '/food', icon: Coffee },
 ];
 
