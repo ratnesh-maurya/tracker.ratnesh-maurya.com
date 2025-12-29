@@ -88,10 +88,15 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    // Calculate duration in minutes
+    const diffMs = endTime.getTime() - startTime.getTime();
+    const duration = Math.round(diffMs / (1000 * 60)); // Convert to minutes
+
     if (existingEntry) {
       // Update existing entry
       existingEntry.startTime = startTime;
       existingEntry.endTime = endTime;
+      existingEntry.duration = duration;
       if (validatedData.notes !== undefined) {
         existingEntry.notes = validatedData.notes;
       }
@@ -109,6 +114,7 @@ export async function POST(request: NextRequest) {
       date: startOfDay,
       startTime,
       endTime,
+      duration,
       notes: validatedData.notes,
     });
 
