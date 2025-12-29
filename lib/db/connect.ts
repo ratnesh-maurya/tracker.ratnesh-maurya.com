@@ -30,6 +30,9 @@ async function connectDB(): Promise<typeof mongoose> {
   if (!cached.promise) {
     const opts = {
       bufferCommands: false,
+      maxPoolSize: 10, // Maintain up to 10 socket connections
+      serverSelectionTimeoutMS: 5000, // Keep trying to send operations for 5 seconds
+      socketTimeoutMS: 45000, // Close sockets after 45 seconds of inactivity
     };
 
     cached.promise = mongoose.connect(MONGODB_URI, opts).then((mongoose) => {
@@ -39,8 +42,23 @@ async function connectDB(): Promise<typeof mongoose> {
 
   try {
     cached.conn = await cached.promise;
-  } catch (e) {
+  } catch (e: any) {
     cached.promise = null;
+    
+    // Provide helpful error messages
+    if (e?.name === 'MongooseServerSelectionError') {
+      const errorMessage = e.message || 'Could not connect to MongoDB';
+      if (errorMessage.includes('IP') || errorMessage.includes('whitelist')) {
+        throw new Error(
+          'MongoDB Atlas connection failed: Your IP address is not whitelisted. ' +
+          'Please add your server IP to MongoDB Atlas Network Access. ' +
+          'For Vercel deployments, whitelist 0.0.0.0/0 or use Vercel IP ranges. ' +
+          'See DEPLOYMENT.md for instructions.'
+        );
+      }
+      throw new Error(`MongoDB connection failed: ${errorMessage}. Check your MONGODB_URI and network access settings.`);
+    }
+    
     throw e;
   }
 
