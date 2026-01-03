@@ -24,7 +24,11 @@ export interface Habit {
   reminders?: {
     enabled: boolean;
     times: string[]; // HH:mm format
+    message?: string; // Reminder message
   };
+  description?: string;
+  habitualType?: 'build' | 'quit';
+  timeRange?: 'anytime' | 'morning' | 'afternoon' | 'evening';
   icon?: string;
   color?: string;
   archived: boolean;

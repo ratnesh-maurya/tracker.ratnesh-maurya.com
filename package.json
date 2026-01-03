@@ -11,7 +11,8 @@
     "test:watch": "jest --watch",
     "test:e2e": "playwright test",
     "seed": "tsx scripts/seed.ts",
-    "generate-icons": "node scripts/generate-icons.js"
+    "generate-icons": "node scripts/generate-icons.js",
+    "make-profiles-public": "tsx scripts/make-all-profiles-public.ts"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",

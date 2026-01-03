@@ -6,7 +6,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select } from '@/components/ui/select';
-import { ArrowLeft, BarChart3, TrendingUp } from 'lucide-react';
+import { ArrowLeft, TrendingUp, Sparkles, Bed, GraduationCap, IndianRupee } from 'lucide-react';
 import { format } from 'date-fns';
 import { NavBar } from '@/components/layout/NavBar';
 import { PieChart } from '@mui/x-charts/PieChart';
@@ -32,8 +32,10 @@ export default function AnalyticsPage() {
             if (!data.success) throw new Error(data.error);
             return data.data;
         },
-        staleTime: 0, // Always refetch when dateRange changes
-        gcTime: 0, // Don't cache old data
+        staleTime: 0,
+        gcTime: 0,
+        refetchOnMount: true,
+        refetchOnWindowFocus: true,
     });
 
     const handleDateRangeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -41,55 +43,6 @@ export default function AnalyticsPage() {
         setDateRange(newRange);
     };
 
-    if (isLoading) {
-        return (
-            <div className="min-h-screen bg-gray-50">
-                <header className="bg-white border-b">
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center space-x-4">
-                                <Link href="/dashboard">
-                                    <Button variant="ghost" size="icon">
-                                        <ArrowLeft className="h-4 w-4" />
-                                    </Button>
-                                </Link>
-                                <h1 className="text-2xl font-bold">Analytics</h1>
-                            </div>
-                            <Select
-                                value={dateRange}
-                                onChange={handleDateRangeChange}
-                                className="w-40"
-                                disabled={true}
-                            >
-                                <option value="daily">Today</option>
-                                <option value="weekly">This Week</option>
-                                <option value="mtd">This Month</option>
-                                <option value="ytd">This Year</option>
-                            </Select>
-                        </div>
-                    </div>
-                </header>
-                <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-24 md:pb-20">
-                    <div className="text-center py-12">Loading analytics...</div>
-                </main>
-            </div>
-        );
-    }
-
-    const data = analyticsData || {} as any;
-    const habits = data.habits || {};
-    const sleep = data.sleep || {};
-    const study = data.study || {};
-    const expenses = data.expenses || {};
-    const food = data.food || {};
-
-    // Prepare expense chart data
-    const expenseChartData = Object.entries(expenses.byCategory || {}).map(([name, value]: [string, any]) => ({
-        name,
-        value: parseFloat(value.toFixed(2)),
-    }));
-
-    // Get date range info for display
     const getDateRangeLabel = () => {
         const now = new Date();
         switch (dateRange) {
@@ -110,23 +63,77 @@ export default function AnalyticsPage() {
         }
     };
 
+    if (isLoading) {
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
+                <header className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border-b border-gray-200/50 dark:border-gray-700/50 sticky top-0 z-10">
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-3">
+                                <Link href="/dashboard">
+                                    <Button variant="ghost" size="icon" className="rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-smooth">
+                                        <ArrowLeft className="h-4 w-4" />
+                                    </Button>
+                                </Link>
+                                <div>
+                                    <h1 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 dark:from-gray-100 dark:to-gray-300 bg-clip-text text-transparent">
+                                        Analytics
+                                    </h1>
+                                </div>
+                            </div>
+                            <Select
+                                value={dateRange}
+                                onChange={handleDateRangeChange}
+                                className="w-40 rounded-lg bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600"
+                                disabled={true}
+                            >
+                                <option value="daily">Today</option>
+                                <option value="weekly">This Week</option>
+                                <option value="mtd">This Month</option>
+                                <option value="ytd">This Year</option>
+                            </Select>
+                        </div>
+                    </div>
+                </header>
+                <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-24 md:pb-20">
+                    <div className="text-center py-12 animate-pulse text-gray-400 dark:text-gray-500">Loading analytics...</div>
+                </main>
+            </div>
+        );
+    }
+
+    const data = analyticsData || {} as any;
+    const habits = data.habits || {};
+    const sleep = data.sleep || {};
+    const study = data.study || {};
+    const expenses = data.expenses || {};
+
+    const expenseChartData = Object.entries(expenses.byCategory || {}).map(([name, value]: [string, any]) => ({
+        name,
+        value: parseFloat(value.toFixed(2)),
+    }));
+
     return (
-        <div className="min-h-screen bg-gray-50">
-            <header className="bg-white border-b sticky top-0 z-10">
+        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
+            <header className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border-b border-gray-200/50 dark:border-gray-700/50 sticky top-0 z-10">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
                     <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-4">
+                        <div className="flex items-center space-x-3">
                             <Link href="/dashboard">
-                                <Button variant="ghost" size="icon">
+                                <Button variant="ghost" size="icon" className="rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-smooth">
                                     <ArrowLeft className="h-4 w-4" />
                                 </Button>
                             </Link>
-                            <h1 className="text-2xl font-bold">Analytics</h1>
+                            <div>
+                                <h1 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 dark:from-gray-100 dark:to-gray-300 bg-clip-text text-transparent">
+                                    Analytics
+                                </h1>
+                            </div>
                         </div>
                         <Select
                             value={dateRange}
                             onChange={handleDateRangeChange}
-                            className="w-40"
+                            className="w-40 rounded-lg bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100"
                             disabled={isFetching}
                         >
                             <option value="daily">Today</option>
@@ -139,60 +146,86 @@ export default function AnalyticsPage() {
             </header>
 
             <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-24 md:pb-20">
-                <div className="mb-4 text-sm text-gray-600">
-                    Showing data for: <span className="font-semibold">{getDateRangeLabel()}</span>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-                    <Card>
-                        <CardHeader className="pb-2">
-                            <CardTitle className="text-sm font-medium text-gray-600">Habit Completion</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold">{habits.completionRate?.toFixed(1) || 0}%</div>
-                            <p className="text-xs text-gray-500 mt-1">{habits.totalHabits || 0} active habits</p>
-                        </CardContent>
-                    </Card>
-
-                    <Card>
-                        <CardHeader className="pb-2">
-                            <CardTitle className="text-sm font-medium text-gray-600">Avg Sleep</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold">
-                                {sleep.averageDuration ? `${Math.floor(sleep.averageDuration / 60)}h ${sleep.averageDuration % 60}m` : 'N/A'}
-                            </div>
-                            <p className="text-xs text-gray-500 mt-1">{sleep.totalDays || 0} days tracked</p>
-                        </CardContent>
-                    </Card>
-
-                    <Card>
-                        <CardHeader className="pb-2">
-                            <CardTitle className="text-sm font-medium text-gray-600">Study Time</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold">{study.totalHours?.toFixed(1) || 0}h</div>
-                            <p className="text-xs text-gray-500 mt-1">{study.totalSessions || 0} sessions</p>
-                        </CardContent>
-                    </Card>
-
-                    <Card>
-                        <CardHeader className="pb-2">
-                            <CardTitle className="text-sm font-medium text-gray-600">Total Expenses</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold">
-                                {expenses.currency || 'USD'} {expenses.total?.toFixed(2) || 0}
-                            </div>
-                            <p className="text-xs text-gray-500 mt-1">{Object.keys(expenses.byCategory || {}).length} categories</p>
-                        </CardContent>
-                    </Card>
+                <div className="mb-6 text-sm text-gray-600 dark:text-gray-400 animate-fade-in">
+                    Showing data for: <span className="font-semibold text-gray-800 dark:text-gray-200">{getDateRangeLabel()}</span>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                {/* Stats Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8 animate-fade-in">
+                    <Card className="border-0 shadow-md bg-gradient-to-br from-blue-500 to-blue-600 text-white">
+                        <CardContent className="py-5">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-blue-100 text-sm mb-1 font-medium">Habit Completion</p>
+                                    <p className="text-3xl font-bold">{habits.completionRate?.toFixed(1) || 0}%</p>
+                                    <p className="text-xs text-blue-100 mt-1">{habits.totalHabits || 0} active habits</p>
+                                </div>
+                                <div className="bg-white/20 p-3 rounded-full backdrop-blur-sm">
+                                    <Sparkles className="h-6 w-6" />
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <Card className="border-0 shadow-md bg-gradient-to-br from-indigo-500 to-indigo-600 text-white">
+                        <CardContent className="py-5">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-indigo-100 text-sm mb-1 font-medium">Avg Sleep</p>
+                                    <p className="text-3xl font-bold">
+                                        {sleep.averageDuration ? `${Math.floor(sleep.averageDuration / 60)}h ${sleep.averageDuration % 60}m` : 'N/A'}
+                                    </p>
+                                    <p className="text-xs text-indigo-100 mt-1">{sleep.totalDays || 0} days tracked</p>
+                                </div>
+                                <div className="bg-white/20 p-3 rounded-full backdrop-blur-sm">
+                                    <Bed className="h-6 w-6" />
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <Card className="border-0 shadow-md bg-gradient-to-br from-purple-500 to-purple-600 text-white">
+                        <CardContent className="py-5">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-purple-100 text-sm mb-1 font-medium">Study Time</p>
+                                    <p className="text-3xl font-bold">{study.totalHours?.toFixed(1) || 0}h</p>
+                                    <p className="text-xs text-purple-100 mt-1">{study.totalSessions || 0} sessions</p>
+                                </div>
+                                <div className="bg-white/20 p-3 rounded-full backdrop-blur-sm">
+                                    <GraduationCap className="h-6 w-6" />
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <Card className="border-0 shadow-md bg-gradient-to-br from-yellow-500 to-yellow-600 text-white">
+                        <CardContent className="py-5">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-yellow-100 text-sm mb-1 font-medium">Total Expenses</p>
+                                    <p className="text-3xl font-bold">
+                                        ₹{expenses.total?.toFixed(2) || 0}
+                                    </p>
+                                    <p className="text-xs text-yellow-100 mt-1">{Object.keys(expenses.byCategory || {}).length} categories</p>
+                                </div>
+                                <div className="bg-white/20 p-3 rounded-full backdrop-blur-sm">
+                                    <IndianRupee className="h-6 w-6" />
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </div>
+
+                {/* Charts */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6 animate-slide-up">
                     {expenseChartData.length > 0 && (
-                        <Card>
+                        <Card className="border-0 shadow-lg bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm">
                             <CardHeader>
-                                <CardTitle>Expenses by Category</CardTitle>
+                                <CardTitle className="text-lg font-semibold flex items-center gap-2 text-gray-800 dark:text-gray-100">
+                                    <TrendingUp className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+                                    Expenses by Category
+                                </CardTitle>
                             </CardHeader>
                             <CardContent>
                                 <ThemeProvider theme={chartTheme}>
@@ -221,9 +254,12 @@ export default function AnalyticsPage() {
                     )}
 
                     {expenseChartData.length > 0 && (
-                        <Card>
+                        <Card className="border-0 shadow-lg bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm">
                             <CardHeader>
-                                <CardTitle>Expense Breakdown</CardTitle>
+                                <CardTitle className="text-lg font-semibold flex items-center gap-2 text-gray-800 dark:text-gray-100">
+                                    <TrendingUp className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+                                    Expense Breakdown
+                                </CardTitle>
                             </CardHeader>
                             <CardContent>
                                 <ThemeProvider theme={chartTheme}>
@@ -238,7 +274,7 @@ export default function AnalyticsPage() {
                                             series={[
                                                 {
                                                     data: expenseChartData.map((entry) => entry.value),
-                                                    color: '#3B82F6',
+                                                    color: '#F59E0B',
                                                 },
                                             ]}
                                             width={Math.max(400, expenseChartData.length * 80)}
@@ -252,48 +288,33 @@ export default function AnalyticsPage() {
                     )}
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <Card>
+                {/* Additional Stats */}
+                <div className="grid grid-cols-1 lg:grid-cols-1 gap-6 animate-slide-up">
+                    <Card className="border-0 shadow-md bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm">
                         <CardHeader>
-                            <CardTitle>Habits Overview</CardTitle>
+                            <CardTitle className="text-lg font-semibold flex items-center gap-2 text-gray-800 dark:text-gray-100">
+                                <Sparkles className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                                Habits Overview
+                            </CardTitle>
                         </CardHeader>
                         <CardContent>
                             <div className="space-y-4">
-                                <div className="flex items-center justify-between">
-                                    <span className="text-sm text-gray-600">Completion Rate</span>
-                                    <span className="text-lg font-semibold">{habits.completionRate?.toFixed(1) || 0}%</span>
+                                <div className="flex items-center justify-between py-2 border-b border-gray-100 dark:border-gray-700">
+                                    <span className="text-sm text-gray-600 dark:text-gray-400">Completion Rate</span>
+                                    <span className="text-lg font-semibold text-gray-800 dark:text-gray-100">{habits.completionRate?.toFixed(1) || 0}%</span>
                                 </div>
-                                <div className="flex items-center justify-between">
-                                    <span className="text-sm text-gray-600">Active Habits</span>
-                                    <span className="text-lg font-semibold">{habits.totalHabits || 0}</span>
+                                <div className="flex items-center justify-between py-2 border-b border-gray-100 dark:border-gray-700">
+                                    <span className="text-sm text-gray-600 dark:text-gray-400">Active Habits</span>
+                                    <span className="text-lg font-semibold text-gray-800 dark:text-gray-100">{habits.totalHabits || 0}</span>
                                 </div>
-                                <div className="flex items-center justify-between">
-                                    <span className="text-sm text-gray-600">Active Streaks</span>
-                                    <span className="text-lg font-semibold">{habits.activeStreaks || 0}</span>
+                                <div className="flex items-center justify-between py-2">
+                                    <span className="text-sm text-gray-600 dark:text-gray-400">Active Streaks</span>
+                                    <span className="text-lg font-semibold text-gray-800 dark:text-gray-100">{habits.activeStreaks || 0}</span>
                                 </div>
                             </div>
                         </CardContent>
                     </Card>
 
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Food & Nutrition</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="space-y-4">
-                                <div className="flex items-center justify-between">
-                                    <span className="text-sm text-gray-600">Total Meals</span>
-                                    <span className="text-lg font-semibold">{food.totalMeals || 0}</span>
-                                </div>
-                                {food.averageCalories && food.averageCalories > 0 && (
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-sm text-gray-600">Avg Calories</span>
-                                        <span className="text-lg font-semibold">{food.averageCalories} cal</span>
-                                    </div>
-                                )}
-                            </div>
-                        </CardContent>
-                    </Card>
                 </div>
             </main>
             <NavBar />

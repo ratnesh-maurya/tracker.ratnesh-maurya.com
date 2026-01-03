@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Baloo_Bhai_2 } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/providers";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
@@ -7,7 +7,11 @@ import { PWAInstaller } from "@/components/pwa/PWAInstaller";
 import { PWAMeta } from "@/components/pwa/PWAMeta";
 import { SEO } from "@/components/SEO";
 
-const inter = Inter({ subsets: ["latin"] });
+const balooBhai2 = Baloo_Bhai_2({
+    subsets: ["latin"],
+    weight: ["400", "500", "600", "700", "800"],
+    variable: "--font-baloo-bhai-2",
+});
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://tracker.ratnesh-maurya.com';
 const siteName = "Personal Tracker";
@@ -139,7 +143,7 @@ export default function RootLayout({
                     dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
                 />
             </head>
-            <body className={inter.className}>
+            <body className={balooBhai2.className}>
                 <PWAMeta />
                 <SEO />
                 <ErrorBoundary>

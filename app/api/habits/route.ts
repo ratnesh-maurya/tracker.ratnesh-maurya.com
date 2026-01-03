@@ -7,12 +7,16 @@ import { ApiResponse } from '@/types';
 
 const habitSchema = z.object({
   title: z.string().min(1).max(100),
+  description: z.string().max(500).optional(),
   type: z.enum(['boolean', 'count']),
   schedule: z.enum(['daily', 'weekly', 'monthly', 'custom']),
   target: z.number().min(1).optional(),
+  habitualType: z.enum(['build', 'quit']).optional(),
+  timeRange: z.enum(['anytime', 'morning', 'afternoon', 'evening']).optional(),
   reminders: z.object({
     enabled: z.boolean(),
     times: z.array(z.string().regex(/^([0-1][0-9]|2[0-3]):[0-5][0-9]$/)),
+    message: z.string().max(200).optional(),
   }).optional(),
   icon: z.string().max(50).optional(),
   color: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),

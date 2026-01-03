@@ -30,13 +30,13 @@ export function Modal({ isOpen, onClose, title, children, size = 'md' }: ModalPr
         >
             <div
                 className={cn(
-                    'bg-white rounded-lg shadow-xl w-full flex flex-col max-h-[90vh]',
+                    'bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full flex flex-col max-h-[90vh]',
                     sizeClasses[size]
                 )}
                 onClick={(e) => e.stopPropagation()}
             >
-                <div className="flex items-center justify-between p-6 border-b flex-shrink-0">
-                    <h2 className="text-xl font-semibold">{title}</h2>
+                <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
+                    <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">{title}</h2>
                     <Button variant="ghost" size="icon" onClick={onClose}>
                         <X className="h-4 w-4" />
                     </Button>

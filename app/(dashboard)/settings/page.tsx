@@ -6,7 +6,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ArrowLeft, Settings, User, Moon, Volume2, LogOut } from 'lucide-react';
+import { ArrowLeft, Settings, User, Moon, Volume2, LogOut, ExternalLink, Copy, Check } from 'lucide-react';
 import { NavBar } from '@/components/layout/NavBar';
 import { useRouter } from 'next/navigation';
 
@@ -19,15 +19,20 @@ export default function SettingsPage() {
     const [name, setName] = useState('');
     const [phone, setPhone] = useState('');
     const [isEditingProfile, setIsEditingProfile] = useState(false);
+    const [copied, setCopied] = useState(false);
 
     const { data: userData } = useQuery({
         queryKey: ['user'],
         queryFn: async () => {
-            const res = await fetch('/api/users/me');
+            const res = await fetch('/api/users/me', { cache: 'no-store' });
             const data = await res.json();
             if (!data.success) throw new Error(data.error);
             return data.data;
         },
+        staleTime: 0,
+        gcTime: 0,
+        refetchOnMount: true,
+        refetchOnWindowFocus: true,
     });
 
     const updateMutation = useMutation({
@@ -43,6 +48,7 @@ export default function SettingsPage() {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['user'] });
+            setIsEditingProfile(false);
         },
     });
 
@@ -52,8 +58,21 @@ export default function SettingsPage() {
     };
 
     useEffect(() => {
+        // Initialize dark mode from localStorage or system preference
+        const savedDarkMode = localStorage.getItem('darkMode');
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const isDark = savedDarkMode !== null ? savedDarkMode === 'true' : prefersDark;
+
+        setDarkMode(isDark);
+        if (isDark) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+
         if (userData) {
             setProfilePublic(userData.profilePublic || false);
+            setSounds(userData.sounds !== undefined ? userData.sounds : true);
             setName(userData.name ?? '');
             setPhone(userData.phone ?? '');
         }
@@ -62,7 +81,7 @@ export default function SettingsPage() {
     const handleToggle = (setting: string, value: boolean) => {
         if (setting === 'darkMode') {
             setDarkMode(value);
-            // Apply dark mode class
+            localStorage.setItem('darkMode', value.toString());
             if (value) {
                 document.documentElement.classList.add('dark');
             } else {
@@ -70,6 +89,8 @@ export default function SettingsPage() {
             }
         } else if (setting === 'sounds') {
             setSounds(value);
+            localStorage.setItem('sounds', value.toString()); // Update localStorage immediately
+            updateMutation.mutate({ sounds: value });
         } else if (setting === 'profilePublic') {
             setProfilePublic(value);
             updateMutation.mutate({ profilePublic: value });
@@ -77,36 +98,42 @@ export default function SettingsPage() {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-            <header className="bg-white dark:bg-gray-800 border-b sticky top-0 z-10">
+        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
+            <header className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border-b border-gray-200/50 dark:border-gray-700/50 sticky top-0 z-10">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-                    <div className="flex items-center space-x-4">
+                    <div className="flex items-center space-x-3">
                         <Link href="/dashboard">
-                            <Button variant="ghost" size="icon">
+                            <Button variant="ghost" size="icon" className="rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-smooth">
                                 <ArrowLeft className="h-4 w-4" />
                             </Button>
                         </Link>
-                        <h1 className="text-2xl font-bold dark:text-white">Settings</h1>
+                        <div>
+                            <h1 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 dark:from-gray-100 dark:to-gray-300 bg-clip-text text-transparent">
+                                Settings
+                            </h1>
+                        </div>
                     </div>
                 </div>
             </header>
 
             <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-24 md:pb-20">
-                <div className="space-y-6">
+                <div className="space-y-6 animate-fade-in">
                     {/* General Section */}
-                    <Card className="dark:bg-gray-800">
+                    <Card className="border-0 shadow-md bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm">
                         <CardHeader>
-                            <CardTitle className="flex items-center gap-2 dark:text-white">
-                                <Settings className="h-5 w-5" />
-                                GENERAL
+                            <CardTitle className="flex items-center gap-2 text-gray-800 dark:text-gray-100">
+                                <Settings className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+                                General
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                            <div className="flex items-center justify-between">
+                            <div className="flex items-center justify-between py-3 border-b border-gray-100 dark:border-gray-700">
                                 <div className="flex items-center gap-3">
-                                    <Moon className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+                                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-gray-400 to-gray-500 flex items-center justify-center">
+                                        <Moon className="h-5 w-5 text-white" />
+                                    </div>
                                     <div>
-                                        <p className="font-medium dark:text-white">Dark Mode</p>
+                                        <p className="font-medium text-gray-800 dark:text-gray-100">Dark Mode</p>
                                         <p className="text-sm text-gray-500 dark:text-gray-400">Switch to dark theme</p>
                                     </div>
                                 </div>
@@ -122,11 +149,13 @@ export default function SettingsPage() {
                                 </button>
                             </div>
 
-                            <div className="flex items-center justify-between">
+                            <div className="flex items-center justify-between py-3 border-b border-gray-100 dark:border-gray-700">
                                 <div className="flex items-center gap-3">
-                                    <Volume2 className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+                                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-green-400 to-green-500 flex items-center justify-center">
+                                        <Volume2 className="h-5 w-5 text-white" />
+                                    </div>
                                     <div>
-                                        <p className="font-medium dark:text-white">Sounds</p>
+                                        <p className="font-medium text-gray-800 dark:text-gray-100">Sounds</p>
                                         <p className="text-sm text-gray-500 dark:text-gray-400">Enable sound notifications</p>
                                     </div>
                                 </div>
@@ -142,52 +171,93 @@ export default function SettingsPage() {
                                 </button>
                             </div>
 
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-3">
-                                    <User className="h-5 w-5 text-gray-600 dark:text-gray-400" />
-                                    <div>
-                                        <p className="font-medium dark:text-white">Public Profile</p>
-                                        <p className="text-sm text-gray-500 dark:text-gray-400">Make your profile visible to others</p>
+                            <div className="space-y-3">
+                                <div className="flex items-center justify-between py-3">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-400 to-blue-500 flex items-center justify-center">
+                                            <User className="h-5 w-5 text-white" />
+                                        </div>
+                                        <div>
+                                            <p className="font-medium text-gray-800 dark:text-gray-100">Public Profile</p>
+                                            <p className="text-sm text-gray-500 dark:text-gray-400">Make your profile visible to others</p>
+                                        </div>
                                     </div>
-                                </div>
-                                <button
-                                    onClick={() => handleToggle('profilePublic', !profilePublic)}
-                                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${profilePublic ? 'bg-blue-600' : 'bg-gray-300'
-                                        }`}
-                                >
-                                    <span
-                                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${profilePublic ? 'translate-x-6' : 'translate-x-1'
+                                    <button
+                                        onClick={() => handleToggle('profilePublic', !profilePublic)}
+                                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${profilePublic ? 'bg-blue-600' : 'bg-gray-300'
                                             }`}
-                                    />
-                                </button>
+                                    >
+                                        <span
+                                            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${profilePublic ? 'translate-x-6' : 'translate-x-1'
+                                                }`}
+                                        />
+                                    </button>
+                                </div>
+                                {profilePublic && userData?.username && (
+                                    <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-sm font-medium text-blue-900 dark:text-blue-100 mb-1">Your Public Profile</p>
+                                                <p className="text-xs text-blue-700 dark:text-blue-300 truncate">
+                                                    {typeof window !== 'undefined' ? `${window.location.origin}/u/${userData.username}` : ''}
+                                                </p>
+                                            </div>
+                                            <div className="flex gap-2 ml-2">
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    onClick={async () => {
+                                                        const url = typeof window !== 'undefined' ? `${window.location.origin}/u/${userData.username}` : '';
+                                                        if (url) {
+                                                            await navigator.clipboard.writeText(url);
+                                                            setCopied(true);
+                                                            setTimeout(() => setCopied(false), 2000);
+                                                        }
+                                                    }}
+                                                    className="h-8 w-8 text-blue-600 dark:text-blue-400"
+                                                >
+                                                    {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                                                </Button>
+                                                <a
+                                                    href={`/u/${userData.username}`}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="inline-flex items-center justify-center h-8 w-8 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 text-blue-600 dark:text-blue-400 transition-colors"
+                                                >
+                                                    <ExternalLink className="h-4 w-4" />
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         </CardContent>
                     </Card>
 
                     {/* Profile Section */}
-                    <Card className="dark:bg-gray-800">
+                    <Card className="border-0 shadow-md bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm">
                         <CardHeader>
-                            <CardTitle className="flex items-center gap-2 dark:text-white">
-                                <User className="h-5 w-5" />
-                                PROFILE
+                            <CardTitle className="flex items-center gap-2 text-gray-800 dark:text-gray-100">
+                                <User className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+                                Profile
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
                             {!isEditingProfile ? (
                                 <>
-                                    <div className="space-y-3">
-                                        <div>
+                                    <div className="space-y-4">
+                                        <div className="py-3 border-b border-gray-100 dark:border-gray-700">
                                             <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Name</p>
-                                            <p className="font-medium dark:text-white">{name || 'Not set'}</p>
+                                            <p className="font-medium text-gray-800 dark:text-gray-100">{name || 'Not set'}</p>
                                         </div>
-                                        <div>
+                                        <div className="py-3">
                                             <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Phone</p>
-                                            <p className="font-medium dark:text-white">{phone || 'Not set'}</p>
+                                            <p className="font-medium text-gray-800 dark:text-gray-100">{phone || 'Not set'}</p>
                                         </div>
                                     </div>
                                     <Button
                                         variant="outline"
-                                        className="w-full"
+                                        className="w-full rounded-lg"
                                         onClick={() => setIsEditingProfile(true)}
                                     >
                                         Edit Profile
@@ -200,16 +270,14 @@ export default function SettingsPage() {
                                         const updatePayload: any = {};
                                         if (name !== undefined) updatePayload.name = name || null;
                                         if (phone !== undefined) updatePayload.phone = phone || null;
-                                        console.log('Sending update:', updatePayload);
                                         await updateMutation.mutateAsync(updatePayload);
-                                        setIsEditingProfile(false);
                                     } catch (error) {
                                         console.error('Error updating profile:', error);
-                                        alert('Failed to update profile. Please check the console for details.');
+                                        alert('Failed to update profile. Please try again.');
                                     }
                                 }} className="space-y-4">
                                     <div>
-                                        <label htmlFor="name" className="block text-sm font-medium mb-2 dark:text-white">
+                                        <label htmlFor="name" className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
                                             Name
                                         </label>
                                         <Input
@@ -219,10 +287,11 @@ export default function SettingsPage() {
                                             onChange={(e) => setName(e.target.value)}
                                             placeholder="Your full name"
                                             maxLength={100}
+                                            className="rounded-lg"
                                         />
                                     </div>
                                     <div>
-                                        <label htmlFor="phone" className="block text-sm font-medium mb-2 dark:text-white">
+                                        <label htmlFor="phone" className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
                                             Phone
                                         </label>
                                         <Input
@@ -231,13 +300,14 @@ export default function SettingsPage() {
                                             value={phone}
                                             onChange={(e) => setPhone(e.target.value)}
                                             placeholder="+1234567890"
+                                            className="rounded-lg"
                                         />
                                     </div>
                                     <div className="flex gap-2">
                                         <Button
                                             type="button"
                                             variant="outline"
-                                            className="flex-1"
+                                            className="flex-1 rounded-lg"
                                             onClick={() => {
                                                 setIsEditingProfile(false);
                                                 if (userData) {
@@ -250,7 +320,7 @@ export default function SettingsPage() {
                                         </Button>
                                         <Button
                                             type="submit"
-                                            className="flex-1"
+                                            className="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-lg"
                                             disabled={updateMutation.isPending}
                                         >
                                             {updateMutation.isPending ? 'Saving...' : 'Save'}
@@ -262,12 +332,12 @@ export default function SettingsPage() {
                     </Card>
 
                     {/* Logout */}
-                    <Card className="dark:bg-gray-800">
+                    <Card className="border-0 shadow-md bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm">
                         <CardContent className="pt-6">
                             <Button
                                 onClick={handleLogout}
                                 variant="destructive"
-                                className="w-full"
+                                className="w-full rounded-lg"
                             >
                                 <LogOut className="h-4 w-4 mr-2" />
                                 Logout
@@ -276,14 +346,14 @@ export default function SettingsPage() {
                     </Card>
 
                     {/* Developer Credit */}
-                    <div className="text-center pt-4 pb-2">
+                    <div className="text-center pt-4 pb-2 animate-fade-in">
                         <p className="text-sm text-gray-500 dark:text-gray-400">
                             Built by{' '}
                             <a
                                 href="https://ratnesh-maurya.com"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="text-blue-600 dark:text-blue-400 hover:underline font-medium"
+                                className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:underline font-medium transition-colors"
                             >
                                 Ratnesh Maurya
                             </a>
@@ -295,4 +365,3 @@ export default function SettingsPage() {
         </div>
     );
 }
-

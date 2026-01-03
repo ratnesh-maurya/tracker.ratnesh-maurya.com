@@ -58,7 +58,7 @@ export async function GET(request: NextRequest) {
     });
 
     // Cache for 30 seconds
-    response.headers.set('Cache-Control', 'private, max-age=30, stale-while-revalidate=60');
+    response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
     
     return response;
   } catch (error) {

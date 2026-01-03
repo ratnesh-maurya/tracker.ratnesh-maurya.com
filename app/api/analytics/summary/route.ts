@@ -51,7 +51,7 @@ export async function GET(request: NextRequest) {
     const { getDateRange } = await import('@/lib/utils');
     const { start, end } = getDateRange(validatedData.range, customStart, customEnd);
 
-    return NextResponse.json<ApiResponse>({
+    const response = NextResponse.json<ApiResponse>({
       success: true,
       data: {
         dateRange: validatedData.range,
@@ -64,6 +64,8 @@ export async function GET(request: NextRequest) {
         food,
       },
     });
+    response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    return response;
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json<ApiResponse>({ success: false, error: error.errors[0].message }, { status: 400 });

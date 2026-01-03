@@ -8,6 +8,7 @@ export interface IUser extends Document {
   phone?: string;
   password: string;
   profilePublic: boolean;
+  sounds: boolean;
   dietaryPreferences?: string[];
   createdAt: Date;
   updatedAt: Date;
@@ -59,7 +60,11 @@ const UserSchema = new Schema<IUser>(
     },
     profilePublic: {
       type: Boolean,
-      default: false,
+      default: true,
+    },
+    sounds: {
+      type: Boolean,
+      default: true,
     },
     dietaryPreferences: {
       type: [String],
