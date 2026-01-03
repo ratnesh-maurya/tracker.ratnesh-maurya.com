@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -33,12 +33,50 @@ const DEFAULT_PASSWORD = 'password123';
 
 export default function LoginPage() {
     const router = useRouter();
-    const [email, setEmail] = useState(DEFAULT_EMAIL);
-    const [password, setPassword] = useState(DEFAULT_PASSWORD);
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
     const [rememberMe, setRememberMe] = useState(false);
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+    const [checkingAuth, setCheckingAuth] = useState(true);
+    const [mounted, setMounted] = useState(false);
     const [currentQuote] = useState(quotes[Math.floor(Math.random() * quotes.length)]);
+
+    // Force light mode on login page (client-side only)
+    useEffect(() => {
+        setMounted(true);
+        const savedDarkMode = localStorage.getItem('darkMode');
+        document.documentElement.classList.remove('dark');
+        return () => {
+            // Restore previous theme when leaving page
+            if (savedDarkMode === 'true') {
+                document.documentElement.classList.add('dark');
+            }
+        };
+    }, []);
+
+    // Check if user is already authenticated
+    useEffect(() => {
+        const checkAuth = async () => {
+            try {
+                const response = await fetch('/api/users/me');
+                if (response.ok) {
+                    router.push('/dashboard');
+                    return;
+                }
+            } catch (err) {
+                // Not authenticated, continue to login page
+            } finally {
+                setCheckingAuth(false);
+            }
+        };
+        checkAuth();
+    }, [router]);
+
+    const handleUseTestCredentials = () => {
+        setEmail(DEFAULT_EMAIL);
+        setPassword(DEFAULT_PASSWORD);
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -66,6 +104,17 @@ export default function LoginPage() {
             setLoading(false);
         }
     };
+
+    if (checkingAuth) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-gray-50">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                    <p className="text-gray-600">Checking authentication...</p>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen flex">
@@ -170,17 +219,26 @@ export default function LoginPage() {
                             />
                         </div>
 
-                        <div className="flex items-center">
-                            <input
-                                id="remember"
-                                type="checkbox"
-                                checked={rememberMe}
-                                onChange={(e) => setRememberMe(e.target.checked)}
-                                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                            />
-                            <label htmlFor="remember" className="ml-2 text-sm text-gray-600">
-                                Remember me for 30 days
-                            </label>
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center">
+                                <input
+                                    id="remember"
+                                    type="checkbox"
+                                    checked={rememberMe}
+                                    onChange={(e) => setRememberMe(e.target.checked)}
+                                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                />
+                                <label htmlFor="remember" className="ml-2 text-sm text-gray-600">
+                                    Remember me for 30 days
+                                </label>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={handleUseTestCredentials}
+                                className="text-xs text-blue-600 hover:text-blue-700 hover:underline"
+                            >
+                                Use test credentials
+                            </button>
                         </div>
 
                         <Button

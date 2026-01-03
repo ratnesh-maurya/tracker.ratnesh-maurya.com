@@ -12,6 +12,7 @@ import { NavBar } from '@/components/layout/NavBar';
 import { PieChart } from '@mui/x-charts/PieChart';
 import { BarChart } from '@mui/x-charts/BarChart';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
+import { handleApiResponse } from '@/lib/api/client';
 
 const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'];
 
@@ -28,9 +29,7 @@ export default function AnalyticsPage() {
         queryKey: ['analytics', dateRange],
         queryFn: async () => {
             const res = await fetch(`/api/analytics/summary?range=${dateRange}`);
-            const data = await res.json();
-            if (!data.success) throw new Error(data.error);
-            return data.data;
+            return handleApiResponse(res);
         },
         staleTime: 0,
         gcTime: 0,
@@ -65,7 +64,7 @@ export default function AnalyticsPage() {
 
     if (isLoading) {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
+            <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30">
                 <header className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border-b border-gray-200/50 dark:border-gray-700/50 sticky top-0 z-10">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
                         <div className="flex items-center justify-between">
@@ -108,13 +107,14 @@ export default function AnalyticsPage() {
     const study = data.study || {};
     const expenses = data.expenses || {};
 
-    const expenseChartData = Object.entries(expenses.byCategory || {}).map(([name, value]: [string, any]) => ({
+    const expenseChartData = Object.entries(expenses.byCategory || {}).map(([name, value]: [string, any], index) => ({
         name,
         value: parseFloat(value.toFixed(2)),
+        color: COLORS[index % COLORS.length],
     }));
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30">
             <header className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border-b border-gray-200/50 dark:border-gray-700/50 sticky top-0 z-10">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
                     <div className="flex items-center justify-between">
@@ -220,7 +220,7 @@ export default function AnalyticsPage() {
                 {/* Charts */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6 animate-slide-up">
                     {expenseChartData.length > 0 && (
-                        <Card className="border-0 shadow-lg bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm">
+                        <Card className="border border-white/30 dark:border-white/10 shadow-xl bg-white/40 dark:bg-gray-800/70 backdrop-blur-2xl">
                             <CardHeader>
                                 <CardTitle className="text-lg font-semibold flex items-center gap-2 text-gray-800 dark:text-gray-100">
                                     <TrendingUp className="h-5 w-5 text-orange-600 dark:text-orange-400" />
@@ -237,7 +237,7 @@ export default function AnalyticsPage() {
                                                         id: index,
                                                         value: entry.value,
                                                         label: entry.name,
-                                                        color: COLORS[index % COLORS.length],
+                                                        color: entry.color,
                                                     })),
                                                     innerRadius: 30,
                                                     outerRadius: 100,
@@ -254,7 +254,7 @@ export default function AnalyticsPage() {
                     )}
 
                     {expenseChartData.length > 0 && (
-                        <Card className="border-0 shadow-lg bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm">
+                        <Card className="border border-white/30 dark:border-white/10 shadow-xl bg-white/40 dark:bg-gray-800/70 backdrop-blur-2xl">
                             <CardHeader>
                                 <CardTitle className="text-lg font-semibold flex items-center gap-2 text-gray-800 dark:text-gray-100">
                                     <TrendingUp className="h-5 w-5 text-orange-600 dark:text-orange-400" />
@@ -274,9 +274,10 @@ export default function AnalyticsPage() {
                                             series={[
                                                 {
                                                     data: expenseChartData.map((entry) => entry.value),
-                                                    color: '#F59E0B',
+                                                    label: 'Expenses',
                                                 },
                                             ]}
+                                            colors={expenseChartData.map((entry) => entry.color)}
                                             width={Math.max(400, expenseChartData.length * 80)}
                                             height={300}
                                             sx={{ width: '100%', maxWidth: '100%' }}
@@ -290,7 +291,7 @@ export default function AnalyticsPage() {
 
                 {/* Additional Stats */}
                 <div className="grid grid-cols-1 lg:grid-cols-1 gap-6 animate-slide-up">
-                    <Card className="border-0 shadow-md bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm">
+                    <Card className="border border-white/30 dark:border-white/10 shadow-xl bg-white/40 dark:bg-gray-800/70 backdrop-blur-2xl">
                         <CardHeader>
                             <CardTitle className="text-lg font-semibold flex items-center gap-2 text-gray-800 dark:text-gray-100">
                                 <Sparkles className="h-5 w-5 text-blue-600 dark:text-blue-400" />

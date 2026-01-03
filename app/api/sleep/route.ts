@@ -79,9 +79,55 @@ export async function POST(request: NextRequest) {
 
     await connectDB();
 
-    const sleepDate = new Date(validatedData.date);
-    const startTime = new Date(validatedData.startTime);
-    const endTime = new Date(validatedData.endTime);
+    // Parse date
+    const sleepDate = typeof validatedData.date === 'string' ? new Date(validatedData.date) : validatedData.date;
+    if (isNaN(sleepDate.getTime())) {
+      return NextResponse.json<ApiResponse>({ success: false, error: 'Invalid date format' }, { status: 400 });
+    }
+
+    // Parse startTime and endTime - they might be strings (HH:mm) or full datetime strings
+    let startTime: Date;
+    let endTime: Date;
+
+    if (typeof validatedData.startTime === 'string') {
+      // If it's just time (HH:mm), combine with date
+      if (validatedData.startTime.match(/^\d{2}:\d{2}$/)) {
+        const [hours, minutes] = validatedData.startTime.split(':').map(Number);
+        startTime = new Date(sleepDate);
+        startTime.setHours(hours, minutes, 0, 0);
+      } else {
+        // Full datetime string
+        startTime = new Date(validatedData.startTime);
+      }
+    } else {
+      startTime = validatedData.startTime;
+    }
+
+    if (typeof validatedData.endTime === 'string') {
+      // If it's just time (HH:mm), combine with date
+      if (validatedData.endTime.match(/^\d{2}:\d{2}$/)) {
+        const [hours, minutes] = validatedData.endTime.split(':').map(Number);
+        endTime = new Date(sleepDate);
+        endTime.setHours(hours, minutes, 0, 0);
+        // If end time is earlier than start time, assume it's the next day
+        if (endTime < startTime) {
+          endTime.setDate(endTime.getDate() + 1);
+        }
+      } else {
+        // Full datetime string
+        endTime = new Date(validatedData.endTime);
+      }
+    } else {
+      endTime = validatedData.endTime;
+    }
+
+    // Validate dates
+    if (isNaN(startTime.getTime())) {
+      return NextResponse.json<ApiResponse>({ success: false, error: 'Invalid start time format' }, { status: 400 });
+    }
+    if (isNaN(endTime.getTime())) {
+      return NextResponse.json<ApiResponse>({ success: false, error: 'Invalid end time format' }, { status: 400 });
+    }
 
     // Check if entry exists for this date
     const startOfDay = getStartOfDay(sleepDate);
@@ -95,6 +141,9 @@ export async function POST(request: NextRequest) {
 
     // Calculate duration in minutes
     const diffMs = endTime.getTime() - startTime.getTime();
+    if (diffMs < 0) {
+      return NextResponse.json<ApiResponse>({ success: false, error: 'End time must be after start time' }, { status: 400 });
+    }
     const duration = Math.round(diffMs / (1000 * 60)); // Convert to minutes
 
     if (existingEntry) {

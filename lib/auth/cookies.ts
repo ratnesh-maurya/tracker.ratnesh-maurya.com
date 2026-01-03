@@ -17,11 +17,11 @@ export function setAuthCookies(
   const accessToken = generateAccessToken(userId, email);
   const refreshToken = generateRefreshToken(userId, email);
 
-  const maxAge = rememberMe ? 30 * 24 * 60 * 60 : 15 * 60; // 30 days or 15 minutes
+  const maxAge = 30 * 24 * 60 * 60; // 30 days
 
   response.cookies.set('accessToken', accessToken, {
     ...COOKIE_OPTIONS,
-    maxAge: rememberMe ? 30 * 24 * 60 * 60 : 15 * 60,
+    maxAge: 30 * 24 * 60 * 60, // 30 days
   });
 
   response.cookies.set('refreshToken', refreshToken, {

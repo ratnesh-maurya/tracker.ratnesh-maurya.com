@@ -16,6 +16,7 @@ import { Habit } from '@/types';
 import { calculateStreak } from '@/lib/habits/streak';
 import { getStartOfDay } from '@/lib/utils';
 import { format } from 'date-fns';
+import { handleApiResponse } from '@/lib/api/client';
 
 export default function HabitsPage() {
     const queryClient = useQueryClient();
@@ -29,9 +30,7 @@ export default function HabitsPage() {
         queryKey: ['habits'],
         queryFn: async () => {
             const res = await fetch('/api/habits', { cache: 'no-store' });
-            const data = await res.json();
-            if (!data.success) throw new Error(data.error);
-            return data.data as Habit[];
+            return handleApiResponse<Habit[]>(res);
         },
         staleTime: 0,
         gcTime: 0,
@@ -216,7 +215,7 @@ export default function HabitsPage() {
         });
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30">
             <HabitReminderManager />
             <header className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border-b border-gray-200/50 dark:border-gray-700/50 sticky top-0 z-10">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
@@ -251,7 +250,7 @@ export default function HabitsPage() {
                 {isLoading ? (
                     <div className="text-center py-12 animate-pulse text-gray-400 dark:text-gray-500">Loading...</div>
                 ) : habits.length === 0 ? (
-                    <Card className="border-2 border-dashed border-gray-300 dark:border-gray-700 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm">
+                    <Card className="border-2 border-dashed border-white/40 dark:border-white/20 bg-white/40 dark:bg-gray-800/70 backdrop-blur-2xl">
                         <CardContent className="py-12 text-center">
                             <p className="text-gray-600 dark:text-gray-300 mb-4">No habits yet. Create your first habit to get started!</p>
                             <Button
@@ -301,7 +300,7 @@ export default function HabitsPage() {
                                 const streak = getStreak(habit._id);
 
                                 return (
-                                    <Card key={habit._id} className="hover:shadow-md transition-shadow bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm border-0">
+                                    <Card key={habit._id} className="hover:shadow-2xl transition-shadow bg-white/40 dark:bg-gray-800/70 backdrop-blur-2xl border border-white/30 dark:border-white/10">
                                         <CardContent className="p-4">
                                             <div className="flex items-start gap-4">
                                                 <div

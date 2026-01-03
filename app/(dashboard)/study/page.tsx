@@ -15,6 +15,7 @@ import { NavBar } from '@/components/layout/NavBar';
 import { formatDate } from '@/lib/utils';
 import { Pagination } from '@/components/ui/pagination';
 import { Chip } from '@/components/ui/chip';
+import { handleApiResponse } from '@/lib/api/client';
 
 const TOPIC_OPTIONS = ['DSA', 'Golang', 'System Design', 'Other'];
 const TAG_OPTIONS = ['golang', 'dsa', 'LLD', 'HLD', 'leetcode', 'codechef'];
@@ -42,9 +43,7 @@ export default function StudyPage() {
         queryKey: ['study', page],
         queryFn: async () => {
             const res = await fetch(`/api/study?page=${page}&limit=${limit}`, { cache: 'no-store' });
-            const data = await res.json();
-            if (!data.success) throw new Error(data.error);
-            return data.data;
+            return handleApiResponse(res);
         },
         staleTime: 0,
         gcTime: 0,
@@ -88,9 +87,7 @@ export default function StudyPage() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(study),
             });
-            const data = await res.json();
-            if (!data.success) throw new Error(data.error);
-            return data.data;
+            return handleApiResponse(res);
         },
         onSuccess: async () => {
             // Remove and refetch all study queries
@@ -117,9 +114,7 @@ export default function StudyPage() {
             const res = await fetch(`/api/study/${id}`, {
                 method: 'DELETE',
             });
-            const data = await res.json();
-            if (!data.success) throw new Error(data.error);
-            return data.data;
+            return handleApiResponse(res);
         },
         onSuccess: async () => {
             // Remove all study queries from cache and refetch
@@ -240,12 +235,12 @@ export default function StudyPage() {
         }
     };
 
-    const studyEntries = studyData?.entries || [];
-    const pagination = studyData?.pagination;
+    const studyEntries = (studyData as any)?.entries || [];
+    const pagination = (studyData as any)?.pagination;
     const totalHours = studyEntries.reduce((sum: number, entry: any) => sum + (entry.timeSpent || 0), 0) / 60;
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
+        <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950/30 dark:to-pink-950/30">
             <header className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border-b border-gray-200/50 dark:border-gray-700/50 sticky top-0 z-10">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
                     <div className="flex items-center justify-between">
@@ -294,7 +289,7 @@ export default function StudyPage() {
                 {isLoading ? (
                     <div className="text-center py-12 animate-pulse text-gray-400 dark:text-gray-500">Loading...</div>
                 ) : studyEntries.length === 0 ? (
-                    <Card className="border-0 shadow-md bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm animate-fade-in">
+                    <Card className="border border-white/30 dark:border-white/10 shadow-xl bg-white/40 dark:bg-gray-800/70 backdrop-blur-2xl animate-fade-in">
                         <CardContent className="py-16 text-center">
                             <div className="bg-purple-100 dark:bg-purple-900 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
                                 <GraduationCap className="h-8 w-8 text-purple-600 dark:text-purple-400" />
@@ -317,7 +312,7 @@ export default function StudyPage() {
                             return (
                                 <Card
                                     key={entry._id}
-                                    className="border-0 shadow-sm hover:shadow-md transition-all duration-200 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-xl animate-slide-up"
+                                    className="border border-white/30 dark:border-white/10 shadow-xl hover:shadow-2xl transition-all duration-200 bg-white/40 dark:bg-gray-800/70 backdrop-blur-2xl animate-slide-up"
                                     style={{ animationDelay: `${index * 50}ms` }}
                                 >
                                     <CardContent className="py-5">

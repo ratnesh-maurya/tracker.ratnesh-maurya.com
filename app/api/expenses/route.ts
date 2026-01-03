@@ -50,7 +50,7 @@ export async function GET(request: NextRequest) {
     }
 
     const [expenses, total] = await Promise.all([
-      Expense.find(query).select('-__v').sort({ date: -1 }).skip(skip).limit(limit).lean(),
+      Expense.find(query).select('-__v').sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
       Expense.countDocuments(query),
     ]);
 

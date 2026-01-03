@@ -34,6 +34,7 @@ import { getStartOfDay, getEndOfDay } from '@/lib/utils';
 import { LineChart } from '@mui/x-charts/LineChart';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { HabitReminderManager } from '@/components/habits/HabitReminderManager';
+import { handleApiResponse } from '@/lib/api/client';
 
 const chartTheme = createTheme({
     palette: {
@@ -102,9 +103,7 @@ export default function DashboardPage() {
         queryKey: ['user'],
         queryFn: async () => {
             const res = await fetch('/api/users/me', { cache: 'no-store' });
-            const data = await res.json();
-            if (!data.success) throw new Error(data.error);
-            return data.data;
+            return handleApiResponse(res);
         },
         staleTime: 0,
         gcTime: 0,
@@ -117,6 +116,15 @@ export default function DashboardPage() {
         queryKey: ['analytics', 'overall'],
         queryFn: async () => {
             const res = await fetch('/api/analytics/summary?range=ytd', { cache: 'no-store' });
+            if (res.status === 401) {
+                if (typeof window !== 'undefined') {
+                    const currentPath = window.location.pathname;
+                    if (!currentPath.startsWith('/login') && !currentPath.startsWith('/register') && !currentPath.startsWith('/u/')) {
+                        window.location.href = '/login';
+                    }
+                }
+                return {};
+            }
             const data = await res.json();
             return data.success ? data.data : {};
         },
@@ -130,9 +138,8 @@ export default function DashboardPage() {
         queryKey: ['sleep', 'last7days', startDateStr, endDateStr],
         queryFn: async () => {
             const res = await fetch(`/api/sleep?startDate=${startDateStr}&endDate=${endDateStr}&limit=100`, { cache: 'no-store' });
-            const data = await res.json();
-            if (!data.success) throw new Error(data.error);
-            return Array.isArray(data.data) ? data.data : (data.data?.entries || []);
+            const data = await handleApiResponse<{ entries?: any[] }>(res);
+            return Array.isArray(data) ? data : (data?.entries || []);
         },
         staleTime: 0,
         gcTime: 0,
@@ -144,9 +151,8 @@ export default function DashboardPage() {
         queryKey: ['study', 'last7days', startDateStr, endDateStr],
         queryFn: async () => {
             const res = await fetch(`/api/study?startDate=${startDateStr}&endDate=${endDateStr}&limit=100`, { cache: 'no-store' });
-            const data = await res.json();
-            if (!data.success) throw new Error(data.error);
-            return Array.isArray(data.data) ? data.data : (data.data?.entries || []);
+            const data = await handleApiResponse<{ entries?: any[] }>(res);
+            return Array.isArray(data) ? data : (data?.entries || []);
         },
         staleTime: 0,
         gcTime: 0,
@@ -158,9 +164,8 @@ export default function DashboardPage() {
         queryKey: ['expenses', 'last7days', startDateStr, endDateStr],
         queryFn: async () => {
             const res = await fetch(`/api/expenses?startDate=${startDateStr}&endDate=${endDateStr}&limit=100`, { cache: 'no-store' });
-            const data = await res.json();
-            if (!data.success) throw new Error(data.error);
-            return Array.isArray(data.data) ? data.data : (data.data?.entries || []);
+            const data = await handleApiResponse<{ entries?: any[] }>(res);
+            return Array.isArray(data) ? data : (data?.entries || []);
         },
         staleTime: 0,
         gcTime: 0,
@@ -205,21 +210,21 @@ export default function DashboardPage() {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center">
+            <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 flex items-center justify-center">
                 <div className="animate-pulse text-gray-400">Loading...</div>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30">
             <HabitReminderManager />
             <header className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border-b border-gray-200/50 dark:border-gray-700/50 sticky top-0 z-10">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
                     <div className="flex items-center justify-between mb-4">
                         <div>
                             <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 dark:from-purple-400 dark:to-pink-400 bg-clip-text text-transparent">
-                                {userData?.name || userData?.username || 'Welcome'} 👋
+                                {(userData as any)?.name || (userData as any)?.username || 'Welcome'} 👋
                             </h1>
                             <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">Track your progress</p>
                         </div>
@@ -288,7 +293,7 @@ export default function DashboardPage() {
                 {/* Chart Section */}
                 <div className="animate-fade-in mb-6">
                     <ThemeProvider theme={chartTheme}>
-                        <Card className="border-0 shadow-lg bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm">
+                        <Card className="border border-white/30 dark:border-white/10 shadow-xl bg-white/40 dark:bg-gray-800/70 backdrop-blur-2xl">
                             <CardHeader className="pb-3">
                                 <CardTitle className="text-lg font-semibold flex items-center gap-2 text-gray-800 dark:text-gray-100">
                                     <TrendingUp className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
@@ -386,7 +391,7 @@ export default function DashboardPage() {
                             { href: '/analytics', icon: TrendingUp, label: 'Analytics', color: 'from-orange-500 to-orange-600' },
                         ].map((item) => (
                             <Link key={item.href} href={item.href}>
-                                <Card className="border-0 shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer group bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-xl">
+                                <Card className="border border-white/30 dark:border-white/10 shadow-xl hover:shadow-2xl transition-all duration-200 cursor-pointer group bg-white/40 dark:bg-gray-800/70 backdrop-blur-2xl">
                                     <CardContent className="p-4 flex items-center gap-3">
                                         <div className={`bg-gradient-to-br ${item.color} p-2.5 rounded-lg group-hover:scale-110 transition-transform duration-200`}>
                                             <item.icon className="h-5 w-5 text-white" />
