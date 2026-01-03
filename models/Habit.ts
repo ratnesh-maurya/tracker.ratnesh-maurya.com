@@ -4,12 +4,16 @@ import { HabitType, HabitSchedule } from '@/types';
 export interface IHabit extends Document {
   userId: mongoose.Types.ObjectId;
   title: string;
+  description?: string;
   type: HabitType;
   schedule: HabitSchedule;
   target?: number;
+  habitualType?: 'build' | 'quit';
+  timeRange?: 'anytime' | 'morning' | 'afternoon' | 'evening';
   reminders?: {
     enabled: boolean;
     times: string[];
+    message?: string;
   };
   icon?: string;
   color?: string;
@@ -55,6 +59,24 @@ const HabitSchema = new Schema<IHabit>(
         type: String,
         match: [/^([0-1][0-9]|2[0-3]):[0-5][0-9]$/, 'Time must be in HH:mm format'],
       }],
+      message: {
+        type: String,
+        maxlength: [200, 'Reminder message cannot exceed 200 characters'],
+      },
+    },
+    description: {
+      type: String,
+      maxlength: [500, 'Description cannot exceed 500 characters'],
+    },
+    habitualType: {
+      type: String,
+      enum: ['build', 'quit'],
+      default: 'build',
+    },
+    timeRange: {
+      type: String,
+      enum: ['anytime', 'morning', 'afternoon', 'evening'],
+      default: 'anytime',
     },
     icon: {
       type: String,

@@ -19,6 +19,7 @@ const updateUserSchema = z.object({
   ]).optional(),
   dietaryPreferences: z.array(z.string()).optional(),
   profilePublic: z.boolean().optional(),
+  sounds: z.boolean().optional(),
 });
 
 export async function GET(request: NextRequest) {
@@ -80,6 +81,7 @@ export async function PATCH(request: NextRequest) {
     if (validatedData.username !== undefined) updateData.username = validatedData.username;
     if (validatedData.dietaryPreferences !== undefined) updateData.dietaryPreferences = validatedData.dietaryPreferences;
     if (validatedData.profilePublic !== undefined) updateData.profilePublic = validatedData.profilePublic;
+    if (validatedData.sounds !== undefined) updateData.sounds = validatedData.sounds;
 
     console.log('Update data to be saved:', updateData);
 

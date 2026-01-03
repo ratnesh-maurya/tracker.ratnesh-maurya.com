@@ -11,6 +11,7 @@ import { HabitModal } from '@/components/habits/HabitModal';
 import { DateSelector } from '@/components/habits/DateSelector';
 import { DailyGoalsCard } from '@/components/habits/DailyGoalsCard';
 import { GoalCircles } from '@/components/habits/GoalCircles';
+import { HabitReminderManager } from '@/components/habits/HabitReminderManager';
 import { Habit } from '@/types';
 import { calculateStreak } from '@/lib/habits/streak';
 import { getStartOfDay } from '@/lib/utils';
@@ -27,11 +28,15 @@ export default function HabitsPage() {
     const { data: habitsData, isLoading } = useQuery({
         queryKey: ['habits'],
         queryFn: async () => {
-            const res = await fetch('/api/habits');
+            const res = await fetch('/api/habits', { cache: 'no-store' });
             const data = await res.json();
             if (!data.success) throw new Error(data.error);
             return data.data as Habit[];
         },
+        staleTime: 0,
+        gcTime: 0,
+        refetchOnMount: true,
+        refetchOnWindowFocus: true,
     });
 
     // Fetch check-ins for selected date
@@ -42,13 +47,17 @@ export default function HabitsPage() {
             if (!habitsData) return [];
             const checkIns = await Promise.all(
                 habitsData.map(async (habit) => {
-                    const res = await fetch(`/api/habits/${habit._id}/checkins?startDate=${selectedDateStart.toISOString()}&endDate=${selectedDateStart.toISOString()}`);
+                    const res = await fetch(`/api/habits/${habit._id}/checkins?startDate=${selectedDateStart.toISOString()}&endDate=${selectedDateStart.toISOString()}`, { cache: 'no-store' });
                     const data = await res.json();
                     return { habitId: habit._id, checkIns: data.success ? data.data : [] };
                 })
             );
             return checkIns;
         },
+        staleTime: 0,
+        gcTime: 0,
+        refetchOnMount: true,
+        refetchOnWindowFocus: true,
         enabled: !!habitsData,
     });
 
@@ -207,19 +216,20 @@ export default function HabitsPage() {
         });
 
     return (
-        <div className="min-h-screen bg-gray-50">
-            <header className="bg-white border-b sticky top-0 z-10 shadow-sm">
+        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
+            <HabitReminderManager />
+            <header className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border-b border-gray-200/50 dark:border-gray-700/50 sticky top-0 z-10">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
                     <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center space-x-4">
                             <Link href="/dashboard">
-                                <Button variant="ghost" size="icon" className="h-8 w-8">
+                                <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-smooth">
                                     <ArrowLeft className="h-4 w-4" />
                                 </Button>
                             </Link>
                             <div>
-                                <h1 className="text-xl font-bold">Habits</h1>
-                                <p className="text-xs text-gray-500">{format(selectedDate, 'MMMM, d')}</p>
+                                <h1 className="text-xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 dark:from-gray-100 dark:to-gray-300 bg-clip-text text-transparent">Habits</h1>
+                                <p className="text-xs text-gray-500 dark:text-gray-400">{format(selectedDate, 'MMMM, d')}</p>
                             </div>
                         </div>
                         <Button
@@ -237,13 +247,13 @@ export default function HabitsPage() {
                 </div>
             </header>
 
-            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-24">
+            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-24 md:pb-20">
                 {isLoading ? (
-                    <div className="text-center py-12">Loading...</div>
+                    <div className="text-center py-12 animate-pulse text-gray-400 dark:text-gray-500">Loading...</div>
                 ) : habits.length === 0 ? (
-                    <Card className="border-2 border-dashed">
+                    <Card className="border-2 border-dashed border-gray-300 dark:border-gray-700 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm">
                         <CardContent className="py-12 text-center">
-                            <p className="text-gray-600 mb-4">No habits yet. Create your first habit to get started!</p>
+                            <p className="text-gray-600 dark:text-gray-300 mb-4">No habits yet. Create your first habit to get started!</p>
                             <Button
                                 onClick={() => setIsModalOpen(true)}
                                 className="bg-blue-600 hover:bg-blue-700"
@@ -258,13 +268,13 @@ export default function HabitsPage() {
                         <DailyGoalsCard completed={completedHabits.length} total={habits.length} />
 
                         <div className="mt-6 flex items-center justify-between mb-4">
-                            <h2 className="text-lg font-semibold">Habits</h2>
+                            <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100">Habits</h2>
                             <div className="flex gap-2">
                                 <button
                                     onClick={() => setViewMode('view')}
                                     className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${viewMode === 'view'
                                         ? 'bg-blue-600 text-white'
-                                        : 'bg-gray-100 text-gray-600'
+                                        : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300'
                                         }`}
                                 >
                                     View
@@ -273,7 +283,7 @@ export default function HabitsPage() {
                                     onClick={() => setViewMode('done')}
                                     className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${viewMode === 'done'
                                         ? 'bg-blue-600 text-white'
-                                        : 'bg-gray-100 text-gray-600'
+                                        : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300'
                                         }`}
                                 >
                                     Done
@@ -291,7 +301,7 @@ export default function HabitsPage() {
                                 const streak = getStreak(habit._id);
 
                                 return (
-                                    <Card key={habit._id} className="hover:shadow-md transition-shadow">
+                                    <Card key={habit._id} className="hover:shadow-md transition-shadow bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm border-0">
                                         <CardContent className="p-4">
                                             <div className="flex items-start gap-4">
                                                 <div
@@ -304,16 +314,16 @@ export default function HabitsPage() {
                                                     <div className="flex items-start justify-between gap-2 mb-2">
                                                         <div className="flex-1 min-w-0 pr-2 overflow-hidden">
                                                             <div className="flex items-center gap-2 mb-1">
-                                                                <h3 className="font-semibold text-lg truncate">{habit.title}</h3>
+                                                                <h3 className="font-semibold text-lg truncate text-gray-800 dark:text-gray-100">{habit.title}</h3>
                                                                 {streak > 0 && (
-                                                                    <span className="hidden sm:inline-flex items-center gap-1 text-xs text-orange-600 bg-orange-50 px-2 py-1 rounded-full flex-shrink-0">
+                                                                    <span className="hidden sm:inline-flex items-center gap-1 text-xs text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/30 px-2 py-1 rounded-full flex-shrink-0">
                                                                         <Flame className="h-3 w-3" />
                                                                         {streak}
                                                                     </span>
                                                                 )}
                                                             </div>
                                                             {habit.type === 'count' && habit.target && (
-                                                                <p className="text-sm text-gray-600 mb-2">
+                                                                <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
                                                                     {currentValue} / {habit.target} {habit.schedule === 'daily' ? 'per day' : 'per week'}
                                                                 </p>
                                                             )}
@@ -350,9 +360,9 @@ export default function HabitsPage() {
                                                         <Button
                                                             onClick={() => handleCheckIn(habit._id, !isCompleted)}
                                                             size="lg"
-                                                            className={`w-full mt-2 ${isCompleted
+                                                            className={`w-full mt-2 rounded-lg ${isCompleted
                                                                 ? 'bg-green-500 hover:bg-green-600 text-white'
-                                                                : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                                                                : 'bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200'
                                                                 }`}
                                                         >
                                                             {isCompleted ? (
