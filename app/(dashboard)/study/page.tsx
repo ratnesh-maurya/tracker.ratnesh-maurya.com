@@ -12,7 +12,7 @@ import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { useToast } from '@/components/ui/toast-provider';
 import { ArrowLeft, Plus, GraduationCap, Tag, Edit2, Trash2 } from 'lucide-react';
 import { NavBar } from '@/components/layout/NavBar';
-import { formatDate } from '@/lib/utils';
+import { formatDate, getLocalDateString } from '@/lib/utils';
 import { Pagination } from '@/components/ui/pagination';
 import { Chip } from '@/components/ui/chip';
 import { handleApiResponse } from '@/lib/api/client';
@@ -142,7 +142,7 @@ export default function StudyPage() {
             return;
         }
 
-        const today = new Date().toISOString().split('T')[0];
+        const today = getLocalDateString();
         const finalTopic = selectedTopic === 'Other' ? customTopic.trim() : selectedTopic;
 
         // Combine selected chip tags with custom tags

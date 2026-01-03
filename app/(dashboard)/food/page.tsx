@@ -14,7 +14,7 @@ import { useToast } from '@/components/ui/toast-provider';
 import { FoodInput } from '@/components/ui/food-input';
 import { ArrowLeft, Plus, Coffee, X, Edit2, Trash2 } from 'lucide-react';
 import { NavBar } from '@/components/layout/NavBar';
-import { formatDate } from '@/lib/utils';
+import { formatDate, getLocalDateString } from '@/lib/utils';
 import { Pagination } from '@/components/ui/pagination';
 import { SkeletonList } from '@/components/ui/skeleton';
 import { handleApiResponse } from '@/lib/api/client';
@@ -136,7 +136,7 @@ export default function FoodPage() {
             return;
         }
 
-        const today = new Date().toISOString().split('T')[0];
+        const today = getLocalDateString();
         await createMutation.mutateAsync({
             date: today,
             mealType,

@@ -13,7 +13,7 @@ import { Chip } from '@/components/ui/chip';
 import { useToast } from '@/components/ui/toast-provider';
 import { ArrowLeft, Plus, IndianRupee, Edit2, Trash2 } from 'lucide-react';
 import { NavBar } from '@/components/layout/NavBar';
-import { formatDate } from '@/lib/utils';
+import { formatDate, getLocalDateString } from '@/lib/utils';
 import { Pagination } from '@/components/ui/pagination';
 import { handleApiResponse } from '@/lib/api/client';
 import { SkeletonList } from '@/components/ui/skeleton';
@@ -128,7 +128,7 @@ export default function ExpensesPage() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        const today = new Date().toISOString().split('T')[0];
+        const today = getLocalDateString();
         await createMutation.mutateAsync({
             date: today,
             amount: parseFloat(amount),
