@@ -12,7 +12,7 @@ import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { useToast } from '@/components/ui/toast-provider';
 import { ArrowLeft, Plus, Bed, Edit2, Trash2 } from 'lucide-react';
 import { NavBar } from '@/components/layout/NavBar';
-import { formatDate, formatTime } from '@/lib/utils';
+import { formatDate, formatTime, getLocalDateString } from '@/lib/utils';
 import { Pagination } from '@/components/ui/pagination';
 import { SkeletonList } from '@/components/ui/skeleton';
 import { handleApiResponse } from '@/lib/api/client';
@@ -118,7 +118,7 @@ export default function SleepPage() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        const today = new Date().toISOString().split('T')[0];
+        const today = getLocalDateString();
         await createMutation.mutateAsync({
             date: today,
             startTime: `${today}T${startTime}`,
@@ -140,7 +140,7 @@ export default function SleepPage() {
     const handleEditSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!editingSleep) return;
-        const date = new Date(editingSleep.date).toISOString().split('T')[0];
+        const date = getLocalDateString(new Date(editingSleep.date));
         await updateMutation.mutateAsync({
             id: editingSleep._id,
             sleep: {

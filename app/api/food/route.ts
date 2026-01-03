@@ -88,7 +88,10 @@ export async function POST(request: NextRequest) {
 
     await connectDB();
 
-    const foodDate = new Date(validatedData.date);
+    // Parse date string as local date to avoid timezone issues
+    const foodDate = typeof validatedData.date === 'string' 
+      ? validatedData.date 
+      : validatedData.date.toISOString().split('T')[0];
     const startOfDay = getStartOfDay(foodDate);
 
     const food = new Food({

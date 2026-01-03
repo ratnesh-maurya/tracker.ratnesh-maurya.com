@@ -12,7 +12,7 @@ import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { useToast } from '@/components/ui/toast-provider';
 import { ArrowLeft, Plus, FileText, Star, Edit2, Trash2, X } from 'lucide-react';
 import { NavBar } from '@/components/layout/NavBar';
-import { formatDate } from '@/lib/utils';
+import { formatDate, getLocalDateString } from '@/lib/utils';
 import { Pagination } from '@/components/ui/pagination';
 import { handleApiResponse } from '@/lib/api/client';
 
@@ -115,7 +115,7 @@ export default function JournalPage() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         const filteredHighlights = highlights.filter((h) => h.trim() !== '');
-        const today = new Date().toISOString().split('T')[0];
+        const today = getLocalDateString();
 
         await createMutation.mutateAsync({
             date: today,
