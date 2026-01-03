@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -57,7 +57,7 @@ export default function ExpensesPage() {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['expenses'] });
-            setPage(1); // Reset to first page after creating new entry
+            setPage(1);
             setIsModalOpen(false);
             setAmount('');
             setCategory('Food');
@@ -72,36 +72,38 @@ export default function ExpensesPage() {
             date: today,
             amount: parseFloat(amount),
             category,
-            currency: 'INR', // Fixed to INR
+            currency: 'INR',
             notes: notes || undefined,
         });
     };
 
     const expenses = expensesData?.entries || [];
     const pagination = expensesData?.pagination;
-    // Calculate total from all pages (for display, we'll show current page total)
     const totalExpenses = expenses.reduce((sum: number, exp: any) => sum + exp.amount, 0);
-    const byCategory = expenses.reduce((acc: any, exp: any) => {
-        acc[exp.category] = (acc[exp.category] || 0) + exp.amount;
-        return acc;
-    }, {});
 
     return (
-        <div className="min-h-screen bg-gray-50">
-            <header className="bg-white border-b sticky top-0 z-10">
+        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+            <header className="bg-white/80 backdrop-blur-md border-b border-gray-200/50 sticky top-0 z-10">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
                     <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-4">
+                        <div className="flex items-center space-x-3">
                             <Link href="/dashboard">
-                                <Button variant="ghost" size="icon">
+                                <Button variant="ghost" size="icon" className="rounded-full hover:bg-gray-100 transition-smooth">
                                     <ArrowLeft className="h-4 w-4" />
                                 </Button>
                             </Link>
-                            <h1 className="text-2xl font-bold">Expenses</h1>
+                            <div>
+                                <h1 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
+                                    Expenses
+                                </h1>
+                            </div>
                         </div>
-                        <Button onClick={() => setIsModalOpen(true)} className="bg-blue-600 hover:bg-blue-700">
+                        <Button
+                            onClick={() => setIsModalOpen(true)}
+                            className="bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-white rounded-xl shadow-md hover:shadow-lg transition-all duration-200"
+                        >
                             <Plus className="h-4 w-4 mr-2" />
-                            Add Expense
+                            Add
                         </Button>
                     </div>
                 </div>
@@ -109,47 +111,60 @@ export default function ExpensesPage() {
 
             <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-24 md:pb-20">
                 {expenses.length > 0 && (
-                    <Card className="mb-6 bg-gradient-to-r from-blue-500 to-blue-600 text-white border-0 shadow-lg">
-                        <CardContent className="py-6">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <p className="text-blue-100 text-sm mb-1">Total Expenses</p>
-                                    <p className="text-3xl font-bold">₹{totalExpenses.toFixed(2)}</p>
+                    <div className="animate-fade-in mb-6">
+                        <Card className="border-0 shadow-lg bg-gradient-to-br from-yellow-500 to-yellow-600 text-white">
+                            <CardContent className="py-6">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <p className="text-yellow-100 text-sm mb-1 font-medium">Total Expenses</p>
+                                        <p className="text-3xl font-bold">₹{totalExpenses.toFixed(2)}</p>
+                                    </div>
+                                    <div className="bg-white/20 p-4 rounded-full backdrop-blur-sm">
+                                        <IndianRupee className="h-8 w-8" />
+                                    </div>
                                 </div>
-                                <IndianRupee className="h-12 w-12 text-blue-200" />
-                            </div>
-                        </CardContent>
-                    </Card>
+                            </CardContent>
+                        </Card>
+                    </div>
                 )}
 
                 {isLoading ? (
-                    <div className="text-center py-12">Loading...</div>
+                    <div className="text-center py-12 animate-pulse text-gray-400">Loading...</div>
                 ) : expenses.length === 0 ? (
-                    <Card>
-                        <CardContent className="py-12 text-center">
-                            <IndianRupee className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-                            <p className="text-gray-600 mb-4">No expenses yet. Add your first expense!</p>
-                            <Button onClick={() => setIsModalOpen(true)} className="bg-blue-600 hover:bg-blue-700">
+                    <Card className="border-0 shadow-md bg-white/90 backdrop-blur-sm animate-fade-in">
+                        <CardContent className="py-16 text-center">
+                            <div className="bg-yellow-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <IndianRupee className="h-8 w-8 text-yellow-600" />
+                            </div>
+                            <p className="text-gray-600 mb-4 font-medium">No expenses yet</p>
+                            <Button
+                                onClick={() => setIsModalOpen(true)}
+                                className="bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-white rounded-xl"
+                            >
                                 <Plus className="h-4 w-4 mr-2" />
                                 Add Expense
                             </Button>
                         </CardContent>
                     </Card>
                 ) : (
-                    <div className="space-y-3">
-                        {expenses.map((expense: any) => (
-                            <Card key={expense._id} className="hover:shadow-md transition-shadow">
+                    <div className="space-y-3 animate-fade-in">
+                        {expenses.map((expense: any, index: number) => (
+                            <Card
+                                key={expense._id}
+                                className="border-0 shadow-sm hover:shadow-md transition-all duration-200 bg-white/90 backdrop-blur-sm rounded-xl animate-slide-up"
+                                style={{ animationDelay: `${index * 50}ms` }}
+                            >
                                 <CardContent className="py-4">
                                     <div className="flex items-center justify-between">
                                         <div className="flex-1">
                                             <div className="flex items-center space-x-3">
-                                                <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
-                                                    <span className="text-blue-600 font-bold text-lg">
+                                                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-yellow-400 to-yellow-500 flex items-center justify-center shadow-sm">
+                                                    <span className="text-white font-bold text-lg">
                                                         {expense.category.charAt(0)}
                                                     </span>
                                                 </div>
                                                 <div>
-                                                    <h3 className="font-semibold text-lg">{expense.category}</h3>
+                                                    <h3 className="font-semibold text-lg text-gray-800">{expense.category}</h3>
                                                     <p className="text-sm text-gray-500">{formatDate(expense.date)}</p>
                                                 </div>
                                             </div>
@@ -169,19 +184,21 @@ export default function ExpensesPage() {
                     </div>
                 )}
                 {pagination && (
-                    <Pagination
-                        page={pagination.page}
-                        totalPages={pagination.totalPages}
-                        onPageChange={setPage}
-                        isLoading={isLoading}
-                    />
+                    <div className="mt-6">
+                        <Pagination
+                            page={pagination.page}
+                            totalPages={pagination.totalPages}
+                            onPageChange={setPage}
+                            isLoading={isLoading}
+                        />
+                    </div>
                 )}
             </main>
 
             <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Add Expense">
                 <form onSubmit={handleSubmit} className="space-y-6">
                     <div>
-                        <label htmlFor="amount" className="block text-sm font-medium mb-2">
+                        <label htmlFor="amount" className="block text-sm font-medium mb-2 text-gray-700">
                             Amount (₹)
                         </label>
                         <Input
@@ -192,13 +209,13 @@ export default function ExpensesPage() {
                             value={amount}
                             onChange={(e) => setAmount(e.target.value)}
                             placeholder="0.00"
-                            className="text-lg"
+                            className="text-lg rounded-lg"
                             required
                         />
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium mb-3">Category</label>
+                        <label className="block text-sm font-medium mb-3 text-gray-700">Category</label>
                         <div className="flex flex-wrap gap-2">
                             {CATEGORIES.map((cat) => (
                                 <Chip
@@ -212,7 +229,7 @@ export default function ExpensesPage() {
                     </div>
 
                     <div>
-                        <label htmlFor="notes" className="block text-sm font-medium mb-2">
+                        <label htmlFor="notes" className="block text-sm font-medium mb-2 text-gray-700">
                             Notes (optional)
                         </label>
                         <Textarea
@@ -221,14 +238,19 @@ export default function ExpensesPage() {
                             onChange={(e) => setNotes(e.target.value)}
                             rows={3}
                             placeholder="Add any notes about this expense..."
+                            className="rounded-lg"
                         />
                     </div>
 
                     <div className="flex justify-end space-x-2 pt-4">
-                        <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)}>
+                        <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)} className="rounded-lg">
                             Cancel
                         </Button>
-                        <Button type="submit" disabled={createMutation.isPending} className="bg-blue-600 hover:bg-blue-700">
+                        <Button
+                            type="submit"
+                            disabled={createMutation.isPending}
+                            className="bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-white rounded-lg"
+                        >
                             {createMutation.isPending ? 'Saving...' : 'Save'}
                         </Button>
                     </div>

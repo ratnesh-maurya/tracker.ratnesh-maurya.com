@@ -39,11 +39,11 @@ export async function GET(request: NextRequest) {
     }
 
     const [sleepEntries, total] = await Promise.all([
-      Sleep.find(query).sort({ date: -1 }).skip(skip).limit(limit),
+      Sleep.find(query).select('-__v').sort({ date: -1 }).skip(skip).limit(limit).lean(),
       Sleep.countDocuments(query),
     ]);
 
-    return NextResponse.json<ApiResponse>({
+    const response = NextResponse.json<ApiResponse>({
       success: true,
       data: {
         entries: sleepEntries,
@@ -56,6 +56,11 @@ export async function GET(request: NextRequest) {
         },
       },
     });
+
+    // Cache for 30 seconds
+    response.headers.set('Cache-Control', 'private, max-age=30, stale-while-revalidate=60');
+    
+    return response;
   } catch (error) {
     console.error('Get sleep entries error:', error);
     return NextResponse.json<ApiResponse>({ success: false, error: 'Failed to fetch sleep entries' }, { status: 500 });

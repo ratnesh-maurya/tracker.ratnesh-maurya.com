@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -44,7 +44,7 @@ export default function SleepPage() {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['sleep'] });
-            setPage(1); // Reset to first page after creating new entry
+            setPage(1);
             setIsModalOpen(false);
             setStartTime('');
             setEndTime('');
@@ -67,19 +67,26 @@ export default function SleepPage() {
     const pagination = sleepData?.pagination;
 
     return (
-        <div className="min-h-screen bg-gray-50">
-            <header className="bg-white border-b sticky top-0 z-10">
+        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+            <header className="bg-white/80 backdrop-blur-md border-b border-gray-200/50 sticky top-0 z-10">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
                     <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-4">
+                        <div className="flex items-center space-x-3">
                             <Link href="/dashboard">
-                                <Button variant="ghost" size="icon">
+                                <Button variant="ghost" size="icon" className="rounded-full hover:bg-gray-100 transition-smooth">
                                     <ArrowLeft className="h-4 w-4" />
                                 </Button>
                             </Link>
-                            <h1 className="text-2xl font-bold">Sleep</h1>
+                            <div>
+                                <h1 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
+                                    Sleep
+                                </h1>
+                            </div>
                         </div>
-                        <Button onClick={() => setIsModalOpen(true)} className="bg-blue-600 hover:bg-blue-700">
+                        <Button
+                            onClick={() => setIsModalOpen(true)}
+                            className="bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white rounded-xl shadow-md hover:shadow-lg transition-all duration-200"
+                        >
                             <Plus className="h-4 w-4 mr-2" />
                             Log Sleep
                         </Button>
@@ -89,49 +96,57 @@ export default function SleepPage() {
 
             <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-24 md:pb-20">
                 {isLoading ? (
-                    <div className="text-center py-12">Loading...</div>
+                    <div className="text-center py-12 animate-pulse text-gray-400">Loading...</div>
                 ) : sleepEntries.length === 0 ? (
-                    <Card>
-                        <CardContent className="py-12 text-center">
-                            <Bed className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-                            <p className="text-gray-600 mb-4">No sleep entries yet. Log your first sleep!</p>
-                            <Button onClick={() => setIsModalOpen(true)} className="bg-blue-600 hover:bg-blue-700">
+                    <Card className="border-0 shadow-md bg-white/90 backdrop-blur-sm animate-fade-in">
+                        <CardContent className="py-16 text-center">
+                            <div className="bg-indigo-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <Bed className="h-8 w-8 text-indigo-600" />
+                            </div>
+                            <p className="text-gray-600 mb-4 font-medium">No sleep entries yet</p>
+                            <Button
+                                onClick={() => setIsModalOpen(true)}
+                                className="bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white rounded-xl"
+                            >
                                 <Plus className="h-4 w-4 mr-2" />
                                 Log Sleep
                             </Button>
                         </CardContent>
                     </Card>
                 ) : (
-                    <div className="space-y-4">
-                        {sleepEntries.map((entry: any) => {
+                    <div className="space-y-3 animate-fade-in">
+                        {sleepEntries.map((entry: any, index: number) => {
                             const duration = entry.duration || 0;
                             const hours = Math.floor(duration / 60);
                             const minutes = duration % 60;
                             return (
-                                <Card key={entry._id} className="hover:shadow-md transition-shadow">
-                                    <CardHeader>
-                                        <CardTitle className="text-xl">{formatDate(entry.date)}</CardTitle>
-                                    </CardHeader>
-                                    <CardContent>
-                                        <div className="space-y-3">
-                                            <div className="flex justify-between items-center">
-                                                <span className="text-sm text-gray-600">Start:</span>
-                                                <span className="font-semibold text-lg">{formatTime(entry.startTime)}</span>
-                                            </div>
-                                            <div className="flex justify-between items-center">
-                                                <span className="text-sm text-gray-600">End:</span>
-                                                <span className="font-semibold text-lg">{formatTime(entry.endTime)}</span>
-                                            </div>
-                                            <div className="flex justify-between items-center pt-2 border-t">
-                                                <span className="text-sm text-gray-600">Duration:</span>
-                                                <span className="font-bold text-xl text-blue-600">{hours}h {minutes}m</span>
-                                            </div>
-                                            {entry.notes && (
-                                                <div className="mt-3 pt-3 border-t">
-                                                    <p className="text-sm text-gray-600">{entry.notes}</p>
+                                <Card
+                                    key={entry._id}
+                                    className="border-0 shadow-sm hover:shadow-md transition-all duration-200 bg-white/90 backdrop-blur-sm rounded-xl animate-slide-up"
+                                    style={{ animationDelay: `${index * 50}ms` }}
+                                >
+                                    <CardContent className="py-5">
+                                        <div className="flex items-center justify-between mb-4">
+                                            <div className="flex items-center space-x-3">
+                                                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-400 to-indigo-500 flex items-center justify-center shadow-sm">
+                                                    <Bed className="h-6 w-6 text-white" />
                                                 </div>
-                                            )}
+                                                <div>
+                                                    <h3 className="font-semibold text-lg text-gray-800">{formatDate(entry.date)}</h3>
+                                                    <p className="text-sm text-gray-500">{formatTime(entry.startTime)} - {formatTime(entry.endTime)}</p>
+                                                </div>
+                                            </div>
+                                            <div className="text-right">
+                                                <div className="text-2xl font-bold text-indigo-600">
+                                                    {hours}h {minutes}m
+                                                </div>
+                                            </div>
                                         </div>
+                                        {entry.notes && (
+                                            <div className="mt-3 pt-3 border-t border-gray-100">
+                                                <p className="text-sm text-gray-600">{entry.notes}</p>
+                                            </div>
+                                        )}
                                     </CardContent>
                                 </Card>
                             );
@@ -139,19 +154,21 @@ export default function SleepPage() {
                     </div>
                 )}
                 {pagination && (
-                    <Pagination
-                        page={pagination.page}
-                        totalPages={pagination.totalPages}
-                        onPageChange={setPage}
-                        isLoading={isLoading}
-                    />
+                    <div className="mt-6">
+                        <Pagination
+                            page={pagination.page}
+                            totalPages={pagination.totalPages}
+                            onPageChange={setPage}
+                            isLoading={isLoading}
+                        />
+                    </div>
                 )}
             </main>
 
             <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Log Sleep">
                 <form onSubmit={handleSubmit} className="space-y-6">
                     <div>
-                        <label htmlFor="startTime" className="block text-sm font-medium mb-2">
+                        <label htmlFor="startTime" className="block text-sm font-medium mb-2 text-gray-700">
                             Start Time
                         </label>
                         <Input
@@ -160,11 +177,11 @@ export default function SleepPage() {
                             value={startTime}
                             onChange={(e) => setStartTime(e.target.value)}
                             required
-                            className="text-lg"
+                            className="text-lg rounded-lg"
                         />
                     </div>
                     <div>
-                        <label htmlFor="endTime" className="block text-sm font-medium mb-2">
+                        <label htmlFor="endTime" className="block text-sm font-medium mb-2 text-gray-700">
                             End Time
                         </label>
                         <Input
@@ -173,11 +190,11 @@ export default function SleepPage() {
                             value={endTime}
                             onChange={(e) => setEndTime(e.target.value)}
                             required
-                            className="text-lg"
+                            className="text-lg rounded-lg"
                         />
                     </div>
                     <div>
-                        <label htmlFor="notes" className="block text-sm font-medium mb-2">
+                        <label htmlFor="notes" className="block text-sm font-medium mb-2 text-gray-700">
                             Notes (optional)
                         </label>
                         <Textarea
@@ -185,13 +202,18 @@ export default function SleepPage() {
                             value={notes}
                             onChange={(e) => setNotes(e.target.value)}
                             rows={3}
+                            className="rounded-lg"
                         />
                     </div>
                     <div className="flex justify-end space-x-2 pt-4">
-                        <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)}>
+                        <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)} className="rounded-lg">
                             Cancel
                         </Button>
-                        <Button type="submit" disabled={createMutation.isPending} className="bg-blue-600 hover:bg-blue-700">
+                        <Button
+                            type="submit"
+                            disabled={createMutation.isPending}
+                            className="bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white rounded-lg"
+                        >
                             {createMutation.isPending ? 'Saving...' : 'Save'}
                         </Button>
                     </div>

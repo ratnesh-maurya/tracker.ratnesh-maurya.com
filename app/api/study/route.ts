@@ -46,11 +46,11 @@ export async function GET(request: NextRequest) {
     }
 
     const [studyEntries, total] = await Promise.all([
-      Study.find(query).sort({ date: -1 }).skip(skip).limit(limit),
+      Study.find(query).select('-__v').sort({ date: -1 }).skip(skip).limit(limit).lean(),
       Study.countDocuments(query),
     ]);
 
-    return NextResponse.json<ApiResponse>({
+    const response = NextResponse.json<ApiResponse>({
       success: true,
       data: {
         entries: studyEntries,
@@ -63,6 +63,10 @@ export async function GET(request: NextRequest) {
         },
       },
     });
+
+    response.headers.set('Cache-Control', 'private, max-age=30, stale-while-revalidate=60');
+    
+    return response;
   } catch (error) {
     console.error('Get study entries error:', error);
     return NextResponse.json<ApiResponse>({ success: false, error: 'Failed to fetch study entries' }, { status: 500 });

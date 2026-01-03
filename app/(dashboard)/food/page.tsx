@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Chip } from '@/components/ui/chip';
@@ -57,7 +57,7 @@ export default function FoodPage() {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['food'] });
-            setPage(1); // Reset to first page after creating new entry
+            setPage(1);
             setIsModalOpen(false);
             setItems([{ name: '', calories: undefined }]);
             setNotes('');
@@ -105,19 +105,26 @@ export default function FoodPage() {
     }, {});
 
     return (
-        <div className="min-h-screen bg-gray-50">
-            <header className="bg-white border-b sticky top-0 z-10">
+        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+            <header className="bg-white/80 backdrop-blur-md border-b border-gray-200/50 sticky top-0 z-10">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
                     <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-4">
+                        <div className="flex items-center space-x-3">
                             <Link href="/dashboard">
-                                <Button variant="ghost" size="icon">
+                                <Button variant="ghost" size="icon" className="rounded-full hover:bg-gray-100 transition-smooth">
                                     <ArrowLeft className="h-4 w-4" />
                                 </Button>
                             </Link>
-                            <h1 className="text-2xl font-bold">Food</h1>
+                            <div>
+                                <h1 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
+                                    Food
+                                </h1>
+                            </div>
                         </div>
-                        <Button onClick={() => setIsModalOpen(true)} className="bg-blue-600 hover:bg-blue-700">
+                        <Button
+                            onClick={() => setIsModalOpen(true)}
+                            className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white rounded-xl shadow-md hover:shadow-lg transition-all duration-200"
+                        >
                             <Plus className="h-4 w-4 mr-2" />
                             Log Meal
                         </Button>
@@ -125,43 +132,48 @@ export default function FoodPage() {
                 </div>
             </header>
 
-            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-20 md:pb-8">
+            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-24 md:pb-20">
                 {isLoading ? (
-                    <div className="text-center py-12">Loading...</div>
+                    <div className="text-center py-12 animate-pulse text-gray-400">Loading...</div>
                 ) : Object.keys(groupedByDate).length === 0 ? (
-                    <Card>
-                        <CardContent className="py-12 text-center">
-                            <Coffee className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-                            <p className="text-gray-600 mb-4">No food entries yet. Log your first meal!</p>
-                            <Button onClick={() => setIsModalOpen(true)} className="bg-blue-600 hover:bg-blue-700">
+                    <Card className="border-0 shadow-md bg-white/90 backdrop-blur-sm animate-fade-in">
+                        <CardContent className="py-16 text-center">
+                            <div className="bg-green-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <Coffee className="h-8 w-8 text-green-600" />
+                            </div>
+                            <p className="text-gray-600 mb-4 font-medium">No food entries yet</p>
+                            <Button
+                                onClick={() => setIsModalOpen(true)}
+                                className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white rounded-xl"
+                            >
                                 <Plus className="h-4 w-4 mr-2" />
                                 Log Meal
                             </Button>
                         </CardContent>
                     </Card>
                 ) : (
-                    <div className="space-y-6">
-                        {Object.entries(groupedByDate).map(([date, entries]: [string, any]) => (
-                            <Card key={date}>
-                                <CardHeader>
-                                    <CardTitle>{date}</CardTitle>
-                                </CardHeader>
-                                <CardContent>
+                    <div className="space-y-6 animate-fade-in">
+                        {Object.entries(groupedByDate).map(([date, entries]: [string, any], dateIndex: number) => (
+                            <Card key={date} className="border-0 shadow-sm bg-white/90 backdrop-blur-sm rounded-xl animate-slide-up" style={{ animationDelay: `${dateIndex * 50}ms` }}>
+                                <CardContent className="p-5">
+                                    <h2 className="text-lg font-semibold text-gray-800 mb-4">{date}</h2>
                                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                                         {entries.map((entry: any) => (
-                                            <div key={entry._id} className="border-l-4 border-green-500 pl-4 bg-green-50 rounded-r-lg p-3">
-                                                <div className="flex items-center justify-between mb-2">
-                                                    <h3 className="font-semibold capitalize text-lg">{entry.mealType}</h3>
+                                            <div key={entry._id} className="border-l-4 border-green-500 pl-4 bg-gradient-to-r from-green-50 to-transparent rounded-r-lg p-4 hover:shadow-md transition-all duration-200">
+                                                <div className="flex items-center justify-between mb-3">
+                                                    <h3 className="font-semibold capitalize text-base text-gray-800">{entry.mealType}</h3>
+                                                    <Coffee className="h-4 w-4 text-green-500" />
                                                 </div>
-                                                <ul className="space-y-1">
+                                                <ul className="space-y-1.5">
                                                     {entry.items.map((item: MealItem, idx: number) => (
-                                                        <li key={idx} className="text-sm text-gray-700">
-                                                            • {item.name}
+                                                        <li key={idx} className="text-sm text-gray-700 flex items-center">
+                                                            <span className="w-1.5 h-1.5 rounded-full bg-green-500 mr-2"></span>
+                                                            {item.name}
                                                         </li>
                                                     ))}
                                                 </ul>
                                                 {entry.notes && (
-                                                    <p className="text-sm text-gray-600 mt-2 italic">{entry.notes}</p>
+                                                    <p className="text-xs text-gray-600 mt-3 italic border-t border-green-100 pt-2">{entry.notes}</p>
                                                 )}
                                             </div>
                                         ))}
@@ -172,19 +184,21 @@ export default function FoodPage() {
                     </div>
                 )}
                 {pagination && (
-                    <Pagination
-                        page={pagination.page}
-                        totalPages={pagination.totalPages}
-                        onPageChange={setPage}
-                        isLoading={isLoading}
-                    />
+                    <div className="mt-6">
+                        <Pagination
+                            page={pagination.page}
+                            totalPages={pagination.totalPages}
+                            onPageChange={setPage}
+                            isLoading={isLoading}
+                        />
+                    </div>
                 )}
             </main>
 
             <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Log Meal" size="lg">
                 <form onSubmit={handleSubmit} className="space-y-6">
                     <div>
-                        <label className="block text-sm font-medium mb-3">Meal Type</label>
+                        <label className="block text-sm font-medium mb-3 text-gray-700">Meal Type</label>
                         <div className="flex flex-wrap gap-2">
                             {MEAL_TYPES.map((mt) => (
                                 <Chip
@@ -199,20 +213,20 @@ export default function FoodPage() {
 
                     <div>
                         <div className="flex items-center justify-between mb-2">
-                            <label className="block text-sm font-medium">Food Items</label>
-                            <Button type="button" variant="outline" size="sm" onClick={addItem}>
-                                <Plus className="h-3 w-3 mr-1" />
+                            <label className="block text-sm font-medium text-gray-700">Food Items</label>
+                            <Button type="button" variant="outline" size="sm" onClick={addItem} className="rounded-lg">
+                                <X className="h-3 w-3 mr-1 rotate-45" />
                                 Add Item
                             </Button>
                         </div>
                         <div className="space-y-2">
                             {items.map((item, index) => (
-                                <div key={index} className="flex items-center space-x-2">
+                                <div key={index} className="flex items-center space-x-2 animate-scale-in">
                                     <Input
                                         placeholder="Food name"
                                         value={item.name}
                                         onChange={(e) => updateItem(index, 'name', e.target.value)}
-                                        className="flex-1"
+                                        className="flex-1 rounded-lg"
                                     />
                                     {items.length > 1 && (
                                         <Button
@@ -220,6 +234,7 @@ export default function FoodPage() {
                                             variant="ghost"
                                             size="icon"
                                             onClick={() => removeItem(index)}
+                                            className="rounded-lg"
                                         >
                                             <X className="h-4 w-4" />
                                         </Button>
@@ -230,7 +245,7 @@ export default function FoodPage() {
                     </div>
 
                     <div>
-                        <label htmlFor="notes" className="block text-sm font-medium mb-2">
+                        <label htmlFor="notes" className="block text-sm font-medium mb-2 text-gray-700">
                             Notes (optional)
                         </label>
                         <Textarea
@@ -238,14 +253,19 @@ export default function FoodPage() {
                             value={notes}
                             onChange={(e) => setNotes(e.target.value)}
                             rows={3}
+                            className="rounded-lg"
                         />
                     </div>
 
                     <div className="flex justify-end space-x-2 pt-4">
-                        <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)}>
+                        <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)} className="rounded-lg">
                             Cancel
                         </Button>
-                        <Button type="submit" disabled={createMutation.isPending} className="bg-blue-600 hover:bg-blue-700">
+                        <Button
+                            type="submit"
+                            disabled={createMutation.isPending}
+                            className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white rounded-lg"
+                        >
                             {createMutation.isPending ? 'Saving...' : 'Save'}
                         </Button>
                     </div>

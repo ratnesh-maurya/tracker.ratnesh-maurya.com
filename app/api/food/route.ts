@@ -49,11 +49,11 @@ export async function GET(request: NextRequest) {
     }
 
     const [foodEntries, total] = await Promise.all([
-      Food.find(query).sort({ date: -1, mealType: 1 }).skip(skip).limit(limit),
+      Food.find(query).select('-__v').sort({ date: -1, mealType: 1 }).skip(skip).limit(limit).lean(),
       Food.countDocuments(query),
     ]);
 
-    return NextResponse.json<ApiResponse>({
+    const response = NextResponse.json<ApiResponse>({
       success: true,
       data: {
         entries: foodEntries,
@@ -66,6 +66,10 @@ export async function GET(request: NextRequest) {
         },
       },
     });
+
+    response.headers.set('Cache-Control', 'private, max-age=30, stale-while-revalidate=60');
+    
+    return response;
   } catch (error) {
     console.error('Get food entries error:', error);
     return NextResponse.json<ApiResponse>({ success: false, error: 'Failed to fetch food entries' }, { status: 500 });

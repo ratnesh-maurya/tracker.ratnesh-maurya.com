@@ -80,19 +80,26 @@ export default function JournalPage() {
     const pagination = journalData?.pagination;
 
     return (
-        <div className="min-h-screen bg-gray-50">
-            <header className="bg-white border-b sticky top-0 z-10">
+        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+            <header className="bg-white/80 backdrop-blur-md border-b border-gray-200/50 sticky top-0 z-10">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
                     <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-4">
+                        <div className="flex items-center space-x-3">
                             <Link href="/dashboard">
-                                <Button variant="ghost" size="icon">
+                                <Button variant="ghost" size="icon" className="rounded-full hover:bg-gray-100 transition-smooth">
                                     <ArrowLeft className="h-4 w-4" />
                                 </Button>
                             </Link>
-                            <h1 className="text-2xl font-bold">Journal</h1>
+                            <div>
+                                <h1 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
+                                    Journal
+                                </h1>
+                            </div>
                         </div>
-                        <Button onClick={() => setIsModalOpen(true)}>
+                        <Button
+                            onClick={() => setIsModalOpen(true)}
+                            className="bg-gradient-to-r from-pink-500 to-pink-600 hover:from-pink-600 hover:to-pink-700 text-white rounded-xl shadow-md hover:shadow-lg transition-all duration-200"
+                        >
                             <Plus className="h-4 w-4 mr-2" />
                             New Entry
                         </Button>
@@ -100,42 +107,54 @@ export default function JournalPage() {
                 </div>
             </header>
 
-            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-20 md:pb-8">
+            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-24 md:pb-20">
                 {isLoading ? (
-                    <div className="text-center py-12">Loading...</div>
+                    <div className="text-center py-12 animate-pulse text-gray-400">Loading...</div>
                 ) : journalEntries.length === 0 ? (
-                    <Card>
-                        <CardContent className="py-12 text-center">
-                            <FileText className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-                            <p className="text-gray-600 mb-4">No journal entries yet. Write your first entry!</p>
-                            <Button onClick={() => setIsModalOpen(true)}>
+                    <Card className="border-0 shadow-md bg-white/90 backdrop-blur-sm animate-fade-in">
+                        <CardContent className="py-16 text-center">
+                            <div className="bg-pink-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <FileText className="h-8 w-8 text-pink-600" />
+                            </div>
+                            <p className="text-gray-600 mb-4 font-medium">No journal entries yet</p>
+                            <Button
+                                onClick={() => setIsModalOpen(true)}
+                                className="bg-gradient-to-r from-pink-500 to-pink-600 hover:from-pink-600 hover:to-pink-700 text-white rounded-xl"
+                            >
                                 <Plus className="h-4 w-4 mr-2" />
                                 New Entry
                             </Button>
                         </CardContent>
                     </Card>
                 ) : (
-                    <div className="space-y-4">
-                        {journalEntries.map((entry: any) => (
-                            <Card key={entry._id}>
-                                <CardHeader>
-                                    <CardTitle>{formatDate(entry.date)}</CardTitle>
-                                </CardHeader>
-                                <CardContent>
+                    <div className="space-y-3 animate-fade-in">
+                        {journalEntries.map((entry: any, index: number) => (
+                            <Card
+                                key={entry._id}
+                                className="border-0 shadow-sm hover:shadow-md transition-all duration-200 bg-white/90 backdrop-blur-sm rounded-xl animate-slide-up"
+                                style={{ animationDelay: `${index * 50}ms` }}
+                            >
+                                <CardContent className="py-5">
+                                    <div className="flex items-center space-x-3 mb-4">
+                                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-pink-400 to-pink-500 flex items-center justify-center shadow-sm">
+                                            <FileText className="h-6 w-6 text-white" />
+                                        </div>
+                                        <h3 className="font-semibold text-lg text-gray-800">{formatDate(entry.date)}</h3>
+                                    </div>
                                     <div className="space-y-4">
                                         <div>
-                                            <p className="text-gray-700 whitespace-pre-wrap">{entry.summary}</p>
+                                            <p className="text-gray-700 whitespace-pre-wrap leading-relaxed">{entry.summary}</p>
                                         </div>
                                         {entry.highlights && entry.highlights.length > 0 && (
-                                            <div className="border-t pt-4">
-                                                <h3 className="text-sm font-semibold text-gray-700 mb-2 flex items-center">
-                                                    <Star className="h-4 w-4 mr-1 text-yellow-500" />
+                                            <div className="border-t border-gray-100 pt-4">
+                                                <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center">
+                                                    <Star className="h-4 w-4 mr-1.5 text-yellow-500" />
                                                     Highlights
                                                 </h3>
-                                                <ul className="space-y-1">
+                                                <ul className="space-y-2">
                                                     {entry.highlights.map((highlight: string, idx: number) => (
                                                         <li key={idx} className="text-sm text-gray-600 flex items-start">
-                                                            <span className="mr-2">•</span>
+                                                            <span className="w-1.5 h-1.5 rounded-full bg-pink-500 mr-2 mt-1.5 flex-shrink-0"></span>
                                                             <span>{highlight}</span>
                                                         </li>
                                                     ))}
@@ -161,7 +180,7 @@ export default function JournalPage() {
             <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="New Journal Entry" size="lg">
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
-                        <label htmlFor="summary" className="block text-sm font-medium mb-1">
+                        <label htmlFor="summary" className="block text-sm font-medium mb-1 text-gray-700">
                             Summary
                         </label>
                         <Textarea
@@ -170,6 +189,7 @@ export default function JournalPage() {
                             onChange={(e) => setSummary(e.target.value)}
                             rows={6}
                             placeholder="How was your day? What happened?"
+                            className="rounded-lg"
                             required
                         />
                     </div>
@@ -188,6 +208,7 @@ export default function JournalPage() {
                                         value={highlight}
                                         onChange={(e) => updateHighlight(index, e.target.value)}
                                         placeholder="Enter a highlight..."
+                                        className="rounded-lg"
                                     />
                                     {highlights.length > 1 && (
                                         <Button
@@ -204,10 +225,14 @@ export default function JournalPage() {
                         </div>
                     </div>
                     <div className="flex justify-end space-x-2 pt-4">
-                        <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)}>
+                        <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)} className="rounded-lg">
                             Cancel
                         </Button>
-                        <Button type="submit" disabled={createMutation.isPending}>
+                        <Button
+                            type="submit"
+                            disabled={createMutation.isPending}
+                            className="bg-gradient-to-r from-pink-500 to-pink-600 hover:from-pink-600 hover:to-pink-700 text-white rounded-lg"
+                        >
                             {createMutation.isPending ? 'Saving...' : 'Save'}
                         </Button>
                     </div>
