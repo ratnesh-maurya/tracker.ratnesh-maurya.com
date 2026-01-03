@@ -1,13 +1,16 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 export function DarkModeInit() {
+    const [mounted, setMounted] = useState(false);
+
     useEffect(() => {
-        // Initialize dark mode from localStorage or system preference
+        setMounted(true);
+        // Initialize dark mode from localStorage or default to light mode
         const savedDarkMode = localStorage.getItem('darkMode');
-        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        const isDark = savedDarkMode !== null ? savedDarkMode === 'true' : prefersDark;
+        // Default to light mode (white) if no preference is saved
+        const isDark = savedDarkMode !== null ? savedDarkMode === 'true' : false;
 
         if (isDark) {
             document.documentElement.classList.add('dark');
@@ -15,6 +18,11 @@ export function DarkModeInit() {
             document.documentElement.classList.remove('dark');
         }
     }, []);
+
+    // Prevent hydration mismatch by not rendering until mounted
+    if (!mounted) {
+        return null;
+    }
 
     return null;
 }

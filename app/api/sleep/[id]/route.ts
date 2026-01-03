@@ -29,17 +29,70 @@ export async function PATCH(
 
     await connectDB();
 
+    // Get existing entry to use as reference for date if needed
+    const existing = await Sleep.findById(id);
+    if (!existing) {
+      return NextResponse.json<ApiResponse>({ success: false, error: 'Sleep entry not found' }, { status: 404 });
+    }
+
     const updateData: any = {};
+    let sleepDate: Date = existing.date;
+
     if (validatedData.date !== undefined) {
-      const sleepDate = new Date(validatedData.date);
+      sleepDate = typeof validatedData.date === 'string' ? new Date(validatedData.date) : validatedData.date;
+      if (isNaN(sleepDate.getTime())) {
+        return NextResponse.json<ApiResponse>({ success: false, error: 'Invalid date format' }, { status: 400 });
+      }
       updateData.date = getStartOfDay(sleepDate);
     }
+
     if (validatedData.startTime !== undefined) {
-      updateData.startTime = new Date(validatedData.startTime);
+      let startTime: Date;
+      if (typeof validatedData.startTime === 'string') {
+        // If it's just time (HH:mm), combine with date
+        if (validatedData.startTime.match(/^\d{2}:\d{2}$/)) {
+          const [hours, minutes] = validatedData.startTime.split(':').map(Number);
+          startTime = new Date(sleepDate);
+          startTime.setHours(hours, minutes, 0, 0);
+        } else {
+          // Full datetime string
+          startTime = new Date(validatedData.startTime);
+        }
+      } else {
+        startTime = validatedData.startTime;
+      }
+      if (isNaN(startTime.getTime())) {
+        return NextResponse.json<ApiResponse>({ success: false, error: 'Invalid start time format' }, { status: 400 });
+      }
+      updateData.startTime = startTime;
     }
+
     if (validatedData.endTime !== undefined) {
-      updateData.endTime = new Date(validatedData.endTime);
+      let endTime: Date;
+      if (typeof validatedData.endTime === 'string') {
+        // If it's just time (HH:mm), combine with date
+        if (validatedData.endTime.match(/^\d{2}:\d{2}$/)) {
+          const [hours, minutes] = validatedData.endTime.split(':').map(Number);
+          endTime = new Date(sleepDate);
+          endTime.setHours(hours, minutes, 0, 0);
+          // If end time is earlier than start time, assume it's the next day
+          const startTime = updateData.startTime || existing.startTime;
+          if (endTime < startTime) {
+            endTime.setDate(endTime.getDate() + 1);
+          }
+        } else {
+          // Full datetime string
+          endTime = new Date(validatedData.endTime);
+        }
+      } else {
+        endTime = validatedData.endTime;
+      }
+      if (isNaN(endTime.getTime())) {
+        return NextResponse.json<ApiResponse>({ success: false, error: 'Invalid end time format' }, { status: 400 });
+      }
+      updateData.endTime = endTime;
     }
+
     if (validatedData.notes !== undefined) {
       updateData.notes = validatedData.notes;
     }
@@ -47,16 +100,19 @@ export async function PATCH(
     // Recalculate duration if times changed
     if (updateData.startTime && updateData.endTime) {
       const diffMs = updateData.endTime.getTime() - updateData.startTime.getTime();
+      if (diffMs < 0) {
+        return NextResponse.json<ApiResponse>({ success: false, error: 'End time must be after start time' }, { status: 400 });
+      }
       updateData.duration = Math.round(diffMs / (1000 * 60));
     } else if (updateData.startTime || updateData.endTime) {
       // Need to get existing entry to calculate duration
-      const existing = await Sleep.findById(id);
-      if (existing) {
-        const startTime = updateData.startTime || existing.startTime;
-        const endTime = updateData.endTime || existing.endTime;
-        const diffMs = endTime.getTime() - startTime.getTime();
-        updateData.duration = Math.round(diffMs / (1000 * 60));
+      const startTime = updateData.startTime || existing.startTime;
+      const endTime = updateData.endTime || existing.endTime;
+      const diffMs = endTime.getTime() - startTime.getTime();
+      if (diffMs < 0) {
+        return NextResponse.json<ApiResponse>({ success: false, error: 'End time must be after start time' }, { status: 400 });
       }
+      updateData.duration = Math.round(diffMs / (1000 * 60));
     }
 
     const sleep = await Sleep.findOneAndUpdate(

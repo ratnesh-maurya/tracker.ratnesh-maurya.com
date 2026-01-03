@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { ArrowLeft, Settings, User, Moon, Volume2, LogOut, ExternalLink, Copy, Check } from 'lucide-react';
 import { NavBar } from '@/components/layout/NavBar';
 import { useRouter } from 'next/navigation';
+import { handleApiResponse } from '@/lib/api/client';
 
 export default function SettingsPage() {
     const router = useRouter();
@@ -25,9 +26,7 @@ export default function SettingsPage() {
         queryKey: ['user'],
         queryFn: async () => {
             const res = await fetch('/api/users/me', { cache: 'no-store' });
-            const data = await res.json();
-            if (!data.success) throw new Error(data.error);
-            return data.data;
+            return handleApiResponse(res);
         },
         staleTime: 0,
         gcTime: 0,
@@ -71,10 +70,11 @@ export default function SettingsPage() {
         }
 
         if (userData) {
-            setProfilePublic(userData.profilePublic || false);
-            setSounds(userData.sounds !== undefined ? userData.sounds : true);
-            setName(userData.name ?? '');
-            setPhone(userData.phone ?? '');
+            const data = userData as any;
+            setProfilePublic(data.profilePublic || false);
+            setSounds(data.sounds !== undefined ? data.sounds : true);
+            setName(data.name ?? '');
+            setPhone(data.phone ?? '');
         }
     }, [userData]);
 
@@ -98,7 +98,7 @@ export default function SettingsPage() {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
+        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900/90 dark:to-gray-800/90">
             <header className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border-b border-gray-200/50 dark:border-gray-700/50 sticky top-0 z-10">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
                     <div className="flex items-center space-x-3">
@@ -119,7 +119,7 @@ export default function SettingsPage() {
             <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-24 md:pb-20">
                 <div className="space-y-6 animate-fade-in">
                     {/* General Section */}
-                    <Card className="border-0 shadow-md bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm">
+                    <Card className="border border-white/30 dark:border-white/10 shadow-xl bg-white/40 dark:bg-gray-800/70 backdrop-blur-2xl">
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2 text-gray-800 dark:text-gray-100">
                                 <Settings className="h-5 w-5 text-gray-600 dark:text-gray-400" />
@@ -193,13 +193,13 @@ export default function SettingsPage() {
                                         />
                                     </button>
                                 </div>
-                                {profilePublic && userData?.username && (
+                                {profilePublic && (userData as any)?.username && (
                                     <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
                                         <div className="flex items-center justify-between">
                                             <div className="flex-1 min-w-0">
                                                 <p className="text-sm font-medium text-blue-900 dark:text-blue-100 mb-1">Your Public Profile</p>
                                                 <p className="text-xs text-blue-700 dark:text-blue-300 truncate">
-                                                    {typeof window !== 'undefined' ? `${window.location.origin}/u/${userData.username}` : ''}
+                                                    {typeof window !== 'undefined' ? `${window.location.origin}/u/${(userData as any).username}` : ''}
                                                 </p>
                                             </div>
                                             <div className="flex gap-2 ml-2">
@@ -207,7 +207,7 @@ export default function SettingsPage() {
                                                     variant="ghost"
                                                     size="icon"
                                                     onClick={async () => {
-                                                        const url = typeof window !== 'undefined' ? `${window.location.origin}/u/${userData.username}` : '';
+                                                        const url = typeof window !== 'undefined' ? `${window.location.origin}/u/${(userData as any).username}` : '';
                                                         if (url) {
                                                             await navigator.clipboard.writeText(url);
                                                             setCopied(true);
@@ -219,7 +219,7 @@ export default function SettingsPage() {
                                                     {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                                                 </Button>
                                                 <a
-                                                    href={`/u/${userData.username}`}
+                                                    href={`/u/${(userData as any).username}`}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
                                                     className="inline-flex items-center justify-center h-8 w-8 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 text-blue-600 dark:text-blue-400 transition-colors"
@@ -235,7 +235,7 @@ export default function SettingsPage() {
                     </Card>
 
                     {/* Profile Section */}
-                    <Card className="border-0 shadow-md bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm">
+                    <Card className="border border-white/30 dark:border-white/10 shadow-xl bg-white/40 dark:bg-gray-800/70 backdrop-blur-2xl">
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2 text-gray-800 dark:text-gray-100">
                                 <User className="h-5 w-5 text-gray-600 dark:text-gray-400" />
@@ -311,8 +311,9 @@ export default function SettingsPage() {
                                             onClick={() => {
                                                 setIsEditingProfile(false);
                                                 if (userData) {
-                                                    setName(userData.name || '');
-                                                    setPhone(userData.phone || '');
+                                                    const data = userData as any;
+                                                    setName(data.name || '');
+                                                    setPhone(data.phone || '');
                                                 }
                                             }}
                                         >
@@ -332,7 +333,7 @@ export default function SettingsPage() {
                     </Card>
 
                     {/* Logout */}
-                    <Card className="border-0 shadow-md bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm">
+                    <Card className="border border-white/30 dark:border-white/10 shadow-xl bg-white/40 dark:bg-gray-800/70 backdrop-blur-2xl">
                         <CardContent className="pt-6">
                             <Button
                                 onClick={handleLogout}

@@ -25,19 +25,19 @@ export function Modal({ isOpen, onClose, title, children, size = 'md' }: ModalPr
 
     return (
         <div
-            className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4"
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
             onClick={onClose}
         >
             <div
                 className={cn(
-                    'bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full flex flex-col max-h-[90vh]',
+                    'bg-white/50 dark:bg-gray-800/80 backdrop-blur-3xl rounded-2xl border border-white/40 dark:border-white/10 shadow-2xl shadow-black/20 dark:shadow-black/40 w-full flex flex-col max-h-[90vh]',
                     sizeClasses[size]
                 )}
                 onClick={(e) => e.stopPropagation()}
             >
-                <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
+                <div className="flex items-center justify-between p-6 border-b border-white/20 dark:border-white/10 flex-shrink-0">
                     <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">{title}</h2>
-                    <Button variant="ghost" size="icon" onClick={onClose}>
+                    <Button variant="ghost" size="icon" onClick={onClose} className="hover:bg-white/20 dark:hover:bg-white/10">
                         <X className="h-4 w-4" />
                     </Button>
                 </div>

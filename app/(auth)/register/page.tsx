@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -45,7 +45,21 @@ export default function RegisterPage() {
     const [rememberMe, setRememberMe] = useState(false);
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+    const [mounted, setMounted] = useState(false);
     const [currentQuote] = useState(quotes[Math.floor(Math.random() * quotes.length)]);
+
+    // Force light mode on register page (client-side only)
+    useEffect(() => {
+        setMounted(true);
+        const savedDarkMode = localStorage.getItem('darkMode');
+        document.documentElement.classList.remove('dark');
+        return () => {
+            // Restore previous theme when leaving page
+            if (savedDarkMode === 'true') {
+                document.documentElement.classList.add('dark');
+            }
+        };
+    }, []);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -73,6 +87,17 @@ export default function RegisterPage() {
             setLoading(false);
         }
     };
+
+    if (!mounted) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-gray-50">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+                    <p className="text-gray-600">Loading...</p>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen flex">

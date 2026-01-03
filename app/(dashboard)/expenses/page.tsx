@@ -15,6 +15,7 @@ import { ArrowLeft, Plus, IndianRupee, Edit2, Trash2 } from 'lucide-react';
 import { NavBar } from '@/components/layout/NavBar';
 import { formatDate } from '@/lib/utils';
 import { Pagination } from '@/components/ui/pagination';
+import { handleApiResponse } from '@/lib/api/client';
 import { SkeletonList } from '@/components/ui/skeleton';
 
 const CATEGORIES = [
@@ -46,9 +47,7 @@ export default function ExpensesPage() {
         queryKey: ['expenses', page],
         queryFn: async () => {
             const res = await fetch(`/api/expenses?page=${page}&limit=20`, { cache: 'no-store' });
-            const data = await res.json();
-            if (!data.success) throw new Error(data.error);
-            return data.data;
+            return handleApiResponse(res);
         },
         staleTime: 0,
         gcTime: 0,
@@ -171,12 +170,12 @@ export default function ExpensesPage() {
         }
     };
 
-    const expenses = expensesData?.entries || [];
-    const pagination = expensesData?.pagination;
+    const expenses = (expensesData as any)?.entries || [];
+    const pagination = (expensesData as any)?.pagination;
     const totalExpenses = expenses.reduce((sum: number, exp: any) => sum + exp.amount, 0);
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
+        <div className="min-h-screen bg-gradient-to-br from-yellow-50 to-amber-50 dark:from-yellow-900/40 dark:to-amber-900/40">
             <header className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border-b border-gray-200/50 dark:border-gray-700/50 sticky top-0 z-10">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
                     <div className="flex items-center justify-between">
@@ -227,7 +226,7 @@ export default function ExpensesPage() {
                         <SkeletonList count={5} />
                     </div>
                 ) : expenses.length === 0 ? (
-                    <Card className="border-0 shadow-md bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm animate-fade-in">
+                    <Card className="border border-white/30 dark:border-white/10 shadow-xl bg-white/40 dark:bg-gray-800/70 backdrop-blur-2xl animate-fade-in">
                         <CardContent className="py-16 text-center">
                             <div className="bg-yellow-100 dark:bg-yellow-900 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
                                 <IndianRupee className="h-8 w-8 text-yellow-600 dark:text-yellow-400" />
@@ -247,7 +246,7 @@ export default function ExpensesPage() {
                         {expenses.map((expense: any, index: number) => (
                             <Card
                                 key={expense._id}
-                                className="border-0 shadow-sm hover:shadow-md transition-all duration-200 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-xl animate-slide-up"
+                                className="border border-white/30 dark:border-white/10 shadow-xl hover:shadow-2xl transition-all duration-200 bg-white/40 dark:bg-gray-800/70 backdrop-blur-2xl animate-slide-up"
                                 style={{ animationDelay: `${index * 50}ms` }}
                             >
                                 <CardContent className="py-4">
