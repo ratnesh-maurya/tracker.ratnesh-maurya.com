@@ -5,13 +5,13 @@ import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, User, Trophy, Activity, Share2, Calendar } from 'lucide-react';
+import { ArrowLeft, User, Trophy, Activity, ExternalLink } from 'lucide-react';
 import { NavBar } from '@/components/layout/NavBar';
-import { formatDate } from '@/lib/utils';
-import { shareAchievement } from '@/lib/social/share';
+import { SocialShare } from '@/components/ui/social-share';
 
 export default function ProfilePage() {
     const [activeTab, setActiveTab] = useState<'activity' | 'achievements'>('activity');
+    const { generateAndShare } = useShareCard();
 
     const { data: userData } = useQuery({
         queryKey: ['user'],
@@ -33,13 +33,17 @@ export default function ProfilePage() {
         },
     });
 
-    const handleShare = async (type: 'daily-goal' | 'habit-streak' | 'study-session' | 'achievement', title: string, description: string, value?: string | number) => {
-        await shareAchievement({
-            type,
-            title,
-            description,
-            value,
-        });
+    const username = (userData as any)?.username || 'user';
+
+    const handleShare = async (
+        type: 'streak' | 'achievement' | 'study' | 'daily-goal' | 'profile',
+        title: string,
+        subtitle: string,
+        value?: string | number,
+        emoji?: string,
+        color?: 'purple' | 'orange' | 'blue' | 'green' | 'indigo',
+    ) => {
+        await generateAndShare({ username, name: (userData as any)?.name, type, title, subtitle, value, emoji, color }, true);
     };
 
     const stats = statsData || {};
@@ -47,9 +51,9 @@ export default function ProfilePage() {
     const study = stats.study || {};
 
     return (
-        <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-            <header className="bg-white dark:bg-gray-800 border-b sticky top-0 z-10">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div className="min-h-screen bg-background">
+            <header className="bg-background/95 backdrop-blur-md border-b border-border sticky top-0 z-10">
+                <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-4">
                             <Link href="/dashboard">
@@ -57,35 +61,44 @@ export default function ProfilePage() {
                                     <ArrowLeft className="h-4 w-4" />
                                 </Button>
                             </Link>
-                            <h1 className="text-2xl font-bold dark:text-white">Your Profile</h1>
+                            <h1 className="text-2xl font-bold text-foreground">Your Profile</h1>
                         </div>
-                        <Link href="/settings">
-                            <Button variant="ghost" size="icon">
-                                <User className="h-4 w-4" />
-                            </Button>
-                        </Link>
+                        <div className="flex items-center gap-2">
+                            {(userData as any)?.username && (userData as any)?.profilePublic && (
+                                <Link href={`/u/${(userData as any).username}`} target="_blank">
+                                    <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground">
+                                        <ExternalLink className="h-3.5 w-3.5" />
+                                        <span className="hidden sm:inline">Public</span>
+                                    </Button>
+                                </Link>
+                            )}
+                            <Link href="/settings">
+                                <Button variant="ghost" size="icon">
+                                    <User className="h-4 w-4" />
+                                </Button>
+                            </Link>
+                        </div>
                     </div>
                 </div>
             </header>
 
-            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-20 md:pb-8">
+            <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-20 md:pb-8">
                 {/* Profile Header */}
-                <Card className="mb-6 dark:bg-gray-800">
+                <Card className="mb-6 border border-border bg-card">
                     <CardContent className="pt-6">
-                        <div className="flex items-center space-x-4">
-                            <div className="w-20 h-20 rounded-full bg-blue-600 flex items-center justify-center text-white text-2xl font-bold">
-                                {userData?.username?.charAt(0).toUpperCase() || 'U'}
+                        <div className="flex items-center gap-4">
+                            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center text-white text-2xl font-bold shadow-lg flex-shrink-0">
+                                {(userData as any)?.username?.charAt(0).toUpperCase() || 'U'}
                             </div>
-                            <div className="flex-1">
-                                <h2 className="text-2xl font-bold dark:text-white">{userData?.username || 'User'}</h2>
-                                <p className="text-gray-600 dark:text-gray-400">{userData?.email}</p>
+                            <div className="flex-1 min-w-0">
+                                <h2 className="text-xl font-bold text-foreground">{(userData as any)?.username || 'User'}</h2>
+                                <p className="text-muted-foreground text-sm truncate">{(userData as any)?.email}</p>
                                 <div className="flex items-center gap-4 mt-2">
-                                    <span className="text-sm font-medium dark:text-white">
-                                        {habits.totalHabits || 0} Habits
-                                    </span>
-                                    <span className="text-sm font-medium dark:text-white">
-                                        {Math.round(study.totalHours || 0)}h Study
-                                    </span>
+                                    <span className="text-sm font-semibold text-foreground">{habits.totalHabits || 0} <span className="font-normal text-muted-foreground">Habits</span></span>
+                                    <span className="text-sm font-semibold text-foreground">{Math.round(study.totalHours || 0)}h <span className="font-normal text-muted-foreground">Study</span></span>
+                                    {habits.activeStreaks > 0 && (
+                                        <span className="text-sm font-semibold text-orange-500">🔥 {habits.activeStreaks} <span className="font-normal text-muted-foreground">streak</span></span>
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -93,171 +106,151 @@ export default function ProfilePage() {
                 </Card>
 
                 {/* Tabs */}
-                <div className="flex space-x-4 mb-6 border-b dark:border-gray-700">
-                    <button
-                        onClick={() => setActiveTab('activity')}
-                        className={`pb-3 px-4 font-medium transition-colors ${activeTab === 'activity'
-                            ? 'border-b-2 border-blue-600 text-blue-600 dark:text-blue-400'
-                            : 'text-gray-600 dark:text-gray-400'
-                            }`}
-                    >
-                        Activity
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('achievements')}
-                        className={`pb-3 px-4 font-medium transition-colors ${activeTab === 'achievements'
-                            ? 'border-b-2 border-blue-600 text-blue-600 dark:text-blue-400'
-                            : 'text-gray-600 dark:text-gray-400'
-                            }`}
-                    >
-                        Achievements
-                    </button>
+                <div className="flex gap-1 mb-6 border-b border-border">
+                    {(['activity', 'achievements'] as const).map(tab => (
+                        <button
+                            key={tab}
+                            onClick={() => setActiveTab(tab)}
+                            className={`pb-3 px-4 font-medium text-sm capitalize transition-colors ${activeTab === tab
+                                ? 'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400'
+                                : 'text-muted-foreground hover:text-foreground'
+                                }`}
+                        >
+                            {tab}
+                        </button>
+                    ))}
                 </div>
 
                 {/* Activity Tab */}
                 {activeTab === 'activity' && (
-                    <div className="space-y-4">
-                        <Card className="dark:bg-gray-800">
-                            <CardHeader>
-                                <CardTitle className="flex items-center gap-2 dark:text-white">
-                                    <Activity className="h-5 w-5" />
-                                    Recent Activity
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="space-y-3">
-                                    <div className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center">
-                                                <span className="text-white font-bold">+</span>
-                                            </div>
-                                            <div>
-                                                <p className="font-medium dark:text-white">Daily goal completed!</p>
-                                                <p className="text-sm text-gray-600 dark:text-gray-400">All habits checked in today</p>
-                                            </div>
+                    <Card className="border border-border bg-card">
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2 text-foreground text-base">
+                                <Activity className="h-4 w-4" />
+                                Recent Activity
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="space-y-3">
+                                <div className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-950/30 rounded-xl border border-green-100 dark:border-green-900/40">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-9 h-9 rounded-xl bg-green-500 flex items-center justify-center text-white font-bold text-lg">🎯</div>
+                                        <div>
+                                            <p className="font-medium text-foreground text-sm">Daily goal completed!</p>
+                                            <p className="text-xs text-muted-foreground">All habits checked in today</p>
                                         </div>
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            onClick={() => handleShare('daily-goal', 'Daily Goal Completed', 'All habits checked in today')}
-                                        >
-                                            <Share2 className="h-4 w-4" />
-                                        </Button>
                                     </div>
-                                    <div className="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center">
-                                                <span className="text-white font-bold">+</span>
-                                            </div>
-                                            <div>
-                                                <p className="font-medium dark:text-white">Study session completed</p>
-                                                <p className="text-sm text-gray-600 dark:text-gray-400">{Math.round(study.totalHours || 0)} hours this week</p>
-                                            </div>
-                                        </div>
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            onClick={() => handleShare('study-session', 'Study Session', 'Great progress this week', Math.round(study.totalHours || 0))}
-                                        >
-                                            <Share2 className="h-4 w-4" />
-                                        </Button>
-                                    </div>
-                                    {habits.activeStreaks > 0 && (
-                                        <div className="flex items-center justify-between p-3 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 rounded-full bg-orange-500 flex items-center justify-center">
-                                                    <span className="text-white font-bold">🔥</span>
-                                                </div>
-                                                <div>
-                                                    <p className="font-medium dark:text-white">Streak maintained!</p>
-                                                    <p className="text-sm text-gray-600 dark:text-gray-400">{habits.activeStreaks} day streak active</p>
-                                                </div>
-                                            </div>
-                                            <Button
-                                                variant="ghost"
-                                                size="icon"
-                                                onClick={() => handleShare('habit-streak', 'Habit Streak', 'Maintaining consistency', habits.activeStreaks)}
-                                            >
-                                                <Share2 className="h-4 w-4" />
-                                            </Button>
-                                        </div>
-                                    )}
+                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-green-600"
+                                        onClick={() => handleShare('daily-goal', 'Daily Goal', 'All habits done today!', undefined, '🎯', 'green')}>
+                                        <Share2 className="h-4 w-4" />
+                                    </Button>
                                 </div>
-                            </CardContent>
-                        </Card>
-                    </div>
+
+                                <div className="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-950/30 rounded-xl border border-blue-100 dark:border-blue-900/40">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-9 h-9 rounded-xl bg-blue-500 flex items-center justify-center text-white font-bold text-lg">📚</div>
+                                        <div>
+                                            <p className="font-medium text-foreground text-sm">Study sessions this year</p>
+                                            <p className="text-xs text-muted-foreground">{Math.round(study.totalHours || 0)} hours total</p>
+                                        </div>
+                                    </div>
+                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-blue-600"
+                                        onClick={() => handleShare('study', 'Study Hours', `${Math.round(study.totalHours || 0)}h of deep work`, Math.round(study.totalHours || 0), '📚', 'blue')}>
+                                        <Share2 className="h-4 w-4" />
+                                    </Button>
+                                </div>
+
+                                {habits.activeStreaks > 0 && (
+                                    <div className="flex items-center justify-between p-3 bg-orange-50 dark:bg-orange-950/30 rounded-xl border border-orange-100 dark:border-orange-900/40">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-9 h-9 rounded-xl bg-orange-500 flex items-center justify-center text-white font-bold text-lg">🔥</div>
+                                            <div>
+                                                <p className="font-medium text-foreground text-sm">Streak maintained!</p>
+                                                <p className="text-xs text-muted-foreground">{habits.activeStreaks} days in a row</p>
+                                            </div>
+                                        </div>
+                                        <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-orange-600"
+                                            onClick={() => handleShare('streak', 'On Fire!', `${habits.activeStreaks} day streak`, habits.activeStreaks, '🔥', 'orange')}>
+                                            <Share2 className="h-4 w-4" />
+                                        </Button>
+                                    </div>
+                                )}
+                            </div>
+                        </CardContent>
+                    </Card>
                 )}
 
                 {/* Achievements Tab */}
                 {activeTab === 'achievements' && (
-                    <div className="space-y-4">
-                        <Card className="dark:bg-gray-800">
-                            <CardHeader>
-                                <CardTitle className="flex items-center gap-2 dark:text-white">
-                                    <Trophy className="h-5 w-5" />
-                                    Achievements
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    {habits.totalHabits > 0 && (
-                                        <div className="p-4 border-2 border-yellow-400 rounded-lg bg-yellow-50 dark:bg-yellow-900/20">
-                                            <div className="flex items-center justify-between">
-                                                <div>
-                                                    <Trophy className="h-8 w-8 text-yellow-600 mb-2" />
-                                                    <p className="font-bold dark:text-white">First Habit</p>
-                                                    <p className="text-sm text-gray-600 dark:text-gray-400">Created your first habit</p>
-                                                </div>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    onClick={() => handleShare('achievement', 'First Habit', 'Created your first habit!')}
-                                                >
-                                                    <Share2 className="h-4 w-4" />
-                                                </Button>
+                    <Card className="border border-border bg-card">
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2 text-foreground text-base">
+                                <Trophy className="h-4 w-4" />
+                                Achievements
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                {habits.totalHabits > 0 && (
+                                    <div className="flex items-center justify-between p-4 rounded-xl border-2 border-yellow-300 dark:border-yellow-700 bg-yellow-50 dark:bg-yellow-950/30">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-yellow-400 to-yellow-600 flex items-center justify-center">
+                                                <Trophy className="h-5 w-5 text-white" />
+                                            </div>
+                                            <div>
+                                                <p className="font-bold text-foreground text-sm">First Habit</p>
+                                                <p className="text-xs text-muted-foreground">Created your first habit</p>
                                             </div>
                                         </div>
-                                    )}
-                                    {habits.completionRate > 80 && (
-                                        <div className="p-4 border-2 border-green-400 rounded-lg bg-green-50 dark:bg-green-900/20">
-                                            <div className="flex items-center justify-between">
-                                                <div>
-                                                    <Trophy className="h-8 w-8 text-green-600 mb-2" />
-                                                    <p className="font-bold dark:text-white">Consistency Master</p>
-                                                    <p className="text-sm text-gray-600 dark:text-gray-400">80%+ completion rate</p>
-                                                </div>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    onClick={() => handleShare('achievement', 'Consistency Master', '80%+ completion rate achieved!')}
-                                                >
-                                                    <Share2 className="h-4 w-4" />
-                                                </Button>
+                                        <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground"
+                                            onClick={() => handleShare('achievement', 'First Habit', 'Started my habit journey!', undefined, '🏆', 'indigo')}>
+                                            <Share2 className="h-4 w-4" />
+                                        </Button>
+                                    </div>
+                                )}
+                                {habits.completionRate > 80 && (
+                                    <div className="flex items-center justify-between p-4 rounded-xl border-2 border-green-300 dark:border-green-700 bg-green-50 dark:bg-green-950/30">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center">
+                                                <Trophy className="h-5 w-5 text-white" />
+                                            </div>
+                                            <div>
+                                                <p className="font-bold text-foreground text-sm">Consistency Master</p>
+                                                <p className="text-xs text-muted-foreground">{habits.completionRate?.toFixed(0)}% completion rate</p>
                                             </div>
                                         </div>
-                                    )}
-                                    {study.totalHours > 100 && (
-                                        <div className="p-4 border-2 border-blue-400 rounded-lg bg-blue-50 dark:bg-blue-900/20">
-                                            <div className="flex items-center justify-between">
-                                                <div>
-                                                    <Trophy className="h-8 w-8 text-blue-600 mb-2" />
-                                                    <p className="font-bold dark:text-white">Study Champion</p>
-                                                    <p className="text-sm text-gray-600 dark:text-gray-400">100+ hours studied</p>
-                                                </div>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    onClick={() => handleShare('achievement', 'Study Champion', '100+ hours of study completed!')}
-                                                >
-                                                    <Share2 className="h-4 w-4" />
-                                                </Button>
+                                        <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground"
+                                            onClick={() => handleShare('achievement', 'Consistency Master', `${habits.completionRate?.toFixed(0)}% completion rate!`, habits.completionRate?.toFixed(0) + '%', '⚡', 'green')}>
+                                            <Share2 className="h-4 w-4" />
+                                        </Button>
+                                    </div>
+                                )}
+                                {study.totalHours > 100 && (
+                                    <div className="flex items-center justify-between p-4 rounded-xl border-2 border-blue-300 dark:border-blue-700 bg-blue-50 dark:bg-blue-950/30">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center">
+                                                <Trophy className="h-5 w-5 text-white" />
+                                            </div>
+                                            <div>
+                                                <p className="font-bold text-foreground text-sm">Study Champion</p>
+                                                <p className="text-xs text-muted-foreground">{Math.round(study.totalHours)}h of deep study</p>
                                             </div>
                                         </div>
-                                    )}
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </div>
+                                        <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground"
+                                            onClick={() => handleShare('achievement', 'Study Champion', '100+ hours of deep study!', Math.round(study.totalHours), '📚', 'blue')}>
+                                            <Share2 className="h-4 w-4" />
+                                        </Button>
+                                    </div>
+                                )}
+                                {habits.totalHabits === 0 && habits.completionRate <= 80 && study.totalHours <= 100 && (
+                                    <div className="md:col-span-2 text-center py-10 text-muted-foreground">
+                                        <Trophy className="h-10 w-10 mx-auto mb-3 opacity-30" />
+                                        <p className="text-sm">Keep tracking to unlock achievements!</p>
+                                    </div>
+                                )}
+                            </div>
+                        </CardContent>
+                    </Card>
                 )}
             </main>
             <NavBar />

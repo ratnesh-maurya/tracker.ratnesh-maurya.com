@@ -240,9 +240,9 @@ export default function StudyPage() {
     const totalHours = studyEntries.reduce((sum: number, entry: any) => sum + (entry.timeSpent || 0), 0) / 60;
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950/30 dark:to-pink-950/30">
-            <header className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border-b border-gray-200/50 dark:border-gray-700/50 sticky top-0 z-10">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div className="min-h-screen bg-background">
+            <header className="bg-background/95 backdrop-blur-md border-b border-border sticky top-0 z-10">
+                <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-3">
                             <Link href="/dashboard">
@@ -251,7 +251,7 @@ export default function StudyPage() {
                                 </Button>
                             </Link>
                             <div>
-                                <h1 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 dark:from-gray-100 dark:to-gray-300 bg-clip-text text-transparent">
+                                <h1 className="text-2xl font-bold text-foreground">
                                     Study
                                 </h1>
                             </div>
@@ -267,7 +267,7 @@ export default function StudyPage() {
                 </div>
             </header>
 
-            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-24 md:pb-20">
+            <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-8">
                 {studyEntries.length > 0 && (
                     <div className="animate-fade-in mb-6">
                         <Card className="border-0 shadow-lg bg-gradient-to-br from-purple-500 to-purple-600 text-white">
@@ -289,7 +289,7 @@ export default function StudyPage() {
                 {isLoading ? (
                     <div className="text-center py-12 animate-pulse text-gray-400 dark:text-gray-500">Loading...</div>
                 ) : studyEntries.length === 0 ? (
-                    <Card className="border border-white/30 dark:border-white/10 shadow-xl bg-white/40 dark:bg-gray-800/70 backdrop-blur-2xl animate-fade-in">
+                    <Card className="border border-border shadow-sm bg-card animate-fade-in">
                         <CardContent className="py-16 text-center">
                             <div className="bg-purple-100 dark:bg-purple-900 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
                                 <GraduationCap className="h-8 w-8 text-purple-600 dark:text-purple-400" />
@@ -323,7 +323,7 @@ export default function StudyPage() {
                                                 </div>
                                                 <div className="flex-1">
                                                     <h3 className="font-semibold text-lg text-gray-800 dark:text-gray-100">{entry.topic}</h3>
-                                                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">{formatDate(entry.date)}</p>
+                                                    <p className="text-sm text-muted-foreground mt-0.5">{formatDate(entry.date)}</p>
                                                 </div>
                                             </div>
                                             <div className="flex items-center gap-3">
@@ -368,7 +368,7 @@ export default function StudyPage() {
                                             )}
                                             {entry.projectReference && (
                                                 <div className="text-sm">
-                                                    <span className="text-gray-600 dark:text-gray-400">Project: </span>
+                                                    <span className="text-muted-foreground">Project: </span>
                                                     <span className="font-medium text-gray-800 dark:text-gray-200">{entry.projectReference}</span>
                                                 </div>
                                             )}
@@ -451,7 +451,7 @@ export default function StudyPage() {
                             ))}
                         </div>
                         <div>
-                            <label htmlFor="customTags" className="block text-xs text-gray-600 dark:text-gray-400 mb-1">
+                            <label htmlFor="customTags" className="block text-xs text-muted-foreground mb-1">
                                 Add custom tags (comma-separated)
                             </label>
                             <Input
@@ -463,7 +463,7 @@ export default function StudyPage() {
                             />
                         </div>
                         {(selectedTags.length > 0 || customTags.trim()) && (
-                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                            <p className="text-xs text-muted-foreground mt-2">
                                 Selected: {selectedTags.join(', ')}
                                 {selectedTags.length > 0 && customTags.trim() && ', '}
                                 {customTags.split(',').map((t) => t.trim()).filter((t) => t !== '').join(', ')}
@@ -566,7 +566,7 @@ export default function StudyPage() {
                             ))}
                         </div>
                         <div>
-                            <label htmlFor="editCustomTags" className="block text-xs text-gray-600 dark:text-gray-400 mb-1">
+                            <label htmlFor="editCustomTags" className="block text-xs text-muted-foreground mb-1">
                                 Add custom tags (comma-separated)
                             </label>
                             <Input
@@ -578,7 +578,7 @@ export default function StudyPage() {
                             />
                         </div>
                         {(selectedTags.length > 0 || customTags.trim()) && (
-                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                            <p className="text-xs text-muted-foreground mt-2">
                                 Selected: {selectedTags.join(', ')}
                                 {selectedTags.length > 0 && customTags.trim() && ', '}
                                 {customTags.split(',').map((t) => t.trim()).filter((t) => t !== '').join(', ')}

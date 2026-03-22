@@ -210,209 +210,166 @@ export default function DashboardPage() {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 flex items-center justify-center">
-                <div className="animate-pulse text-gray-400">Loading...</div>
+            <div className="min-h-screen bg-background flex items-center justify-center">
+                <div className="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30">
+        <div className="min-h-screen bg-background">
             <HabitReminderManager />
-            <header className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border-b border-gray-200/50 dark:border-gray-700/50 sticky top-0 z-10">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-                    <div className="flex items-center justify-between mb-4">
-                        <div>
-                            <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 dark:from-purple-400 dark:to-pink-400 bg-clip-text text-transparent">
-                                {(userData as any)?.name || (userData as any)?.username || 'Welcome'} 👋
-                            </h1>
-                            <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">Track your progress</p>
-                        </div>
-                        <Link href="/settings">
-                            <Button variant="ghost" size="icon" className="rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-smooth">
-                                <Settings className="h-5 w-5" />
-                            </Button>
-                        </Link>
+
+            {/* Header */}
+            <header className="bg-background/95 backdrop-blur-md border-b border-border sticky top-0 z-10">
+                <div className="max-w-5xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
+                    <div>
+                        <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-indigo-500 to-purple-500 bg-clip-text text-transparent">
+                            {(userData as any)?.name || (userData as any)?.username || 'Welcome'} 👋
+                        </h1>
+                        <p className="text-xs text-muted-foreground mt-0.5">Track your progress</p>
                     </div>
+                    <Link href="/settings">
+                        <Button variant="ghost" size="icon" className="rounded-xl hover:bg-accent transition-smooth">
+                            <Settings className="h-5 w-5" />
+                        </Button>
+                    </Link>
                 </div>
             </header>
 
-            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-24">
-                {/* Statistics Cards */}
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6 animate-fade-in">
-                    <Card className="border-0 shadow-lg bg-gradient-to-br from-purple-500 to-purple-600 text-white">
-                        <CardContent className="p-4">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <p className="text-purple-100 text-xs mb-1 font-medium">Current Streak</p>
-                                    <p className="text-2xl font-bold">{currentStreak}</p>
-                                    <p className="text-purple-100 text-xs mt-1">days</p>
-                                </div>
-                                <Flame className="h-8 w-8 text-white/80" />
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-500 to-blue-600 text-white">
-                        <CardContent className="p-4">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <p className="text-blue-100 text-xs mb-1 font-medium">Completion Rate</p>
-                                    <p className="text-2xl font-bold">{completionRate}%</p>
-                                </div>
-                                <Target className="h-8 w-8 text-white/80" />
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    <Card className="border-0 shadow-lg bg-gradient-to-br from-green-500 to-green-600 text-white">
-                        <CardContent className="p-4">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <p className="text-green-100 text-xs mb-1 font-medium">Habits Completed</p>
-                                    <p className="text-2xl font-bold">{habitsCompleted}</p>
-                                </div>
-                                <CheckCircle2 className="h-8 w-8 text-white/80" />
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    <Card className="border-0 shadow-lg bg-gradient-to-br from-pink-500 to-pink-600 text-white">
-                        <CardContent className="p-4">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <p className="text-pink-100 text-xs mb-1 font-medium">Perfect Days</p>
-                                    <p className="text-2xl font-bold">{perfectDays}</p>
-                                </div>
-                                <Calendar className="h-8 w-8 text-white/80" />
-                            </div>
-                        </CardContent>
-                    </Card>
-                </div>
-
-                {/* Chart Section */}
-                <div className="animate-fade-in mb-6">
-                    <ThemeProvider theme={chartTheme}>
-                        <Card className="border border-white/30 dark:border-white/10 shadow-xl bg-white/40 dark:bg-gray-800/70 backdrop-blur-2xl">
-                            <CardHeader className="pb-3">
-                                <CardTitle className="text-lg font-semibold flex items-center gap-2 text-gray-800 dark:text-gray-100">
-                                    <TrendingUp className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
-                                    7-Day Overview
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent className="px-0 md:px-6">
-                                <div className="w-full">
-                                    <LineChart
-                                        xAxis={[{
-                                            scaleType: 'point',
-                                            data: dateLabels,
-                                        }]}
-                                        yAxis={[
-                                            { id: 'leftAxis' },
-                                            { id: 'rightAxis', position: 'right' },
-                                        ]}
-                                        series={[
-                                            {
-                                                data: sleepChartData,
-                                                label: 'Sleep',
-                                                color: '#6366f1',
-                                                yAxisId: 'leftAxis',
-                                            },
-                                            {
-                                                data: studyChartData,
-                                                label: 'Study',
-                                                color: '#9333ea',
-                                                yAxisId: 'leftAxis',
-                                            },
-                                            {
-                                                data: expenseChartData,
-                                                label: 'Expenses',
-                                                color: '#eab308',
-                                                yAxisId: 'rightAxis',
-                                            },
-                                        ]}
-                                        height={280}
-                                        margin={isMobile ? { left: 5, right: 5, top: 10, bottom: 40 } : { left: 30, right: 35, top: 10, bottom: 40 }}
-                                        sx={{
-                                            width: '100%',
-                                            '& .MuiChartsAxis-root': {
-                                                fontSize: '0.6rem',
-                                            },
-                                            '& .MuiChartsLegend-root': {
-                                                fontSize: '0.6rem',
-                                            },
-                                        }}
-                                    />
+            <main className="max-w-5xl mx-auto px-4 sm:px-6 py-6">
+                {/* Stats row */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6 animate-fade-in">
+                    {[
+                        { label: 'Streak', value: currentStreak, unit: 'days', icon: Flame, gradient: 'from-purple-500 to-purple-600' },
+                        { label: 'Completion', value: `${completionRate}%`, unit: '', icon: Target, gradient: 'from-blue-500 to-blue-600' },
+                        { label: 'Habits', value: habitsCompleted, unit: 'total', icon: CheckCircle2, gradient: 'from-emerald-500 to-emerald-600' },
+                        { label: 'Perfect Days', value: perfectDays, unit: '', icon: Calendar, gradient: 'from-pink-500 to-pink-600' },
+                    ].map((s) => (
+                        <Card key={s.label} className={`border-0 shadow-lg bg-gradient-to-br ${s.gradient} text-white`}>
+                            <CardContent className="p-4">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <p className="text-white/70 text-xs mb-0.5 font-medium">{s.label}</p>
+                                        <p className="text-2xl font-bold leading-none">{s.value}</p>
+                                        {s.unit && <p className="text-white/60 text-xs mt-1">{s.unit}</p>}
+                                    </div>
+                                    <s.icon className="h-7 w-7 text-white/70" />
                                 </div>
                             </CardContent>
                         </Card>
-                    </ThemeProvider>
+                    ))}
                 </div>
 
-                {/* Quick Add */}
-                <div className="animate-slide-up mb-6">
-                    <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 uppercase tracking-wide">Quick Add</h2>
-                    <div className="grid grid-cols-3 gap-3">
-                        <Button
-                            onClick={() => setIsFoodModalOpen(true)}
-                            className="bg-gradient-to-br from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white h-20 flex-col shadow-md hover:shadow-lg transition-all duration-200 rounded-xl"
-                        >
-                            <Coffee className="h-6 w-6 mb-1" />
-                            <span className="text-xs font-medium">Food</span>
-                        </Button>
-                        <Button
-                            onClick={() => setIsExpenseModalOpen(true)}
-                            className="bg-gradient-to-br from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-white h-20 flex-col shadow-md hover:shadow-lg transition-all duration-200 rounded-xl"
-                        >
-                            <IndianRupee className="h-6 w-6 mb-1" />
-                            <span className="text-xs font-medium">Expense</span>
-                        </Button>
-                        <Button
-                            onClick={() => setIsSleepModalOpen(true)}
-                            className="bg-gradient-to-br from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white h-20 flex-col shadow-md hover:shadow-lg transition-all duration-200 rounded-xl"
-                        >
-                            <Bed className="h-6 w-6 mb-1" />
-                            <span className="text-xs font-medium">Sleep</span>
-                        </Button>
+                {/* Two-column layout on desktop */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    {/* Left column — chart + quick access */}
+                    <div className="lg:col-span-2 space-y-6">
+                        {/* Chart */}
+                        <ThemeProvider theme={chartTheme}>
+                            <Card className="border border-border shadow-sm bg-card">
+                                <CardHeader className="pb-2">
+                                    <CardTitle className="text-base font-semibold flex items-center gap-2 text-foreground">
+                                        <TrendingUp className="h-4 w-4 text-indigo-500" />
+                                        7-Day Overview
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent className="px-1 sm:px-4 pb-4">
+                                    <LineChart
+                                        xAxis={[{ scaleType: 'point', data: dateLabels }]}
+                                        yAxis={[{ id: 'leftAxis' }, { id: 'rightAxis', position: 'right' }]}
+                                        series={[
+                                            { data: sleepChartData, label: 'Sleep (h)', color: '#6366f1', yAxisId: 'leftAxis' },
+                                            { data: studyChartData, label: 'Study (h)', color: '#a855f7', yAxisId: 'leftAxis' },
+                                            { data: expenseChartData, label: 'Expenses (₹)', color: '#f59e0b', yAxisId: 'rightAxis' },
+                                        ]}
+                                        height={260}
+                                        margin={isMobile ? { left: 5, right: 5, top: 10, bottom: 40 } : { left: 30, right: 40, top: 10, bottom: 40 }}
+                                        sx={{
+                                            width: '100%',
+                                            '& .MuiChartsAxis-root': { fontSize: '0.65rem' },
+                                            '& .MuiChartsLegend-root': { fontSize: '0.65rem' },
+                                        }}
+                                    />
+                                </CardContent>
+                            </Card>
+                        </ThemeProvider>
+
+                        {/* Quick Access grid */}
+                        <div>
+                            <h2 className="text-xs font-semibold text-muted-foreground mb-3 uppercase tracking-widest">Quick Access</h2>
+                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                                {[
+                                    { href: '/habits', icon: Sparkles, label: 'Habits', color: 'from-indigo-500 to-indigo-600' },
+                                    { href: '/food', icon: Coffee, label: 'Food', color: 'from-emerald-500 to-emerald-600' },
+                                    { href: '/sleep', icon: Bed, label: 'Sleep', color: 'from-blue-500 to-blue-600' },
+                                    { href: '/study', icon: GraduationCap, label: 'Study', color: 'from-purple-500 to-purple-600' },
+                                    { href: '/expenses', icon: IndianRupee, label: 'Expenses', color: 'from-amber-500 to-amber-600' },
+                                    { href: '/journal', icon: FileText, label: 'Journal', color: 'from-pink-500 to-pink-600' },
+                                    { href: '/analytics', icon: TrendingUp, label: 'Analytics', color: 'from-orange-500 to-orange-600' },
+                                    { href: '/calendar', icon: Calendar, label: 'Calendar', color: 'from-teal-500 to-teal-600' },
+                                ].map((item) => (
+                                    <Link key={item.href} href={item.href}>
+                                        <Card className="border border-border shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer group bg-card hover:bg-accent/30">
+                                            <CardContent className="p-3.5 flex items-center gap-3">
+                                                <div className={`bg-gradient-to-br ${item.color} p-2 rounded-lg group-hover:scale-105 transition-transform duration-200 flex-shrink-0`}>
+                                                    <item.icon className="h-4 w-4 text-white" />
+                                                </div>
+                                                <span className="font-medium text-sm text-foreground">{item.label}</span>
+                                            </CardContent>
+                                        </Card>
+                                    </Link>
+                                ))}
+                            </div>
+                        </div>
                     </div>
-                </div>
 
-                {/* Quick Access */}
-                <div className="animate-slide-up">
-                    <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 uppercase tracking-wide">Quick Access</h2>
-                    <div className="grid grid-cols-2 gap-3">
-                        {[
-                            { href: '/habits', icon: Sparkles, label: 'Habits', color: 'from-blue-500 to-blue-600' },
-                            { href: '/expenses', icon: IndianRupee, label: 'Expenses', color: 'from-yellow-500 to-yellow-600' },
-                            { href: '/sleep', icon: Bed, label: 'Sleep', color: 'from-indigo-500 to-indigo-600' },
-                            { href: '/food', icon: Coffee, label: 'Food', color: 'from-green-500 to-green-600' },
-                            { href: '/study', icon: GraduationCap, label: 'Study', color: 'from-purple-500 to-purple-600' },
-                            { href: '/journal', icon: FileText, label: 'Journal', color: 'from-pink-500 to-pink-600' },
-                            { href: '/analytics', icon: TrendingUp, label: 'Analytics', color: 'from-orange-500 to-orange-600' },
-                        ].map((item) => (
-                            <Link key={item.href} href={item.href}>
-                                <Card className="border border-white/30 dark:border-white/10 shadow-xl hover:shadow-2xl transition-all duration-200 cursor-pointer group bg-white/40 dark:bg-gray-800/70 backdrop-blur-2xl">
-                                    <CardContent className="p-4 flex items-center gap-3">
-                                        <div className={`bg-gradient-to-br ${item.color} p-2.5 rounded-lg group-hover:scale-110 transition-transform duration-200`}>
-                                            <item.icon className="h-5 w-5 text-white" />
-                                        </div>
-                                        <span className="font-medium text-gray-700 dark:text-gray-200">{item.label}</span>
-                                    </CardContent>
-                                </Card>
-                            </Link>
-                        ))}
+                    {/* Right column — quick add */}
+                    <div className="space-y-4">
+                        <div>
+                            <h2 className="text-xs font-semibold text-muted-foreground mb-3 uppercase tracking-widest">Quick Add</h2>
+                            <div className="space-y-3">
+                                {[
+                                    { label: 'Log Food', icon: Coffee, gradient: 'from-emerald-500 to-emerald-600', onClick: () => setIsFoodModalOpen(true) },
+                                    { label: 'Log Expense', icon: IndianRupee, gradient: 'from-amber-500 to-amber-600', onClick: () => setIsExpenseModalOpen(true) },
+                                    { label: 'Log Sleep', icon: Bed, gradient: 'from-indigo-500 to-indigo-600', onClick: () => setIsSleepModalOpen(true) },
+                                ].map((item) => (
+                                    <Button
+                                        key={item.label}
+                                        onClick={item.onClick}
+                                        className={`w-full bg-gradient-to-r ${item.gradient} hover:brightness-110 text-white h-12 justify-start gap-3 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 font-medium`}
+                                    >
+                                        <item.icon className="h-5 w-5" />
+                                        {item.label}
+                                    </Button>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Today at a glance */}
+                        <Card className="border border-border bg-card shadow-sm">
+                            <CardHeader className="pb-2 pt-4 px-4">
+                                <CardTitle className="text-sm font-semibold text-foreground">Today</CardTitle>
+                            </CardHeader>
+                            <CardContent className="px-4 pb-4 space-y-2">
+                                <div className="flex justify-between text-sm">
+                                    <span className="text-muted-foreground">Streak</span>
+                                    <span className="font-semibold text-orange-500 flex items-center gap-1"><Flame className="h-3.5 w-3.5 fill-orange-500" />{currentStreak} days</span>
+                                </div>
+                                <div className="flex justify-between text-sm">
+                                    <span className="text-muted-foreground">Habits</span>
+                                    <span className="font-semibold text-foreground">{completionRate}% done</span>
+                                </div>
+                                <Link href="/habits" className="block">
+                                    <Button variant="outline" size="sm" className="w-full mt-2 text-xs h-8 border-dashed">
+                                        View habits →
+                                    </Button>
+                                </Link>
+                            </CardContent>
+                        </Card>
                     </div>
                 </div>
             </main>
-
-            {/* Floating Action Button */}
-            <Link href="/habits">
-                <Button
-                    className="fixed bottom-24 right-4 md:right-8 h-14 w-14 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 z-40 flex items-center justify-center"
-                >
-                    <Plus className="h-6 w-6" />
-                </Button>
-            </Link>
 
             <QuickAddFoodModal isOpen={isFoodModalOpen} onClose={() => setIsFoodModalOpen(false)} />
             <QuickAddSleepModal isOpen={isSleepModalOpen} onClose={() => setIsSleepModalOpen(false)} />

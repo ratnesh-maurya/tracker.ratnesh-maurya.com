@@ -1,187 +1,143 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Quote, CheckCircle2 } from 'lucide-react';
+import { Eye, EyeOff, ArrowRight, Check, UserPlus } from 'lucide-react';
 import Image from 'next/image';
-
-const quotes = [
-    {
-        text: "The secret of getting ahead is getting started.",
-        author: "Mark Twain"
-    },
-    {
-        text: "You don't have to be great to start, but you have to start to be great.",
-        author: "Zig Ziglar"
-    },
-    {
-        text: "Every accomplishment starts with the decision to try.",
-        author: "John F. Kennedy"
-    },
-    {
-        text: "The future depends on what you do today.",
-        author: "Mahatma Gandhi"
-    }
-];
+import { motion } from 'framer-motion';
 
 const features = [
-    "Track habits & build consistency",
-    "Monitor sleep & wellness",
-    "Log meals & nutrition",
-    "Record expenses & budget",
-    "Study time & productivity",
-    "Daily journaling"
+    'Habit tracking with streaks',
+    'Sleep & wellness analytics',
+    'Food logging (Indian foods)',
+    'Study time & productivity',
+    'Expense management',
+    'Daily journaling',
 ];
 
-export default function RegisterPage() {
+function RegisterForm() {
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const refUsername = searchParams.get('ref');
     const [email, setEmail] = useState('');
     const [username, setUsername] = useState('');
     const [name, setName] = useState('');
     const [password, setPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
     const [rememberMe, setRememberMe] = useState(false);
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
-    const [mounted, setMounted] = useState(false);
-    const [currentQuote] = useState(quotes[Math.floor(Math.random() * quotes.length)]);
-
-    // Force light mode on register page (client-side only)
-    useEffect(() => {
-        setMounted(true);
-        const savedDarkMode = localStorage.getItem('darkMode');
-        document.documentElement.classList.remove('dark');
-        return () => {
-            // Restore previous theme when leaving page
-            if (savedDarkMode === 'true') {
-                document.documentElement.classList.add('dark');
-            }
-        };
-    }, []);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
         setLoading(true);
-
         try {
-            const response = await fetch('/api/auth/register', {
+            const res = await fetch('/api/auth/register', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, username, name, password, rememberMe }),
             });
-
-            const data = await response.json();
-
-            if (data.success) {
-                router.push('/dashboard');
-                router.refresh();
-            } else {
-                setError(data.error || 'Registration failed');
-            }
-        } catch (err) {
-            setError('An error occurred. Please try again.');
-        } finally {
-            setLoading(false);
-        }
+            const data = await res.json();
+            if (data.success) { router.push('/dashboard'); router.refresh(); }
+            else setError(data.error || 'Registration failed');
+        } catch { setError('An error occurred. Please try again.'); }
+        finally { setLoading(false); }
     };
 
-    if (!mounted) {
-        return (
-            <div className="min-h-screen flex items-center justify-center bg-gray-50">
-                <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
-                    <p className="text-gray-600">Loading...</p>
-                </div>
-            </div>
-        );
-    }
-
     return (
-        <div className="min-h-screen flex">
-            {/* Left Side - Branding & Quote */}
-            <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-500 p-12 flex-col justify-between relative overflow-hidden">
-                <div className="absolute inset-0 bg-grid-pattern opacity-10"></div>
-                <div className="relative z-10">
-                    <div className="flex items-center space-x-3 mb-8">
-                        <div className="bg-white/20 backdrop-blur-sm p-2 rounded-xl">
-                            <Image
-                                src="/web-app-manifest-192x192.png"
-                                alt="Personal Tracker Logo"
-                                width={48}
-                                height={48}
-                                className="rounded-lg"
-                            />
-                        </div>
-                        <div>
-                            <h1 className="text-2xl font-bold text-white">Personal Tracker</h1>
-                            <p className="text-indigo-100 text-sm">Your life, organized</p>
-                        </div>
+        <div className="min-h-screen flex bg-[#0a0a0f]">
+            {/* Left panel */}
+            <div className="hidden lg:flex lg:w-[480px] xl:w-[520px] flex-col justify-between p-12 relative overflow-hidden border-r border-white/6 flex-shrink-0">
+                <div className="absolute inset-0 pointer-events-none">
+                    <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[400px] h-[400px] bg-purple-600/12 rounded-full blur-[100px]" />
+                    <div className="absolute bottom-1/4 right-1/4 w-[200px] h-[200px] bg-pink-600/8 rounded-full blur-[80px]" />
+                    <div className="absolute inset-0 opacity-[0.025]" style={{ backgroundImage: 'radial-gradient(circle, #fff 1px, transparent 1px)', backgroundSize: '24px 24px' }} />
+                </div>
+
+                <div className="relative z-10 flex items-center gap-3">
+                    <Image src="/web-app-manifest-192x192.png" alt="Logo" width={36} height={36} className="rounded-xl" />
+                    <div>
+                        <p className="text-white font-semibold text-lg leading-none">Personal Tracker</p>
+                        <p className="text-gray-500 text-xs mt-0.5">Your life, organized</p>
                     </div>
                 </div>
 
-                <div className="relative z-10 max-w-md">
-                    <Quote className="h-8 w-8 text-white/80 mb-4" />
-                    <blockquote className="text-3xl font-semibold text-white mb-4 leading-tight">
-                        &ldquo;{currentQuote.text}&rdquo;
-                    </blockquote>
-                    <p className="text-indigo-100 text-lg">— {currentQuote.author}</p>
-
-                    <div className="mt-8 space-y-3">
-                        <p className="text-white/90 font-medium mb-3">Start tracking:</p>
-                        {features.map((feature, index) => (
-                            <div key={index} className="flex items-center space-x-2">
-                                <CheckCircle2 className="h-5 w-5 text-white/80" />
-                                <span className="text-indigo-100">{feature}</span>
-                            </div>
+                <div className="relative z-10 space-y-6">
+                    <div>
+                        <h2 className="text-3xl font-bold text-white mb-2 leading-tight">Start tracking<br />your life today</h2>
+                        <p className="text-gray-400 text-sm leading-relaxed">Free forever. No credit card. Sign up in 30 seconds.</p>
+                    </div>
+                    <ul className="space-y-3">
+                        {features.map((f) => (
+                            <li key={f} className="flex items-center gap-3 text-sm text-gray-400">
+                                <div className="w-5 h-5 rounded-full bg-indigo-500/15 flex items-center justify-center flex-shrink-0">
+                                    <Check className="h-3 w-3 text-indigo-400" />
+                                </div>
+                                {f}
+                            </li>
                         ))}
-                    </div>
+                    </ul>
                 </div>
 
-                <div className="relative z-10 flex space-x-2">
-                    {[...Array(3)].map((_, i) => (
-                        <div key={i} className="w-2 h-2 rounded-full bg-white/30"></div>
-                    ))}
+                <div className="relative z-10">
+                    <p className="text-xs text-gray-600">
+                        Built by{' '}
+                        <a href="https://ratnesh-maurya.com" target="_blank" rel="noopener noreferrer" className="text-indigo-400 hover:text-indigo-300">
+                            Ratnesh Maurya
+                        </a>
+                    </p>
                 </div>
             </div>
 
-            {/* Right Side - Register Form */}
-            <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-gray-50 overflow-y-auto">
-                <div className="w-full max-w-md">
-                    <div className="mb-8 lg:hidden">
-                        <div className="flex items-center space-x-3 mb-4">
-                            <Image
-                                src="/web-app-manifest-192x192.png"
-                                alt="Personal Tracker Logo"
-                                width={40}
-                                height={40}
-                                className="rounded-lg"
-                            />
-                            <div>
-                                <h1 className="text-xl font-bold text-gray-900">Personal Tracker</h1>
-                                <p className="text-gray-600 text-sm">Your life, organized</p>
-                            </div>
-                        </div>
+            {/* Right panel — form */}
+            <div className="flex-1 flex items-center justify-center p-6 sm:p-10 overflow-y-auto">
+                <motion.div
+                    initial={{ opacity: 0, y: 16 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                    className="w-full max-w-[400px] py-8"
+                >
+                    {/* Mobile logo */}
+                    <div className="flex items-center gap-2.5 mb-8 lg:hidden">
+                        <Image src="/web-app-manifest-192x192.png" alt="Logo" width={32} height={32} className="rounded-xl" />
+                        <p className="text-white font-semibold">Personal Tracker</p>
                     </div>
+
+                    {refUsername && (
+                        <motion.div
+                            initial={{ opacity: 0, y: -8 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                            className="mb-6 px-4 py-3.5 rounded-xl bg-indigo-500/10 border border-indigo-500/25 flex items-start gap-3"
+                        >
+                            <div className="w-8 h-8 rounded-full bg-indigo-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                <UserPlus className="h-4 w-4 text-indigo-400" />
+                            </div>
+                            <div>
+                                <p className="text-sm font-medium text-indigo-300">You were invited by <span className="font-bold">@{refUsername}</span></p>
+                                <p className="text-xs text-gray-500 mt-0.5">Join them on their tracking journey!</p>
+                            </div>
+                        </motion.div>
+                    )}
 
                     <div className="mb-8">
-                        <h2 className="text-3xl font-bold text-gray-900 mb-2">Create your account</h2>
-                        <p className="text-gray-600">Start your journey to a better you</p>
+                        <h1 className="text-2xl sm:text-3xl font-bold text-white mb-1.5">Create your account</h1>
+                        <p className="text-gray-500 text-sm">{refUsername ? `Invited by @${refUsername} · Start your journey` : 'Start your journey to a better you'}</p>
                     </div>
 
-                    <form onSubmit={handleSubmit} className="space-y-5">
+                    <form onSubmit={handleSubmit} className="space-y-4">
                         {error && (
-                            <div className="p-4 text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg">
+                            <div className="px-4 py-3 rounded-xl bg-red-500/8 border border-red-500/20 text-red-400 text-sm">
                                 {error}
                             </div>
                         )}
 
-                        <div className="space-y-2">
-                            <label htmlFor="email" className="text-sm font-medium text-gray-700">
-                                Email
-                            </label>
+                        <div className="space-y-1.5">
+                            <label htmlFor="email" className="text-sm font-medium text-gray-400">Email</label>
                             <Input
                                 id="email"
                                 type="email"
@@ -189,123 +145,102 @@ export default function RegisterPage() {
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 required
-                                className="h-12 text-base"
+                                autoFocus
+                                className="h-11 bg-white/4 border-white/10 text-white placeholder:text-gray-600 focus:border-indigo-500/60 focus:bg-white/6 transition-all duration-200 rounded-xl"
                             />
                         </div>
 
-                        <div className="space-y-2">
-                            <label htmlFor="name" className="text-sm font-medium text-gray-700">
-                                Name <span className="text-gray-400 font-normal">(optional)</span>
-                            </label>
-                            <Input
-                                id="name"
-                                type="text"
-                                placeholder="Your full name"
-                                value={name}
-                                onChange={(e) => setName(e.target.value)}
-                                maxLength={100}
-                                className="h-12 text-base"
-                            />
+                        <div className="grid grid-cols-2 gap-3">
+                            <div className="space-y-1.5">
+                                <label htmlFor="name" className="text-sm font-medium text-gray-400">Name <span className="text-gray-600 text-xs font-normal">(optional)</span></label>
+                                <Input
+                                    id="name"
+                                    type="text"
+                                    placeholder="Your name"
+                                    value={name}
+                                    onChange={(e) => setName(e.target.value)}
+                                    maxLength={100}
+                                    className="h-11 bg-white/4 border-white/10 text-white placeholder:text-gray-600 focus:border-indigo-500/60 focus:bg-white/6 transition-all duration-200 rounded-xl"
+                                />
+                            </div>
+                            <div className="space-y-1.5">
+                                <label htmlFor="username" className="text-sm font-medium text-gray-400">Username</label>
+                                <Input
+                                    id="username"
+                                    type="text"
+                                    placeholder="username"
+                                    value={username}
+                                    onChange={(e) => setUsername(e.target.value)}
+                                    required
+                                    minLength={3}
+                                    maxLength={30}
+                                    className="h-11 bg-white/4 border-white/10 text-white placeholder:text-gray-600 focus:border-indigo-500/60 focus:bg-white/6 transition-all duration-200 rounded-xl"
+                                />
+                            </div>
                         </div>
 
-                        <div className="space-y-2">
-                            <label htmlFor="username" className="text-sm font-medium text-gray-700">
-                                Username
-                            </label>
-                            <Input
-                                id="username"
-                                type="text"
-                                placeholder="username"
-                                value={username}
-                                onChange={(e) => setUsername(e.target.value)}
-                                required
-                                minLength={3}
-                                maxLength={30}
-                                className="h-12 text-base"
-                            />
-                            <p className="text-xs text-gray-500">3-30 characters, letters and numbers only</p>
+                        <div className="space-y-1.5">
+                            <label htmlFor="password" className="text-sm font-medium text-gray-400">Password</label>
+                            <div className="relative">
+                                <Input
+                                    id="password"
+                                    type={showPassword ? 'text' : 'password'}
+                                    placeholder="At least 6 characters"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    required
+                                    minLength={6}
+                                    className="h-11 bg-white/4 border-white/10 text-white placeholder:text-gray-600 focus:border-indigo-500/60 focus:bg-white/6 transition-all duration-200 rounded-xl pr-10"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword((v) => !v)}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 transition-colors"
+                                >
+                                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                </button>
+                            </div>
                         </div>
 
-                        <div className="space-y-2">
-                            <label htmlFor="password" className="text-sm font-medium text-gray-700">
-                                Password
-                            </label>
-                            <Input
-                                id="password"
-                                type="password"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                required
-                                minLength={6}
-                                className="h-12 text-base"
-                            />
-                            <p className="text-xs text-gray-500">At least 6 characters</p>
-                        </div>
-
-                        <div className="flex items-center">
+                        <label className="flex items-center gap-2 cursor-pointer pt-1">
                             <input
-                                id="remember"
                                 type="checkbox"
                                 checked={rememberMe}
                                 onChange={(e) => setRememberMe(e.target.checked)}
-                                className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                                className="w-4 h-4 rounded accent-indigo-500"
                             />
-                            <label htmlFor="remember" className="ml-2 text-sm text-gray-600">
-                                Remember me for 30 days
-                            </label>
-                        </div>
+                            <span className="text-sm text-gray-500">Remember me for 30 days</span>
+                        </label>
 
                         <Button
                             type="submit"
-                            className="w-full h-12 text-base font-semibold bg-indigo-600 hover:bg-indigo-700"
                             disabled={loading}
+                            className="w-full h-11 bg-indigo-600 hover:bg-indigo-500 text-white font-medium rounded-xl shadow-lg shadow-indigo-900/30 transition-all duration-200 flex items-center justify-center gap-2 mt-2"
                         >
                             {loading ? (
-                                <span className="flex items-center">
-                                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                    </svg>
-                                    Creating account...
-                                </span>
+                                <span className="w-4 h-4 border-2 border-white/50 border-t-white rounded-full animate-spin" />
                             ) : (
-                                'Create account'
+                                <>Create account <ArrowRight className="h-4 w-4" /></>
                             )}
                         </Button>
-
-                        <div className="relative my-6">
-                            <div className="absolute inset-0 flex items-center">
-                                <div className="w-full border-t border-gray-300"></div>
-                            </div>
-                            <div className="relative flex justify-center text-sm">
-                                <span className="px-2 bg-gray-50 text-gray-500">Already have an account?</span>
-                            </div>
-                        </div>
-
-                        <p className="text-center text-sm text-gray-600">
-                            Already have an account?{' '}
-                            <Link href="/login" className="font-semibold text-indigo-600 hover:text-indigo-700">
-                                Sign in
-                            </Link>
-                        </p>
                     </form>
 
-                    <div className="mt-8 text-center">
-                        <p className="text-xs text-gray-400">
-                            Built by{' '}
-                            <a
-                                href="https://ratnesh-maurya.com"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-indigo-500 hover:text-indigo-600 hover:underline"
-                            >
-                                Ratnesh Maurya
-                            </a>
-                        </p>
-                    </div>
-                </div>
+                    <p className="mt-6 text-center text-sm text-gray-600">
+                        Already have an account?{' '}
+                        <Link href="/login" className="text-indigo-400 hover:text-indigo-300 font-medium transition-colors">
+                            Sign in
+                        </Link>
+                    </p>
+                </motion.div>
             </div>
         </div>
     );
 }
 
+export default function RegisterPage() {
+    return (
+        <Suspense fallback={null}>
+            <RegisterForm />
+        </Suspense>
+    );
+}

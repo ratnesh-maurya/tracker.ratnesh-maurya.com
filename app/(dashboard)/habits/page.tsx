@@ -215,10 +215,10 @@ export default function HabitsPage() {
         });
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30">
+        <div className="min-h-screen bg-background">
             <HabitReminderManager />
-            <header className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border-b border-gray-200/50 dark:border-gray-700/50 sticky top-0 z-10">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+            <header className="bg-background/95 backdrop-blur-md border-b border-border sticky top-0 z-10">
+                <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
                     <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center space-x-4">
                             <Link href="/dashboard">
@@ -227,8 +227,8 @@ export default function HabitsPage() {
                                 </Button>
                             </Link>
                             <div>
-                                <h1 className="text-xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 dark:from-gray-100 dark:to-gray-300 bg-clip-text text-transparent">Habits</h1>
-                                <p className="text-xs text-gray-500 dark:text-gray-400">{format(selectedDate, 'MMMM, d')}</p>
+                                <h1 className="text-xl font-bold text-foreground">Habits</h1>
+                                <p className="text-xs text-muted-foreground">{format(selectedDate, 'MMMM, d')}</p>
                             </div>
                         </div>
                         <Button
@@ -246,11 +246,11 @@ export default function HabitsPage() {
                 </div>
             </header>
 
-            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-24 md:pb-20">
+            <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-8">
                 {isLoading ? (
                     <div className="text-center py-12 animate-pulse text-gray-400 dark:text-gray-500">Loading...</div>
                 ) : habits.length === 0 ? (
-                    <Card className="border-2 border-dashed border-white/40 dark:border-white/20 bg-white/40 dark:bg-gray-800/70 backdrop-blur-2xl">
+                    <Card className="border border-border shadow-sm bg-card">
                         <CardContent className="py-12 text-center">
                             <p className="text-gray-600 dark:text-gray-300 mb-4">No habits yet. Create your first habit to get started!</p>
                             <Button
@@ -300,7 +300,7 @@ export default function HabitsPage() {
                                 const streak = getStreak(habit._id);
 
                                 return (
-                                    <Card key={habit._id} className="hover:shadow-2xl transition-shadow bg-white/40 dark:bg-gray-800/70 backdrop-blur-2xl border border-white/30 dark:border-white/10">
+                                    <Card key={habit._id} className="hover:shadow-md transition-shadow border border-border shadow-sm bg-card">
                                         <CardContent className="p-4">
                                             <div className="flex items-start gap-4">
                                                 <div
@@ -322,7 +322,7 @@ export default function HabitsPage() {
                                                                 )}
                                                             </div>
                                                             {habit.type === 'count' && habit.target && (
-                                                                <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                                                                <p className="text-sm text-muted-foreground mb-2">
                                                                     {currentValue} / {habit.target} {habit.schedule === 'daily' ? 'per day' : 'per week'}
                                                                 </p>
                                                             )}

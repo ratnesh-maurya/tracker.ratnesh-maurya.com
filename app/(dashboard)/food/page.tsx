@@ -206,9 +206,9 @@ export default function FoodPage() {
     }, {});
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30">
-            <header className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border-b border-gray-200/50 dark:border-gray-700/50 sticky top-0 z-10">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div className="min-h-screen bg-background">
+            <header className="bg-background/95 backdrop-blur-md border-b border-border sticky top-0 z-10">
+                <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-3">
                             <Link href="/dashboard">
@@ -217,7 +217,7 @@ export default function FoodPage() {
                                 </Button>
                             </Link>
                             <div>
-                                <h1 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 dark:from-gray-100 dark:to-gray-300 bg-clip-text text-transparent">
+                                <h1 className="text-2xl font-bold text-foreground">
                                     Food
                                 </h1>
                             </div>
@@ -233,13 +233,13 @@ export default function FoodPage() {
                 </div>
             </header>
 
-            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-24 md:pb-20">
+            <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-8">
                 {isLoading ? (
                     <div className="space-y-6">
                         <SkeletonList count={3} />
                     </div>
                 ) : Object.keys(groupedByDate).length === 0 ? (
-                    <Card className="border border-white/30 dark:border-white/10 shadow-xl bg-white/40 dark:bg-gray-800/70 backdrop-blur-2xl animate-fade-in">
+                    <Card className="border border-border shadow-sm bg-card animate-fade-in">
                         <CardContent className="py-16 text-center">
                             <div className="bg-green-100 dark:bg-green-900 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
                                 <Coffee className="h-8 w-8 text-green-600 dark:text-green-400" />
@@ -257,7 +257,7 @@ export default function FoodPage() {
                 ) : (
                     <div className="space-y-6 animate-fade-in">
                         {Object.entries(groupedByDate).map(([date, entries]: [string, any], dateIndex: number) => (
-                            <Card key={date} className="border border-white/30 dark:border-white/10 shadow-xl bg-white/40 dark:bg-gray-800/70 backdrop-blur-2xl animate-slide-up" style={{ animationDelay: `${dateIndex * 50}ms` }}>
+                            <Card key={date} className="border border-border shadow-sm bg-card animate-slide-up" style={{ animationDelay: `${dateIndex * 50}ms` }}>
                                 <CardContent className="p-5">
                                     <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">{date}</h2>
                                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
@@ -294,7 +294,7 @@ export default function FoodPage() {
                                                     ))}
                                                 </ul>
                                                 {entry.notes && (
-                                                    <p className="text-xs text-gray-600 dark:text-gray-400 mt-3 italic border-t border-green-100 dark:border-green-800 pt-2">{entry.notes}</p>
+                                                    <p className="text-xs text-muted-foreground mt-3 italic border-t border-green-100 dark:border-green-800 pt-2">{entry.notes}</p>
                                                 )}
                                             </div>
                                         ))}

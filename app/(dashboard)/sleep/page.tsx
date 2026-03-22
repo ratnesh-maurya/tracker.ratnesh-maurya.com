@@ -166,9 +166,9 @@ export default function SleepPage() {
     const pagination = (sleepData as any)?.pagination;
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30">
-            <header className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border-b border-gray-200/50 dark:border-gray-700/50 sticky top-0 z-10">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div className="min-h-screen bg-background">
+            <header className="bg-background/95 backdrop-blur-md border-b border-border sticky top-0 z-10">
+                <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-3">
                             <Link href="/dashboard">
@@ -177,7 +177,7 @@ export default function SleepPage() {
                                 </Button>
                             </Link>
                             <div>
-                                <h1 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 dark:from-gray-100 dark:to-gray-300 bg-clip-text text-transparent">
+                                <h1 className="text-2xl font-bold text-foreground">
                                     Sleep
                                 </h1>
                             </div>
@@ -193,13 +193,13 @@ export default function SleepPage() {
                 </div>
             </header>
 
-            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-24 md:pb-20">
+            <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-8">
                 {isLoading ? (
                     <div className="space-y-3">
                         <SkeletonList count={5} />
                     </div>
                 ) : sleepEntries.length === 0 ? (
-                    <Card className="border border-white/30 dark:border-white/10 shadow-xl bg-white/40 dark:bg-gray-800/70 backdrop-blur-2xl animate-fade-in">
+                    <Card className="border border-border shadow-sm bg-card animate-fade-in">
                         <CardContent className="py-16 text-center">
                             <div className="bg-indigo-100 dark:bg-indigo-900 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
                                 <Bed className="h-8 w-8 text-indigo-600 dark:text-indigo-400" />
@@ -234,7 +234,7 @@ export default function SleepPage() {
                                                 </div>
                                                 <div>
                                                     <h3 className="font-semibold text-lg text-gray-800 dark:text-gray-100">{formatDate(entry.date)}</h3>
-                                                    <p className="text-sm text-gray-500 dark:text-gray-400">{formatTime(entry.startTime)} - {formatTime(entry.endTime)}</p>
+                                                    <p className="text-sm text-muted-foreground">{formatTime(entry.startTime)} - {formatTime(entry.endTime)}</p>
                                                 </div>
                                             </div>
                                             <div className="flex items-center gap-3">

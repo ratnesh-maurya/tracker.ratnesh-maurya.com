@@ -98,9 +98,9 @@ export default function SettingsPage() {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900/90 dark:to-gray-800/90">
-            <header className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border-b border-gray-200/50 dark:border-gray-700/50 sticky top-0 z-10">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div className="min-h-screen bg-background">
+            <header className="bg-background/95 backdrop-blur-md border-b border-border sticky top-0 z-10">
+                <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
                     <div className="flex items-center space-x-3">
                         <Link href="/dashboard">
                             <Button variant="ghost" size="icon" className="rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-smooth">
@@ -108,7 +108,7 @@ export default function SettingsPage() {
                             </Button>
                         </Link>
                         <div>
-                            <h1 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 dark:from-gray-100 dark:to-gray-300 bg-clip-text text-transparent">
+                            <h1 className="text-2xl font-bold text-foreground">
                                 Settings
                             </h1>
                         </div>
@@ -116,25 +116,26 @@ export default function SettingsPage() {
                 </div>
             </header>
 
-            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-24 md:pb-20">
-                <div className="space-y-6 animate-fade-in">
+            <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-8">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-fade-in">
+                <div className="lg:col-span-2 space-y-6">
                     {/* General Section */}
-                    <Card className="border border-white/30 dark:border-white/10 shadow-xl bg-white/40 dark:bg-gray-800/70 backdrop-blur-2xl">
+                    <Card className="border border-border shadow-sm bg-card">
                         <CardHeader>
-                            <CardTitle className="flex items-center gap-2 text-gray-800 dark:text-gray-100">
-                                <Settings className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+                            <CardTitle className="flex items-center gap-2 text-foreground">
+                                <Settings className="h-5 w-5 text-muted-foreground" />
                                 General
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                            <div className="flex items-center justify-between py-3 border-b border-gray-100 dark:border-gray-700">
+                            <div className="flex items-center justify-between py-3 border-b border-border">
                                 <div className="flex items-center gap-3">
                                     <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-gray-400 to-gray-500 flex items-center justify-center">
                                         <Moon className="h-5 w-5 text-white" />
                                     </div>
                                     <div>
-                                        <p className="font-medium text-gray-800 dark:text-gray-100">Dark Mode</p>
-                                        <p className="text-sm text-gray-500 dark:text-gray-400">Switch to dark theme</p>
+                                        <p className="font-medium text-foreground">Dark Mode</p>
+                                        <p className="text-sm text-muted-foreground">Switch to dark theme</p>
                                     </div>
                                 </div>
                                 <button
@@ -149,14 +150,14 @@ export default function SettingsPage() {
                                 </button>
                             </div>
 
-                            <div className="flex items-center justify-between py-3 border-b border-gray-100 dark:border-gray-700">
+                            <div className="flex items-center justify-between py-3 border-b border-border">
                                 <div className="flex items-center gap-3">
                                     <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-green-400 to-green-500 flex items-center justify-center">
                                         <Volume2 className="h-5 w-5 text-white" />
                                     </div>
                                     <div>
-                                        <p className="font-medium text-gray-800 dark:text-gray-100">Sounds</p>
-                                        <p className="text-sm text-gray-500 dark:text-gray-400">Enable sound notifications</p>
+                                        <p className="font-medium text-foreground">Sounds</p>
+                                        <p className="text-sm text-muted-foreground">Enable sound notifications</p>
                                     </div>
                                 </div>
                                 <button
@@ -178,8 +179,8 @@ export default function SettingsPage() {
                                             <User className="h-5 w-5 text-white" />
                                         </div>
                                         <div>
-                                            <p className="font-medium text-gray-800 dark:text-gray-100">Public Profile</p>
-                                            <p className="text-sm text-gray-500 dark:text-gray-400">Make your profile visible to others</p>
+                                            <p className="font-medium text-foreground">Public Profile</p>
+                                            <p className="text-sm text-muted-foreground">Make your profile visible to others</p>
                                         </div>
                                     </div>
                                     <button
@@ -235,10 +236,10 @@ export default function SettingsPage() {
                     </Card>
 
                     {/* Profile Section */}
-                    <Card className="border border-white/30 dark:border-white/10 shadow-xl bg-white/40 dark:bg-gray-800/70 backdrop-blur-2xl">
+                    <Card className="border border-border shadow-sm bg-card">
                         <CardHeader>
-                            <CardTitle className="flex items-center gap-2 text-gray-800 dark:text-gray-100">
-                                <User className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+                            <CardTitle className="flex items-center gap-2 text-foreground">
+                                <User className="h-5 w-5 text-muted-foreground" />
                                 Profile
                             </CardTitle>
                         </CardHeader>
@@ -246,13 +247,13 @@ export default function SettingsPage() {
                             {!isEditingProfile ? (
                                 <>
                                     <div className="space-y-4">
-                                        <div className="py-3 border-b border-gray-100 dark:border-gray-700">
-                                            <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Name</p>
-                                            <p className="font-medium text-gray-800 dark:text-gray-100">{name || 'Not set'}</p>
+                                        <div className="py-3 border-b border-border">
+                                            <p className="text-sm text-muted-foreground mb-1">Name</p>
+                                            <p className="font-medium text-foreground">{name || 'Not set'}</p>
                                         </div>
                                         <div className="py-3">
-                                            <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Phone</p>
-                                            <p className="font-medium text-gray-800 dark:text-gray-100">{phone || 'Not set'}</p>
+                                            <p className="text-sm text-muted-foreground mb-1">Phone</p>
+                                            <p className="font-medium text-foreground">{phone || 'Not set'}</p>
                                         </div>
                                     </div>
                                     <Button
@@ -277,7 +278,7 @@ export default function SettingsPage() {
                                     }
                                 }} className="space-y-4">
                                     <div>
-                                        <label htmlFor="name" className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                                        <label htmlFor="name" className="block text-sm font-medium mb-2 text-foreground">
                                             Name
                                         </label>
                                         <Input
@@ -291,7 +292,7 @@ export default function SettingsPage() {
                                         />
                                     </div>
                                     <div>
-                                        <label htmlFor="phone" className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                                        <label htmlFor="phone" className="block text-sm font-medium mb-2 text-foreground">
                                             Phone
                                         </label>
                                         <Input
@@ -332,23 +333,9 @@ export default function SettingsPage() {
                         </CardContent>
                     </Card>
 
-                    {/* Logout */}
-                    <Card className="border border-white/30 dark:border-white/10 shadow-xl bg-white/40 dark:bg-gray-800/70 backdrop-blur-2xl">
-                        <CardContent className="pt-6">
-                            <Button
-                                onClick={handleLogout}
-                                variant="destructive"
-                                className="w-full rounded-lg"
-                            >
-                                <LogOut className="h-4 w-4 mr-2" />
-                                Logout
-                            </Button>
-                        </CardContent>
-                    </Card>
-
                     {/* Developer Credit */}
                     <div className="text-center pt-4 pb-2 animate-fade-in">
-                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                        <p className="text-sm text-muted-foreground">
                             Built by{' '}
                             <a
                                 href="https://ratnesh-maurya.com"
@@ -360,6 +347,46 @@ export default function SettingsPage() {
                             </a>
                         </p>
                     </div>
+                </div>
+
+                {/* Right sidebar — quick info panel */}
+                <div className="space-y-6">
+                    <Card className="border border-border shadow-sm bg-card">
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2 text-foreground text-base">
+                                <User className="h-4 w-4 text-muted-foreground" />
+                                Account Info
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-3">
+                            <div>
+                                <p className="text-xs text-muted-foreground mb-1">Username</p>
+                                <p className="text-sm font-medium text-foreground">{(userData as any)?.username || '—'}</p>
+                            </div>
+                            <div>
+                                <p className="text-xs text-muted-foreground mb-1">Email</p>
+                                <p className="text-sm font-medium text-foreground truncate">{(userData as any)?.email || '—'}</p>
+                            </div>
+                            <div>
+                                <p className="text-xs text-muted-foreground mb-1">Name</p>
+                                <p className="text-sm font-medium text-foreground">{(userData as any)?.name || 'Not set'}</p>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <Card className="border border-border shadow-sm bg-card">
+                        <CardContent className="pt-6">
+                            <Button
+                                onClick={handleLogout}
+                                variant="destructive"
+                                className="w-full rounded-lg"
+                            >
+                                <LogOut className="h-4 w-4 mr-2" />
+                                Sign Out
+                            </Button>
+                        </CardContent>
+                    </Card>
+                </div>
                 </div>
             </main>
             <NavBar />

@@ -175,9 +175,9 @@ export default function ExpensesPage() {
     const totalExpenses = expenses.reduce((sum: number, exp: any) => sum + exp.amount, 0);
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-yellow-50 to-amber-50 dark:from-yellow-900/40 dark:to-amber-900/40">
-            <header className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border-b border-gray-200/50 dark:border-gray-700/50 sticky top-0 z-10">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div className="min-h-screen bg-background">
+            <header className="bg-background/95 backdrop-blur-md border-b border-border sticky top-0 z-10">
+                <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-3">
                             <Link href="/dashboard">
@@ -186,7 +186,7 @@ export default function ExpensesPage() {
                                 </Button>
                             </Link>
                             <div>
-                                <h1 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 dark:from-gray-100 dark:to-gray-300 bg-clip-text text-transparent">
+                                <h1 className="text-2xl font-bold text-foreground">
                                     Expenses
                                 </h1>
                             </div>
@@ -202,7 +202,7 @@ export default function ExpensesPage() {
                 </div>
             </header>
 
-            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-24 md:pb-20">
+            <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-8">
                 {expenses.length > 0 && (
                     <div className="animate-fade-in mb-6">
                         <Card className="border-0 shadow-lg bg-gradient-to-br from-yellow-500 to-yellow-600 text-white">
@@ -226,7 +226,7 @@ export default function ExpensesPage() {
                         <SkeletonList count={5} />
                     </div>
                 ) : expenses.length === 0 ? (
-                    <Card className="border border-white/30 dark:border-white/10 shadow-xl bg-white/40 dark:bg-gray-800/70 backdrop-blur-2xl animate-fade-in">
+                    <Card className="border border-border shadow-sm bg-card animate-fade-in">
                         <CardContent className="py-16 text-center">
                             <div className="bg-yellow-100 dark:bg-yellow-900 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
                                 <IndianRupee className="h-8 w-8 text-yellow-600 dark:text-yellow-400" />
@@ -260,7 +260,7 @@ export default function ExpensesPage() {
                                                 </div>
                                                 <div className="flex-1 min-w-0">
                                                     <h3 className="font-semibold text-base md:text-lg text-gray-800 dark:text-gray-100 truncate">{expense.category}</h3>
-                                                    <p className="text-sm text-gray-500 dark:text-gray-400">{formatDate(expense.date)}</p>
+                                                    <p className="text-sm text-muted-foreground">{formatDate(expense.date)}</p>
                                                 </div>
                                             </div>
                                             {expense.notes && (

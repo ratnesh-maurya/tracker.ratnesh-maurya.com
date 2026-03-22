@@ -131,6 +131,12 @@ export default function RootLayout({
     return (
         <html lang="en">
             <head>
+                {/* Apply dark mode before paint to prevent flash */}
+                <script
+                    dangerouslySetInnerHTML={{
+                        __html: `(function(){try{var s=localStorage.getItem('darkMode');var d=window.matchMedia('(prefers-color-scheme:dark)').matches;if(s===null?d:s==='true'){document.documentElement.classList.add('dark')}}catch(e){}})();`,
+                    }}
+                />
                 <link rel="manifest" href="/manifest.json" />
                 <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
                 <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
