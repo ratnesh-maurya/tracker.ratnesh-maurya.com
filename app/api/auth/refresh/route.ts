@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { getRefreshTokenFromRequest } from '@/lib/auth/cookies';
 import { verifyRefreshToken } from '@/lib/auth/jwt';

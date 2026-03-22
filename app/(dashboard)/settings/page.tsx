@@ -14,7 +14,11 @@ import { handleApiResponse } from '@/lib/api/client';
 export default function SettingsPage() {
     const router = useRouter();
     const queryClient = useQueryClient();
-    const [darkMode, setDarkMode] = useState(false);
+    const [darkMode, setDarkMode] = useState(() => {
+        if (typeof window === 'undefined') return true;
+        const s = localStorage.getItem('darkMode');
+        return s !== null ? s === 'true' : true;
+    });
     const [sounds, setSounds] = useState(true);
     const [profilePublic, setProfilePublic] = useState(false);
     const [name, setName] = useState('');
@@ -57,18 +61,6 @@ export default function SettingsPage() {
     };
 
     useEffect(() => {
-        // Initialize dark mode from localStorage or system preference
-        const savedDarkMode = localStorage.getItem('darkMode');
-        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        const isDark = savedDarkMode !== null ? savedDarkMode === 'true' : prefersDark;
-
-        setDarkMode(isDark);
-        if (isDark) {
-            document.documentElement.classList.add('dark');
-        } else {
-            document.documentElement.classList.remove('dark');
-        }
-
         if (userData) {
             const data = userData as any;
             setProfilePublic(data.profilePublic || false);

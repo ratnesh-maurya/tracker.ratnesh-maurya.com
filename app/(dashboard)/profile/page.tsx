@@ -11,7 +11,6 @@ import { SocialShare } from '@/components/ui/social-share';
 
 export default function ProfilePage() {
     const [activeTab, setActiveTab] = useState<'activity' | 'achievements'>('activity');
-    const { generateAndShare } = useShareCard();
 
     const { data: userData } = useQuery({
         queryKey: ['user'],
@@ -34,17 +33,7 @@ export default function ProfilePage() {
     });
 
     const username = (userData as any)?.username || 'user';
-
-    const handleShare = async (
-        type: 'streak' | 'achievement' | 'study' | 'daily-goal' | 'profile',
-        title: string,
-        subtitle: string,
-        value?: string | number,
-        emoji?: string,
-        color?: 'purple' | 'orange' | 'blue' | 'green' | 'indigo',
-    ) => {
-        await generateAndShare({ username, name: (userData as any)?.name, type, title, subtitle, value, emoji, color }, true);
-    };
+    const name = (userData as any)?.name;
 
     const stats = statsData || {};
     const habits = stats.habits || {};
@@ -140,10 +129,7 @@ export default function ProfilePage() {
                                             <p className="text-xs text-muted-foreground">All habits checked in today</p>
                                         </div>
                                     </div>
-                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-green-600"
-                                        onClick={() => handleShare('daily-goal', 'Daily Goal', 'All habits done today!', undefined, '🎯', 'green')}>
-                                        <Share2 className="h-4 w-4" />
-                                    </Button>
+                                    <SocialShare data={{ username, name, type: 'daily-goal', title: 'Daily Goal', subtitle: 'All habits done today!', emoji: '🎯', color: 'green' }} />
                                 </div>
 
                                 <div className="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-950/30 rounded-xl border border-blue-100 dark:border-blue-900/40">
@@ -154,10 +140,7 @@ export default function ProfilePage() {
                                             <p className="text-xs text-muted-foreground">{Math.round(study.totalHours || 0)} hours total</p>
                                         </div>
                                     </div>
-                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-blue-600"
-                                        onClick={() => handleShare('study', 'Study Hours', `${Math.round(study.totalHours || 0)}h of deep work`, Math.round(study.totalHours || 0), '📚', 'blue')}>
-                                        <Share2 className="h-4 w-4" />
-                                    </Button>
+                                    <SocialShare data={{ username, name, type: 'study', title: 'Study Hours', subtitle: `${Math.round(study.totalHours || 0)}h of deep work`, value: Math.round(study.totalHours || 0), emoji: '📚', color: 'blue' }} />
                                 </div>
 
                                 {habits.activeStreaks > 0 && (
@@ -169,10 +152,7 @@ export default function ProfilePage() {
                                                 <p className="text-xs text-muted-foreground">{habits.activeStreaks} days in a row</p>
                                             </div>
                                         </div>
-                                        <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-orange-600"
-                                            onClick={() => handleShare('streak', 'On Fire!', `${habits.activeStreaks} day streak`, habits.activeStreaks, '🔥', 'orange')}>
-                                            <Share2 className="h-4 w-4" />
-                                        </Button>
+                                        <SocialShare data={{ username, name, type: 'streak', title: 'On Fire!', subtitle: `${habits.activeStreaks} day streak`, value: habits.activeStreaks, emoji: '🔥', color: 'orange' }} />
                                     </div>
                                 )}
                             </div>
@@ -202,10 +182,7 @@ export default function ProfilePage() {
                                                 <p className="text-xs text-muted-foreground">Created your first habit</p>
                                             </div>
                                         </div>
-                                        <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground"
-                                            onClick={() => handleShare('achievement', 'First Habit', 'Started my habit journey!', undefined, '🏆', 'indigo')}>
-                                            <Share2 className="h-4 w-4" />
-                                        </Button>
+                                        <SocialShare data={{ username, name, type: 'achievement', title: 'First Habit', subtitle: 'Started my habit journey!', emoji: '🏆', color: 'indigo' }} />
                                     </div>
                                 )}
                                 {habits.completionRate > 80 && (
@@ -219,10 +196,7 @@ export default function ProfilePage() {
                                                 <p className="text-xs text-muted-foreground">{habits.completionRate?.toFixed(0)}% completion rate</p>
                                             </div>
                                         </div>
-                                        <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground"
-                                            onClick={() => handleShare('achievement', 'Consistency Master', `${habits.completionRate?.toFixed(0)}% completion rate!`, habits.completionRate?.toFixed(0) + '%', '⚡', 'green')}>
-                                            <Share2 className="h-4 w-4" />
-                                        </Button>
+                                        <SocialShare data={{ username, name, type: 'achievement', title: 'Consistency Master', subtitle: `${habits.completionRate?.toFixed(0)}% completion rate!`, value: habits.completionRate?.toFixed(0) + '%', emoji: '⚡', color: 'green' }} />
                                     </div>
                                 )}
                                 {study.totalHours > 100 && (
@@ -236,10 +210,7 @@ export default function ProfilePage() {
                                                 <p className="text-xs text-muted-foreground">{Math.round(study.totalHours)}h of deep study</p>
                                             </div>
                                         </div>
-                                        <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground"
-                                            onClick={() => handleShare('achievement', 'Study Champion', '100+ hours of deep study!', Math.round(study.totalHours), '📚', 'blue')}>
-                                            <Share2 className="h-4 w-4" />
-                                        </Button>
+                                        <SocialShare data={{ username, name, type: 'achievement', title: 'Study Champion', subtitle: '100+ hours of deep study!', value: Math.round(study.totalHours), emoji: '📚', color: 'blue' }} />
                                     </div>
                                 )}
                                 {habits.totalHabits === 0 && habits.completionRate <= 80 && study.totalHours <= 100 && (

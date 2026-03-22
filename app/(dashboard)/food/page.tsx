@@ -11,7 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Modal } from '@/components/ui/modal';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { useToast } from '@/components/ui/toast-provider';
-import { FoodInput } from '@/components/ui/food-input';
+import { FoodTagInput } from '@/components/ui/food-tag-input';
 import { ArrowLeft, Plus, Coffee, X, Edit2, Trash2 } from 'lucide-react';
 import { NavBar } from '@/components/layout/NavBar';
 import { formatDate, getLocalDateString } from '@/lib/utils';
@@ -40,7 +40,7 @@ export default function FoodPage() {
     const [editingFood, setEditingFood] = useState<any>(null);
     const [deletingFoodId, setDeletingFoodId] = useState<string | null>(null);
     const [mealType, setMealType] = useState<'breakfast' | 'lunch' | 'dinner' | 'snack'>('breakfast');
-    const [items, setItems] = useState<MealItem[]>([{ name: '', calories: undefined }]);
+    const [itemNames, setItemNames] = useState<string[]>([]);
     const [notes, setNotes] = useState('');
     const [page, setPage] = useState(1);
 
@@ -71,7 +71,7 @@ export default function FoodPage() {
             queryClient.invalidateQueries({ queryKey: ['food'] });
             setPage(1);
             setIsModalOpen(false);
-            setItems([{ name: '', calories: undefined }]);
+            setItemNames([]);
             setNotes('');
             toast.success('Food entry added successfully!');
         },
@@ -97,7 +97,7 @@ export default function FoodPage() {
             await queryClient.refetchQueries({ queryKey: ['food'], type: 'active' });
             setIsEditModalOpen(false);
             setEditingFood(null);
-            setItems([{ name: '', calories: undefined }]);
+            setItemNames([]);
             setNotes('');
             toast.success('Food entry updated successfully!');
         },
@@ -130,39 +130,23 @@ export default function FoodPage() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        const filteredItems = items.filter((item) => item.name.trim() !== '');
-        if (filteredItems.length === 0) {
-            alert('Please add at least one food item');
+        if (itemNames.length === 0) {
+            toast.warning('Please add at least one food item');
             return;
         }
-
         const today = getLocalDateString();
         await createMutation.mutateAsync({
             date: today,
             mealType,
-            items: filteredItems,
+            items: itemNames.map(name => ({ name })),
             notes: notes || undefined,
         });
-    };
-
-    const addItem = () => {
-        setItems([...items, { name: '', calories: undefined }]);
-    };
-
-    const removeItem = (index: number) => {
-        setItems(items.filter((_, i) => i !== index));
-    };
-
-    const updateItem = (index: number, field: keyof MealItem, value: string | number | undefined) => {
-        const newItems = [...items];
-        newItems[index] = { ...newItems[index], [field]: value };
-        setItems(newItems);
     };
 
     const handleEdit = (entry: any) => {
         setEditingFood(entry);
         setMealType(entry.mealType);
-        setItems(entry.items.length > 0 ? entry.items : [{ name: '', calories: undefined }]);
+        setItemNames(entry.items.map((i: MealItem) => i.name).filter(Boolean));
         setNotes(entry.notes || '');
         setIsEditModalOpen(true);
     };
@@ -170,8 +154,7 @@ export default function FoodPage() {
     const handleEditSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!editingFood) return;
-        const filteredItems = items.filter((item) => item.name.trim() !== '');
-        if (filteredItems.length === 0) {
+        if (itemNames.length === 0) {
             toast.warning('Please add at least one food item');
             return;
         }
@@ -179,7 +162,7 @@ export default function FoodPage() {
             id: editingFood._id,
             food: {
                 mealType,
-                items: filteredItems,
+                items: itemNames.map(name => ({ name })),
                 notes: notes || undefined,
             },
         });
@@ -198,6 +181,15 @@ export default function FoodPage() {
 
     const foodEntries = (foodData as any)?.entries || [];
     const pagination = (foodData as any)?.pagination;
+
+    // Build recent foods list from existing entries (deduped, most recent first)
+    const recentFoods: string[] = Array.from(
+        new Set<string>(
+            foodEntries
+                .flatMap((e: any) => e.items?.map((i: any) => i.name as string) ?? [])
+                .filter(Boolean)
+        )
+    ).slice(0, 20);
     const groupedByDate = foodEntries.reduce((acc: any, entry: any) => {
         const date = formatDate(entry.date);
         if (!acc[date]) acc[date] = [];
@@ -333,36 +325,18 @@ export default function FoodPage() {
                     </div>
 
                     <div>
-                        <div className="flex items-center justify-between mb-2">
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Food Items</label>
-                            <Button type="button" variant="outline" size="sm" onClick={addItem} className="rounded-lg">
-                                <X className="h-3 w-3 mr-1 rotate-45" />
-                                Add Item
-                            </Button>
-                        </div>
-                        <div className="space-y-2">
-                            {items.map((item, index) => (
-                                <div key={index} className="flex items-center space-x-2 animate-scale-in">
-                                    <FoodInput
-                                        value={item.name}
-                                        onChange={(value) => updateItem(index, 'name', value)}
-                                        placeholder="Type food name or select from options below..."
-                                        className="flex-1 rounded-lg"
-                                    />
-                                    {items.length > 1 && (
-                                        <Button
-                                            type="button"
-                                            variant="ghost"
-                                            size="icon"
-                                            onClick={() => removeItem(index)}
-                                            className="rounded-lg"
-                                        >
-                                            <X className="h-4 w-4" />
-                                        </Button>
-                                    )}
-                                </div>
-                            ))}
-                        </div>
+                        <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                            Food Items
+                            {itemNames.length > 0 && (
+                                <span className="ml-2 text-xs text-muted-foreground font-normal">({itemNames.length} added)</span>
+                            )}
+                        </label>
+                        <FoodTagInput
+                            value={itemNames}
+                            onChange={setItemNames}
+                            mealType={mealType}
+                            recentFoods={recentFoods}
+                        />
                     </div>
 
                     <div>
@@ -410,36 +384,18 @@ export default function FoodPage() {
                     </div>
 
                     <div>
-                        <div className="flex items-center justify-between mb-2">
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Food Items</label>
-                            <Button type="button" variant="outline" size="sm" onClick={addItem} className="rounded-lg">
-                                <X className="h-3 w-3 mr-1 rotate-45" />
-                                Add Item
-                            </Button>
-                        </div>
-                        <div className="space-y-2">
-                            {items.map((item, index) => (
-                                <div key={index} className="flex items-center space-x-2 animate-scale-in">
-                                    <FoodInput
-                                        value={item.name}
-                                        onChange={(value) => updateItem(index, 'name', value)}
-                                        placeholder="Type food name or select from options below..."
-                                        className="flex-1 rounded-lg"
-                                    />
-                                    {items.length > 1 && (
-                                        <Button
-                                            type="button"
-                                            variant="ghost"
-                                            size="icon"
-                                            onClick={() => removeItem(index)}
-                                            className="rounded-lg"
-                                        >
-                                            <X className="h-4 w-4" />
-                                        </Button>
-                                    )}
-                                </div>
-                            ))}
-                        </div>
+                        <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                            Food Items
+                            {itemNames.length > 0 && (
+                                <span className="ml-2 text-xs text-muted-foreground font-normal">({itemNames.length} added)</span>
+                            )}
+                        </label>
+                        <FoodTagInput
+                            value={itemNames}
+                            onChange={setItemNames}
+                            mealType={mealType}
+                            recentFoods={recentFoods}
+                        />
                     </div>
 
                     <div>

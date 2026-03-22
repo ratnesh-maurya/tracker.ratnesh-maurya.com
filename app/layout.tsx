@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Baloo_Bhai_2 } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/providers";
@@ -14,32 +14,39 @@ const balooBhai2 = Baloo_Bhai_2({
 });
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://tracker.ratnesh-maurya.com';
-const siteName = "Personal Tracker";
-const siteDescription = "Track your habits, sleep, food, study, expenses, and journal entries. A comprehensive personal life tracker to help you build better habits and achieve your goals.";
-const siteImage = `${siteUrl}/web-app-manifest-512x512.png`;
+const siteName = "Personal Tracker — by Ratnesh Maurya";
+const siteTitle = "Personal Tracker";
+const siteDescription = "Free personal life tracker — track habits, streaks, sleep, food (Indian meals), study hours, expenses, and daily journal. Build better habits and achieve your goals. By Ratnesh Maurya.";
+const authorUrl = "https://ratnesh-maurya.com";
+const blogUrl = "https://blog.ratnesh-maurya.com";
+const twitterHandle = process.env.NEXT_PUBLIC_TWITTER_HANDLE || "@ratneshmaurya";
+
+export const viewport: Viewport = {
+    width: "device-width",
+    initialScale: 1,
+    maximumScale: 5,
+    themeColor: [
+        { media: "(prefers-color-scheme: dark)", color: "#0d0d1a" },
+        { media: "(prefers-color-scheme: light)", color: "#6366f1" },
+    ],
+};
 
 export const metadata: Metadata = {
     metadataBase: new URL(siteUrl),
     title: {
         default: siteName,
-        template: `%s | ${siteName}`
+        template: `%s | ${siteTitle}`,
     },
     description: siteDescription,
     keywords: [
-        "habit tracker",
-        "personal tracker",
-        "life tracker",
-        "productivity app",
-        "sleep tracker",
-        "expense tracker",
-        "food tracker",
-        "study tracker",
-        "journal app",
-        "goal tracking",
-        "self improvement",
-        "health tracker"
+        "personal tracker", "habit tracker", "habit streak tracker",
+        "life tracker app", "productivity tracker", "sleep tracker",
+        "expense tracker India", "food tracker Indian meals", "study tracker",
+        "journal app", "goal tracking", "self improvement app",
+        "health tracker free", "daily routine tracker", "Ratnesh Maurya",
+        "free habit app", "no login tracker", "PWA habit tracker",
     ],
-    authors: [{ name: "Ratnesh Maurya", url: "https://ratnesh-maurya.com" }],
+    authors: [{ name: "Ratnesh Maurya", url: authorUrl }],
     creator: "Ratnesh Maurya",
     publisher: "Ratnesh Maurya",
     robots: {
@@ -57,15 +64,16 @@ export const metadata: Metadata = {
         type: "website",
         locale: "en_US",
         url: siteUrl,
-        siteName: siteName,
+        siteName: siteTitle,
         title: siteName,
         description: siteDescription,
         images: [
             {
-                url: siteImage,
+                url: `${siteUrl}/opengraph-image`,
                 width: 1200,
                 height: 630,
-                alt: siteName,
+                alt: "Personal Tracker — Track habits, sleep, study, food, expenses & journal",
+                type: "image/png",
             },
         ],
     },
@@ -73,29 +81,26 @@ export const metadata: Metadata = {
         card: "summary_large_image",
         title: siteName,
         description: siteDescription,
-        images: [siteImage],
-        creator: process.env.NEXT_PUBLIC_TWITTER_HANDLE || "@ratneshmaurya",
+        images: [`${siteUrl}/opengraph-image`],
+        creator: twitterHandle,
+        site: twitterHandle,
     },
     alternates: {
         canonical: siteUrl,
     },
     manifest: "/manifest.json",
-    themeColor: "#3B82F6",
     appleWebApp: {
         capable: true,
-        statusBarStyle: "default",
-        title: siteName,
-    },
-    viewport: {
-        width: "device-width",
-        initialScale: 1,
-        maximumScale: 1,
-        userScalable: false,
+        statusBarStyle: "black-translucent",
+        title: siteTitle,
     },
     verification: {
         google: process.env.NEXT_PUBLIC_GOOGLE_VERIFICATION,
     },
     category: "productivity",
+    other: {
+        "msapplication-TileColor": "#6366f1",
+    },
 };
 
 export default function RootLayout({
@@ -134,7 +139,7 @@ export default function RootLayout({
                 {/* Apply dark mode before paint to prevent flash */}
                 <script
                     dangerouslySetInnerHTML={{
-                        __html: `(function(){try{var s=localStorage.getItem('darkMode');var d=window.matchMedia('(prefers-color-scheme:dark)').matches;if(s===null?d:s==='true'){document.documentElement.classList.add('dark')}}catch(e){}})();`,
+                        __html: `(function(){try{var s=localStorage.getItem('darkMode');var dark=s!==null?s==='true':true;if(dark){document.documentElement.classList.add('dark');if(s===null)localStorage.setItem('darkMode','true')}}catch(e){}})();`,
                     }}
                 />
                 <link rel="manifest" href="/manifest.json" />
