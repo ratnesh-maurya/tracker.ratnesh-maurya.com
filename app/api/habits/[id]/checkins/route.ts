@@ -17,7 +17,7 @@ const checkInSchema = z.object({
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const auth = await requireAuth(request);
@@ -25,6 +25,7 @@ export async function GET(
       return NextResponse.json<ApiResponse>({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
+    const { id } = await params;
     await connectDB();
 
     const { searchParams } = new URL(request.url);
@@ -32,7 +33,7 @@ export async function GET(
     const endDate = searchParams.get('endDate');
 
     const query: any = {
-      habitId: params.id,
+      habitId: id,
       userId: auth.userId,
     };
 
@@ -57,7 +58,7 @@ export async function GET(
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const auth = await requireAuth(request);
@@ -65,6 +66,7 @@ export async function POST(
       return NextResponse.json<ApiResponse>({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
+    const { id } = await params;
     const body = await request.json();
     const validatedData = checkInSchema.parse(body);
 
@@ -72,7 +74,7 @@ export async function POST(
 
     // Verify habit exists and belongs to user
     const habit = await Habit.findOne({
-      _id: params.id,
+      _id: id,
       userId: auth.userId,
     });
 
@@ -85,7 +87,7 @@ export async function POST(
 
     // Check if check-in already exists for this date
     const existingCheckIn = await HabitCheckIn.findOne({
-      habitId: params.id,
+      habitId: id,
       userId: auth.userId,
       date: {
         $gte: startOfDay,
@@ -110,7 +112,7 @@ export async function POST(
 
     // Create new check-in
     const checkIn = new HabitCheckIn({
-      habitId: params.id,
+      habitId: id,
       userId: auth.userId,
       date: startOfDay,
       value: validatedData.value,

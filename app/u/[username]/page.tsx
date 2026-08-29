@@ -1,8 +1,8 @@
 import { Metadata } from 'next';
 import { PublicProfilePageClient } from './client';
 
-export async function generateMetadata({ params }: { params: { username: string } }): Promise<Metadata> {
-    const { username } = params;
+export async function generateMetadata({ params }: { params: Promise<{ username: string }> }): Promise<Metadata> {
+    const { username } = await params;
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://tracker.ratnesh-maurya.com';
 
     try {
@@ -82,6 +82,7 @@ export async function generateMetadata({ params }: { params: { username: string 
     };
 }
 
-export default function PublicProfilePage({ params }: { params: { username: string } }) {
-    return <PublicProfilePageClient params={params} />;
+export default async function PublicProfilePage({ params }: { params: Promise<{ username: string }> }) {
+    const resolvedParams = await params;
+    return <PublicProfilePageClient params={resolvedParams} />;
 }

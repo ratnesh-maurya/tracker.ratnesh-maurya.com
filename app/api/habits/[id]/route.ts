@@ -27,7 +27,7 @@ const updateHabitSchema = z.object({
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const auth = await requireAuth(request);
@@ -35,10 +35,11 @@ export async function GET(
       return NextResponse.json<ApiResponse>({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
+    const { id } = await params;
     await connectDB();
 
     const habit = await Habit.findOne({
-      _id: params.id,
+      _id: id,
       userId: auth.userId,
     });
 
@@ -58,7 +59,7 @@ export async function GET(
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const auth = await requireAuth(request);
@@ -66,13 +67,14 @@ export async function PATCH(
       return NextResponse.json<ApiResponse>({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
+    const { id } = await params;
     const body = await request.json();
     const validatedData = updateHabitSchema.parse(body);
 
     await connectDB();
 
     const habit = await Habit.findOneAndUpdate(
-      { _id: params.id, userId: auth.userId },
+      { _id: id, userId: auth.userId },
       { $set: validatedData },
       { new: true, runValidators: true }
     );
@@ -97,7 +99,7 @@ export async function PATCH(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const auth = await requireAuth(request);
@@ -105,10 +107,11 @@ export async function DELETE(
       return NextResponse.json<ApiResponse>({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
+    const { id } = await params;
     await connectDB();
 
     const habit = await Habit.findOneAndDelete({
-      _id: params.id,
+      _id: id,
       userId: auth.userId,
     });
 

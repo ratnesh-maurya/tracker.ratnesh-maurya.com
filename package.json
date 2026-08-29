@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "next build && opennextjs-cloudflare build",
     "start": "next start",
     "lint": "next lint",
     "test": "jest",
@@ -12,7 +12,9 @@
     "test:e2e": "playwright test",
     "seed": "tsx scripts/seed.ts",
     "generate-icons": "node scripts/generate-icons.js",
-    "make-profiles-public": "tsx scripts/make-all-profiles-public.ts"
+    "make-profiles-public": "tsx scripts/make-all-profiles-public.ts",
+    "cf:preview": "npm run build && wrangler dev",
+    "cf:deploy": "npm run build && wrangler deploy"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
@@ -35,7 +37,7 @@
     "jsonwebtoken": "^9.0.2",
     "lucide-react": "^0.344.0",
     "mongoose": "^8.3.0",
-    "next": "^14.2.0",
+    "next": "^15.5.24",
     "postcss": "^8.4.0",
     "react": "^18.3.0",
     "react-dom": "^18.3.0",
@@ -46,12 +48,14 @@
     "zod": "^3.22.4"
   },
   "devDependencies": {
+    "@opennextjs/cloudflare": "1.20.4",
     "@playwright/test": "^1.42.0",
     "@types/jest": "^29.5.12",
     "eslint": "^8.57.0",
-    "eslint-config-next": "14.2.35",
+    "eslint-config-next": "^15.5.24",
     "jest": "^29.7.0",
     "jest-environment-jsdom": "^29.7.0",
-    "tsx": "^4.7.0"
+    "tsx": "^4.7.0",
+    "wrangler": "4.127.1"
   }
 }
