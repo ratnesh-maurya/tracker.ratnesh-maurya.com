@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build && opennextjs-cloudflare build",
+    "build": "next build",
     "start": "next start",
     "lint": "next lint",
     "test": "jest",
@@ -13,8 +13,9 @@
     "seed": "tsx scripts/seed.ts",
     "generate-icons": "node scripts/generate-icons.js",
     "make-profiles-public": "tsx scripts/make-all-profiles-public.ts",
-    "cf:preview": "npm run build && wrangler dev",
-    "cf:deploy": "npm run build && wrangler deploy"
+    "cf:build": "opennextjs-cloudflare build",
+    "cf:preview": "opennextjs-cloudflare build && wrangler dev",
+    "cf:deploy": "opennextjs-cloudflare build && wrangler deploy"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
