@@ -15,11 +15,12 @@ export function Chip({ label, selected = false, onClick, className }: ChipProps)
         <button
             type="button"
             onClick={onClick}
+            aria-pressed={selected}
             className={cn(
-                'px-4 py-2 rounded-full text-sm font-medium transition-all',
+                'inline-flex min-h-[40px] items-center rounded-full border px-4 text-sm font-medium transition-colors duration-150',
                 selected
-                    ? 'bg-blue-600 text-white shadow-md'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200',
+                    ? 'border-primary bg-primary text-primary-foreground'
+                    : 'border-border bg-card text-muted-foreground hover:border-rule hover:text-foreground',
                 className
             )}
         >

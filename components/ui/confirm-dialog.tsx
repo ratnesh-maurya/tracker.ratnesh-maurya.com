@@ -31,26 +31,18 @@ export function ConfirmDialog({
         onConfirm();
     };
 
-    const variantStyles = {
-        danger: 'bg-red-600 hover:bg-red-700',
-        warning: 'bg-yellow-600 hover:bg-yellow-700',
-        info: 'bg-blue-600 hover:bg-blue-700',
-    };
+    const confirmVariant = variant === 'danger' ? 'destructive' : 'default';
 
     return (
         <Modal isOpen={isOpen} onClose={onClose} title={title} size="sm">
             <div className="space-y-4">
                 <div className="flex items-start gap-3">
-                    <div className={`flex-shrink-0 p-2 rounded-full ${variant === 'danger' ? 'bg-red-100' :
-                            variant === 'warning' ? 'bg-yellow-100' :
-                                'bg-blue-100'
-                        }`}>
-                        <AlertTriangle className={`h-5 w-5 ${variant === 'danger' ? 'text-red-600' :
-                                variant === 'warning' ? 'text-yellow-600' :
-                                    'text-blue-600'
-                            }`} />
-                    </div>
-                    <p className="text-sm text-gray-700 dark:text-gray-300 flex-1 pt-1">{message}</p>
+                    <AlertTriangle
+                        className={variant === 'danger' ? 'mt-0.5 h-5 w-5 shrink-0 text-kicker' : 'mt-0.5 h-5 w-5 shrink-0 text-muted-foreground'}
+                        strokeWidth={1.8}
+                        aria-hidden
+                    />
+                    <p className="text-[15px] text-body flex-1">{message}</p>
                 </div>
                 <div className="flex justify-end gap-2 pt-2">
                     <Button
@@ -58,7 +50,6 @@ export function ConfirmDialog({
                         variant="outline"
                         onClick={onClose}
                         disabled={isLoading}
-                        className="rounded-lg"
                     >
                         {cancelText}
                     </Button>
@@ -66,9 +57,9 @@ export function ConfirmDialog({
                         type="button"
                         onClick={handleConfirm}
                         disabled={isLoading}
-                        className={`${variantStyles[variant]} text-white rounded-lg`}
+                        variant={confirmVariant}
                     >
-                        {isLoading ? 'Processing...' : confirmText}
+                        {isLoading ? '…' : confirmText}
                     </Button>
                 </div>
             </div>

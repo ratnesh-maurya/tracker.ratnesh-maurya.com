@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { registerServiceWorker } from '@/lib/pwa/register';
 import { setupInstallPrompt, promptInstall, isInstallable } from '@/lib/pwa/install';
-import { X, Download, Smartphone } from 'lucide-react';
+import { X } from 'lucide-react';
 
 const DISMISS_KEY = 'pwa-install-dismissed-until';
 // Show again after 7 days if dismissed
@@ -45,39 +45,43 @@ export function PWAInstaller() {
     if (!showInstallPrompt) return null;
 
     return (
-        <div className="fixed bottom-20 md:bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-80 z-50 animate-in slide-in-from-bottom-4 duration-300">
-            <div className="bg-[#1a1a2e] border border-white/10 rounded-2xl shadow-2xl shadow-black/40 p-4">
-                <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center flex-shrink-0">
-                        <Smartphone className="h-5 w-5 text-white" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-white">Add to Home Screen</p>
-                        <p className="text-xs text-gray-400 mt-0.5">Install for faster access, offline support &amp; a native app feel</p>
-                    </div>
-                    <button
-                        onClick={handleDismiss}
-                        className="text-gray-500 hover:text-gray-300 transition-colors flex-shrink-0 mt-0.5"
-                        aria-label="Dismiss"
-                    >
-                        <X className="h-4 w-4" />
-                    </button>
+        <div
+            role="dialog"
+            aria-labelledby="pwa-install-title"
+            className="glass saffron-hairline fixed bottom-20 lg:bottom-4 left-4 right-4 lg:left-auto lg:w-[360px] z-50 animate-fade-in rounded-inner p-5 shadow-pop"
+        >
+            <div className="flex items-start gap-3">
+                <div className="flex-1 min-w-0">
+                    <p className="eyebrow">Install</p>
+                    <p id="pwa-install-title" className="mt-1.5 font-display text-[22px] leading-[1.15]">
+                        Keep it on your <em className="saffron">home screen</em>
+                    </p>
+                    <p className="mt-1.5 text-sm text-muted-foreground">Opens instantly, works offline and syncs when you are back.</p>
                 </div>
-                <div className="flex gap-2 mt-3">
-                    <button
-                        onClick={handleInstall}
-                        className="flex-1 inline-flex items-center justify-center gap-2 px-3 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-xl transition-colors"
-                    >
-                        <Download className="h-4 w-4" />
-                        Install
-                    </button>
-                    <button
-                        onClick={handleDismiss}
-                        className="px-3 py-2 text-gray-400 hover:text-gray-200 text-sm rounded-xl bg-white/5 hover:bg-white/10 transition-colors"
-                    >
-                        Not now
-                    </button>
-                </div>
+                <button
+                    type="button"
+                    onClick={handleDismiss}
+                    className="-mr-1 -mt-1 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-border text-muted-foreground transition-colors duration-150 hover:text-foreground"
+                    aria-label="Dismiss"
+                >
+                    <X className="h-4 w-4" strokeWidth={1.8} aria-hidden />
+                </button>
+            </div>
+            <div className="mt-4 flex gap-2">
+                <button
+                    type="button"
+                    onClick={handleInstall}
+                    className="inline-flex min-h-[44px] flex-1 items-center justify-center gap-2 rounded-full bg-primary px-5 text-sm font-medium text-primary-foreground transition-colors duration-150 hover:[background:color-mix(in_srgb,hsl(var(--primary))_82%,hsl(var(--kumkum)))]"
+                >
+                    Install →
+                </button>
+                <button
+                    type="button"
+                    onClick={handleDismiss}
+                    className="inline-flex min-h-[44px] items-center rounded-full border border-input bg-card px-5 text-sm font-medium text-foreground transition-colors duration-150 hover:border-rule"
+                >
+                    Not now
+                </button>
             </div>
         </div>
     );

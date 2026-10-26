@@ -119,11 +119,11 @@ export function HabitModal({ isOpen, onClose, onSave, habit }: HabitModalProps) 
     const commonIcons = ['📝', '🏃', '💧', '📚', '🧘', '🍎', '💪', '🎯', '🌱', '⭐', '🔥', '🎨'];
 
     return (
-        <Modal isOpen={isOpen} onClose={onClose} title={habit ? 'Edit Habit' : 'Create Custom Habit'} size="lg">
-            <form onSubmit={handleSubmit} className="space-y-6">
+        <Modal isOpen={isOpen} onClose={onClose} title={habit ? 'Edit habit' : 'New habit'} size="lg">
+            <form onSubmit={handleSubmit} className="flex flex-col gap-7">
                 <div>
-                    <label htmlFor="title" className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
-                        NAME
+                    <label htmlFor="title" className="eyebrow mb-3 block">
+                        Name
                     </label>
                     <Input
                         id="title"
@@ -131,12 +131,12 @@ export function HabitModal({ isOpen, onClose, onSave, habit }: HabitModalProps) 
                         onChange={(e) => setTitle(e.target.value)}
                         placeholder="Walk"
                         required
-                        className="text-lg dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                        
                     />
                 </div>
 
                 <div>
-                    <label htmlFor="description" className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                    <label htmlFor="description" className="eyebrow mb-3 block">
                         Description
                     </label>
                     <Textarea
@@ -145,22 +145,24 @@ export function HabitModal({ isOpen, onClose, onSave, habit }: HabitModalProps) 
                         onChange={(e) => setDescription(e.target.value)}
                         placeholder="Description"
                         rows={2}
-                        className="dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                        
                     />
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium mb-3 text-gray-700 dark:text-gray-300">ICON AND COLOR</label>
-                    <div className="grid grid-cols-2 gap-4">
+                    <label className="eyebrow mb-3 block">Icon and colour</label>
+                    <div className="grid gap-5 sm:grid-cols-2">
                         <div>
-                            <label className="block text-xs text-gray-600 dark:text-gray-400 mb-2">Icon</label>
+                            <label className="mb-2 block font-mono text-xs text-muted-foreground">Icon</label>
                             <div className="flex flex-wrap gap-2">
                                 {commonIcons.map((ic) => (
                                     <button
                                         key={ic}
                                         type="button"
                                         onClick={() => setIcon(ic)}
-                                        className={`w-12 h-12 text-2xl rounded-lg border-2 transition-all ${icon === ic ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/30' : 'border-gray-200 dark:border-gray-700'
+                                        aria-pressed={icon === ic}
+                                        aria-label={`Icon ${ic}`}
+                                        className={`flex h-11 w-11 items-center justify-center rounded-full border text-xl transition-colors duration-150 ${icon === ic ? 'border-primary bg-muted' : 'border-border bg-card hover:border-rule'
                                             }`}
                                     >
                                         {ic}
@@ -169,21 +171,24 @@ export function HabitModal({ isOpen, onClose, onSave, habit }: HabitModalProps) 
                             </div>
                         </div>
                         <div>
-                            <label className="block text-xs text-gray-600 dark:text-gray-400 mb-2">Color</label>
+                            <label className="mb-2 block font-mono text-xs text-muted-foreground">Color</label>
                             <div className="flex gap-2">
                                 <Input
                                     type="color"
                                     value={color}
                                     onChange={(e) => setColor(e.target.value)}
-                                    className="w-20 h-12"
+                                    className="h-11 w-16 cursor-pointer p-1"
+                                    aria-label="Custom colour"
                                 />
                                 <div className="flex-1 flex flex-wrap gap-2">
-                                    {['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'].map((c) => (
+                                    {['#FF7A18', '#E8336D', '#FFB347', '#C2185B', '#1FA463', '#6B675E'].map((c) => (
                                         <button
                                             key={c}
                                             type="button"
                                             onClick={() => setColor(c)}
-                                            className={`w-12 h-12 rounded-lg ${color === c ? 'ring-2 ring-offset-2 ring-gray-400' : ''
+                                            aria-pressed={color === c}
+                                            aria-label={`Colour ${c}`}
+                                            className={`h-11 w-11 rounded-full border-2 transition-colors duration-150 ${color === c ? 'border-foreground' : 'border-transparent'
                                                 }`}
                                             style={{ backgroundColor: c }}
                                         />
@@ -195,7 +200,7 @@ export function HabitModal({ isOpen, onClose, onSave, habit }: HabitModalProps) 
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium mb-3 text-gray-700 dark:text-gray-300">HABITUAL TYPE</label>
+                    <label className="eyebrow mb-3 block">Build or quit</label>
                     <div className="flex gap-2">
                         {HABITUAL_TYPES.map((ht) => (
                             <Chip
@@ -210,7 +215,7 @@ export function HabitModal({ isOpen, onClose, onSave, habit }: HabitModalProps) 
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium mb-3 text-gray-700 dark:text-gray-300">Type</label>
+                    <label className="eyebrow mb-3 block">Type</label>
                     <div className="flex flex-wrap gap-2">
                         {HABIT_TYPES.map((t) => (
                             <Chip
@@ -224,7 +229,7 @@ export function HabitModal({ isOpen, onClose, onSave, habit }: HabitModalProps) 
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium mb-3 text-gray-700 dark:text-gray-300">GOAL PERIOD</label>
+                    <label className="eyebrow mb-3 block">Goal period</label>
                     <div className="flex flex-wrap gap-2">
                         {HABIT_SCHEDULES.map((s) => (
                             <Chip
@@ -239,8 +244,8 @@ export function HabitModal({ isOpen, onClose, onSave, habit }: HabitModalProps) 
 
                 {type === 'count' && (
                     <div>
-                        <label htmlFor="target" className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
-                            GOAL VALUE
+                        <label htmlFor="target" className="eyebrow mb-3 block">
+                            Goal value
                         </label>
                         <div className="flex items-center gap-2">
                             <Input
@@ -250,19 +255,19 @@ export function HabitModal({ isOpen, onClose, onSave, habit }: HabitModalProps) 
                                 value={target}
                                 onChange={(e) => setTarget(e.target.value)}
                                 placeholder="1"
-                                className="text-lg dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                                
                             />
-                            <span className="text-gray-600 dark:text-gray-400">times</span>
-                            <span className="text-gray-500 dark:text-gray-500">or more per {schedule === 'daily' ? 'day' : schedule === 'weekly' ? 'week' : 'month'}</span>
+                            <span className="font-mono text-xs text-muted-foreground">times</span>
+                            <span className="font-mono text-xs text-muted-foreground">or more per {schedule === 'daily' ? 'day' : schedule === 'weekly' ? 'week' : 'month'}</span>
                         </div>
                     </div>
                 )}
 
                 <div>
-                    <label className="block text-sm font-medium mb-3 text-gray-700 dark:text-gray-300">REMINDERS</label>
-                    <div className="space-y-3">
+                    <label className="eyebrow mb-3 block">Reminders</label>
+                    <div className="flex flex-col gap-3">
                         <div>
-                            <label htmlFor="reminderMessage" className="block text-xs text-gray-600 dark:text-gray-400 mb-1">
+                            <label htmlFor="reminderMessage" className="mb-2 block font-mono text-xs text-muted-foreground">
                                 Reminder Message
                             </label>
                             <Input
@@ -270,42 +275,45 @@ export function HabitModal({ isOpen, onClose, onSave, habit }: HabitModalProps) 
                                 value={reminderMessage}
                                 onChange={(e) => setReminderMessage(e.target.value)}
                                 placeholder="Remember to set off time for a workout today."
-                                className="dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                                
                             />
                         </div>
-                        <div className="flex items-center justify-between p-3 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
-                            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Enable Reminders</span>
+                        <div className="flex min-h-[56px] items-center justify-between rounded-inner border border-border bg-muted px-4">
+                            <span id="reminders-label" className="text-[15px] font-medium">Remind me</span>
                             <button
                                 type="button"
                                 onClick={() => setRemindersEnabled(!remindersEnabled)}
-                                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${remindersEnabled ? 'bg-green-500' : 'bg-gray-300 dark:bg-gray-600'
+                                role="switch"
+                                aria-checked={remindersEnabled}
+                                aria-labelledby="reminders-label"
+                                className={`relative inline-flex h-7 w-12 items-center rounded-full border transition-colors duration-150 ${remindersEnabled ? 'border-primary bg-primary' : 'border-input bg-card'
                                     }`}
                             >
                                 <span
-                                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${remindersEnabled ? 'translate-x-6' : 'translate-x-1'
+                                    className={`inline-block h-5 w-5 rounded-full ${remindersEnabled ? 'ml-[22px] bg-primary-foreground' : 'ml-[3px] bg-muted-foreground'
                                         }`}
                                 />
                             </button>
                         </div>
                         {remindersEnabled && (
-                            <div className="space-y-2 p-3 rounded-lg bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800">
-                                <div className="flex items-center gap-2">
-                                    <label htmlFor="reminderTime" className="text-sm text-gray-700 dark:text-gray-300 whitespace-nowrap">
-                                        Reminder Time:
+                            <div className="flex flex-col gap-3 rounded-inner border border-border p-4">
+                                <div className="flex flex-wrap items-center gap-3">
+                                    <label htmlFor="reminderTime" className="whitespace-nowrap font-mono text-xs text-muted-foreground">
+                                        at
                                     </label>
                                     <Input
                                         id="reminderTime"
                                         type="time"
                                         value={reminderTime}
                                         onChange={(e) => setReminderTime(e.target.value)}
-                                        className="flex-1 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                                        className="flex-1"
                                     />
-                                    <span className="text-sm text-gray-600 dark:text-gray-400 whitespace-nowrap">Every day</span>
+                                    <span className="whitespace-nowrap font-mono text-xs text-muted-foreground">every day</span>
                                 </div>
                                 {reminderMessage && (
-                                    <div className="mt-2 p-2 rounded bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
-                                        <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Preview:</p>
-                                        <p className="text-sm text-gray-700 dark:text-gray-300">{reminderMessage}</p>
+                                    <div className="rounded-tile bg-muted p-3">
+                                        <p className="mb-1 font-mono text-xs text-muted-foreground">preview</p>
+                                        <p className="text-sm text-body">{reminderMessage}</p>
                                     </div>
                                 )}
                             </div>
@@ -314,7 +322,7 @@ export function HabitModal({ isOpen, onClose, onSave, habit }: HabitModalProps) 
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium mb-3 text-gray-700 dark:text-gray-300">TIME RANGE</label>
+                    <label className="eyebrow mb-3 block">Time of day</label>
                     <div className="flex flex-wrap gap-2">
                         {TIME_RANGES.map((tr) => (
                             <Chip
@@ -327,12 +335,12 @@ export function HabitModal({ isOpen, onClose, onSave, habit }: HabitModalProps) 
                     </div>
                 </div>
 
-                <div className="flex justify-end space-x-2 pt-4 border-t border-gray-200 dark:border-gray-700">
-                    <Button type="button" variant="outline" onClick={onClose} className="dark:bg-gray-800 dark:border-gray-700 dark:text-white">
+                <div className="flex justify-end gap-2 border-t border-border pt-5">
+                    <Button type="button" variant="outline" onClick={onClose} >
                         Cancel
                     </Button>
-                    <Button type="submit" disabled={loading} className="bg-blue-600 hover:bg-blue-700 text-white">
-                        {loading ? 'Saving...' : habit ? 'Update' : 'Add Habit'}
+                    <Button type="submit" disabled={loading}>
+                        {loading ? '…' : habit ? 'Save changes' : 'Add habit'}
                     </Button>
                 </div>
             </form>

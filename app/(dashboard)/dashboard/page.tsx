@@ -34,6 +34,8 @@ import { getStartOfDay, getEndOfDay } from '@/lib/utils';
 import { ChartTheme, LineChart } from '@/components/charts/lazy';
 import { HabitReminderManager } from '@/components/habits/HabitReminderManager';
 import { handleApiResponse } from '@/lib/api/client';
+import { CHART_COLORS, useTheme } from '@/lib/useTheme';
+import { PageHeader, PageShell, Section, Stat } from '@/components/layout/page';
 
 const MEAL_TYPES = [
     { value: 'breakfast', label: 'Breakfast' },
@@ -65,12 +67,15 @@ export default function DashboardPage() {
     const [isSleepModalOpen, setIsSleepModalOpen] = useState(false);
     const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
     const [isMobile, setIsMobile] = useState(true);
+    const [today, setToday] = useState('');
+    const isDark = useTheme() === 'dark';
 
     useEffect(() => {
         const checkMobile = () => {
             setIsMobile(window.innerWidth < 768);
         };
         checkMobile();
+        setToday(format(new Date(), 'EEEE, d MMM').toLowerCase());
         window.addEventListener('resize', checkMobile);
         return () => window.removeEventListener('resize', checkMobile);
     }, []);
@@ -195,165 +200,124 @@ export default function DashboardPage() {
     const perfectDays = Math.round((completionRate / 100) * 30); // Approximate
 
 
+    const firstName = String((userData as any)?.name || (userData as any)?.username || '').split(' ')[0];
+
     return (
-        <div className="min-h-screen bg-background">
+        <>
             <HabitReminderManager />
 
-            {/* Header */}
-            <header className="bg-background/95 backdrop-blur-md border-b border-border sticky top-0 z-10">
-                <div className="max-w-5xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
-                    <div>
-                        <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-indigo-500 to-purple-500 bg-clip-text text-transparent">
-                            {(userData as any)?.name || (userData as any)?.username || 'Welcome'} 👋
-                        </h1>
-                        <p className="text-xs text-muted-foreground mt-0.5">Track your progress</p>
-                    </div>
-                    <Link href="/settings">
-                        <Button variant="ghost" size="icon" className="rounded-xl hover:bg-accent transition-smooth">
-                            <Settings className="h-5 w-5" />
-                        </Button>
-                    </Link>
-                </div>
-            </header>
+            <PageShell>
+                <PageHeader
+                    kicker={today ? `§ 01 · ${today}` : '§ 01 · today'}
+                    title={firstName ? <>Hello, <em>{firstName}</em></> : <>Your <em>day</em></>}
+                    action={
+                        <Link href="/settings" aria-label="Settings" className="lg:hidden">
+                            <Button variant="outline" size="icon" tabIndex={-1}>
+                                <Settings className="h-[18px] w-[18px]" strokeWidth={1.8} aria-hidden />
+                            </Button>
+                        </Link>
+                    }
+                />
 
-            <main className="max-w-5xl mx-auto px-4 sm:px-6 py-6">
-                {/* Stats row */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6 animate-fade-in">
+                {/* Numbers on hairline rules, label under each */}
+                <dl className="grid grid-cols-2 gap-x-6 gap-y-8 sm:grid-cols-4">
                     {[
-                        { label: 'Streak', value: currentStreak, unit: 'days', icon: Flame, gradient: 'from-purple-500 to-purple-600' },
-                        { label: 'Completion', value: `${completionRate}%`, unit: '', icon: Target, gradient: 'from-blue-500 to-blue-600' },
-                        { label: 'Habits', value: habitsCompleted, unit: 'total', icon: CheckCircle2, gradient: 'from-emerald-500 to-emerald-600' },
-                        { label: 'Perfect Days', value: perfectDays, unit: '', icon: Calendar, gradient: 'from-pink-500 to-pink-600' },
+                        { label: 'day streak', value: currentStreak },
+                        { label: 'completion', value: `${completionRate}%` },
+                        { label: 'habits', value: habitsCompleted },
+                        { label: 'perfect days', value: perfectDays },
                     ].map((s) => (
-                        <Card key={s.label} className={`border-0 shadow-lg bg-gradient-to-br ${s.gradient} text-white`}>
-                            <CardContent className="p-4">
-                                <div className="flex items-center justify-between">
-                                    <div>
-                                        <p className="text-white/70 text-xs mb-0.5 font-medium">{s.label}</p>
-                                        <p className="text-2xl font-bold leading-none">{s.value}</p>
-                                        {s.unit && <p className="text-white/60 text-xs mt-1">{s.unit}</p>}
-                                    </div>
-                                    <s.icon className="h-7 w-7 text-white/70" />
-                                </div>
-                            </CardContent>
-                        </Card>
+                        <Stat key={s.label} label={s.label} value={s.value} className="border-t border-border pt-4" />
                     ))}
-                </div>
+                </dl>
 
-                {/* Two-column layout on desktop */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    {/* Left column — chart + quick access */}
-                    <div className="lg:col-span-2 space-y-6">
-                        {/* Chart */}
-                        <ChartTheme mode="light">
-                            <Card className="border border-border shadow-sm bg-card">
-                                <CardHeader className="pb-2">
-                                    <CardTitle className="text-base font-semibold flex items-center gap-2 text-foreground">
-                                        <TrendingUp className="h-4 w-4 text-indigo-500" />
-                                        7-Day Overview
-                                    </CardTitle>
-                                </CardHeader>
-                                <CardContent className="px-1 sm:px-4 pb-4">
-                                    <LineChart
-                                        xAxis={[{ scaleType: 'point', data: dateLabels }]}
-                                        yAxis={[{ id: 'leftAxis' }, { id: 'rightAxis', position: 'right' }]}
-                                        series={[
-                                            { data: sleepChartData, label: 'Sleep (h)', color: '#6366f1', yAxisId: 'leftAxis' },
-                                            { data: studyChartData, label: 'Study (h)', color: '#a855f7', yAxisId: 'leftAxis' },
-                                            { data: expenseChartData, label: 'Expenses (₹)', color: '#f59e0b', yAxisId: 'rightAxis' },
-                                        ]}
-                                        height={260}
-                                        margin={isMobile ? { left: 5, right: 5, top: 10, bottom: 40 } : { left: 30, right: 40, top: 10, bottom: 40 }}
-                                        sx={{
-                                            width: '100%',
-                                            '& .MuiChartsAxis-root': { fontSize: '0.65rem' },
-                                            '& .MuiChartsLegend-root': { fontSize: '0.65rem' },
-                                        }}
-                                    />
-                                </CardContent>
-                            </Card>
+                <Section kicker="§ 02 · Log something" className="mt-14">
+                    <div className="flex flex-wrap gap-2.5">
+                        <Link href="/habits">
+                            <Button tabIndex={-1}>Check in habits →</Button>
+                        </Link>
+                        {[
+                            { label: 'Meal', icon: Coffee, onClick: () => setIsFoodModalOpen(true) },
+                            { label: 'Expense', icon: IndianRupee, onClick: () => setIsExpenseModalOpen(true) },
+                            { label: 'Sleep', icon: Bed, onClick: () => setIsSleepModalOpen(true) },
+                        ].map((item) => (
+                            <Button key={item.label} variant="outline" onClick={item.onClick}>
+                                <item.icon className="h-4 w-4" strokeWidth={1.8} aria-hidden />
+                                {item.label}
+                            </Button>
+                        ))}
+                    </div>
+                </Section>
+
+                <div className="mt-14 grid grid-cols-1 gap-x-10 lg:grid-cols-3">
+                    <Section kicker="§ 03 · Last seven days" className="lg:col-span-2" title={<>Sleep, study and <em>spend</em></>}>
+                        <ChartTheme mode={isDark ? 'dark' : 'light'}>
+                            <div className="rounded-card bg-card p-3 shadow-card sm:p-5">
+                                <LineChart
+                                    xAxis={[{ scaleType: 'point', data: dateLabels }]}
+                                    yAxis={[{ id: 'leftAxis' }, { id: 'rightAxis', position: 'right' }]}
+                                    series={[
+                                        { data: sleepChartData, label: 'Sleep (h)', color: CHART_COLORS[0], yAxisId: 'leftAxis' },
+                                        { data: studyChartData, label: 'Study (h)', color: CHART_COLORS[1], yAxisId: 'leftAxis' },
+                                        { data: expenseChartData, label: 'Spend (₹)', color: CHART_COLORS[4], yAxisId: 'rightAxis' },
+                                    ]}
+                                    height={260}
+                                    margin={isMobile ? { left: 5, right: 5, top: 10, bottom: 40 } : { left: 30, right: 40, top: 10, bottom: 40 }}
+                                    sx={{
+                                        width: '100%',
+                                        '& .MuiChartsAxis-root text': { fontFamily: 'var(--font-jetbrains)', fontSize: '11px !important' },
+                                        '& .MuiChartsLegend-root': { fontFamily: 'var(--font-jetbrains)', fontSize: '11px' },
+                                    }}
+                                />
+                            </div>
                         </ChartTheme>
+                    </Section>
 
-                        {/* Quick Access grid */}
-                        <div>
-                            <h2 className="text-xs font-semibold text-muted-foreground mb-3 uppercase tracking-widest">Quick Access</h2>
-                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                                {[
-                                    { href: '/habits', icon: Sparkles, label: 'Habits', color: 'from-indigo-500 to-indigo-600' },
-                                    { href: '/food', icon: Coffee, label: 'Food', color: 'from-emerald-500 to-emerald-600' },
-                                    { href: '/sleep', icon: Bed, label: 'Sleep', color: 'from-blue-500 to-blue-600' },
-                                    { href: '/study', icon: GraduationCap, label: 'Study', color: 'from-purple-500 to-purple-600' },
-                                    { href: '/expenses', icon: IndianRupee, label: 'Expenses', color: 'from-amber-500 to-amber-600' },
-                                    { href: '/journal', icon: FileText, label: 'Journal', color: 'from-pink-500 to-pink-600' },
-                                    { href: '/analytics', icon: TrendingUp, label: 'Analytics', color: 'from-orange-500 to-orange-600' },
-                                    { href: '/calendar', icon: Calendar, label: 'Calendar', color: 'from-teal-500 to-teal-600' },
-                                ].map((item) => (
-                                    <Link key={item.href} href={item.href}>
-                                        <Card className="border border-border shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer group bg-card hover:bg-accent/30">
-                                            <CardContent className="p-3.5 flex items-center gap-3">
-                                                <div className={`bg-gradient-to-br ${item.color} p-2 rounded-lg group-hover:scale-105 transition-transform duration-200 flex-shrink-0`}>
-                                                    <item.icon className="h-4 w-4 text-white" />
-                                                </div>
-                                                <span className="font-medium text-sm text-foreground">{item.label}</span>
-                                            </CardContent>
-                                        </Card>
-                                    </Link>
-                                ))}
-                            </div>
+                    <Section kicker="§ 04 · Today" className="mt-12 lg:mt-0">
+                        <div className="rounded-card bg-card p-6 shadow-card">
+                            <dl className="grid grid-cols-2 gap-6">
+                                <Stat label="day streak" value={currentStreak} />
+                                <Stat label="habits done" value={`${completionRate}%`} />
+                            </dl>
+                            <Link href="/habits" className="mt-6 inline-block text-[15px] text-coral transition-colors duration-150 hover:text-muted-foreground">
+                                See today’s habits →
+                            </Link>
                         </div>
-                    </div>
-
-                    {/* Right column — quick add */}
-                    <div className="space-y-4">
-                        <div>
-                            <h2 className="text-xs font-semibold text-muted-foreground mb-3 uppercase tracking-widest">Quick Add</h2>
-                            <div className="space-y-3">
-                                {[
-                                    { label: 'Log Food', icon: Coffee, gradient: 'from-emerald-500 to-emerald-600', onClick: () => setIsFoodModalOpen(true) },
-                                    { label: 'Log Expense', icon: IndianRupee, gradient: 'from-amber-500 to-amber-600', onClick: () => setIsExpenseModalOpen(true) },
-                                    { label: 'Log Sleep', icon: Bed, gradient: 'from-indigo-500 to-indigo-600', onClick: () => setIsSleepModalOpen(true) },
-                                ].map((item) => (
-                                    <Button
-                                        key={item.label}
-                                        onClick={item.onClick}
-                                        className={`w-full bg-gradient-to-r ${item.gradient} hover:brightness-110 text-white h-12 justify-start gap-3 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 font-medium`}
-                                    >
-                                        <item.icon className="h-5 w-5" />
-                                        {item.label}
-                                    </Button>
-                                ))}
-                            </div>
-                        </div>
-
-                        {/* Today at a glance */}
-                        <Card className="border border-border bg-card shadow-sm">
-                            <CardHeader className="pb-2 pt-4 px-4">
-                                <CardTitle className="text-sm font-semibold text-foreground">Today</CardTitle>
-                            </CardHeader>
-                            <CardContent className="px-4 pb-4 space-y-2">
-                                <div className="flex justify-between text-sm">
-                                    <span className="text-muted-foreground">Streak</span>
-                                    <span className="font-semibold text-orange-500 flex items-center gap-1"><Flame className="h-3.5 w-3.5 fill-orange-500" />{currentStreak} days</span>
-                                </div>
-                                <div className="flex justify-between text-sm">
-                                    <span className="text-muted-foreground">Habits</span>
-                                    <span className="font-semibold text-foreground">{completionRate}% done</span>
-                                </div>
-                                <Link href="/habits" className="block">
-                                    <Button variant="outline" size="sm" className="w-full mt-2 text-xs h-8 border-dashed">
-                                        View habits →
-                                    </Button>
-                                </Link>
-                            </CardContent>
-                        </Card>
-                    </div>
+                    </Section>
                 </div>
-            </main>
+
+                <Section kicker="§ 05 · Everything else">
+                    <ul className="border-b border-border">
+                        {[
+                            { href: '/habits', label: 'Habits', note: 'streaks and check-ins' },
+                            { href: '/food', label: 'Food', note: 'meals, Indian dishes' },
+                            { href: '/sleep', label: 'Sleep', note: 'hours and bedtimes' },
+                            { href: '/study', label: 'Study', note: 'sessions and topics' },
+                            { href: '/expenses', label: 'Expenses', note: 'where the money went' },
+                            { href: '/journal', label: 'Journal', note: 'one entry a day' },
+                            { href: '/analytics', label: 'Analytics', note: 'week, month, year' },
+                            { href: '/calendar', label: 'Calendar', note: 'the whole year at once' },
+                        ].map((item, i) => (
+                            <li key={item.href} className="border-t border-border">
+                                <Link
+                                    href={item.href}
+                                    className="flex min-h-[64px] items-center gap-4 px-2 transition-colors duration-150 hover:bg-hover"
+                                >
+                                    <span className="w-8 font-mono text-xs text-muted-foreground">{String(i + 1).padStart(2, '0')}</span>
+                                    <span className="font-display text-[24px] leading-none sm:text-[28px]">{item.label}</span>
+                                    <span className="ml-auto hidden font-mono text-xs text-muted-foreground sm:inline">{item.note}</span>
+                                    <span className="font-mono text-muted-foreground" aria-hidden>→</span>
+                                </Link>
+                            </li>
+                        ))}
+                    </ul>
+                </Section>
+            </PageShell>
 
             <QuickAddFoodModal isOpen={isFoodModalOpen} onClose={() => setIsFoodModalOpen(false)} />
             <QuickAddSleepModal isOpen={isSleepModalOpen} onClose={() => setIsSleepModalOpen(false)} />
             <QuickAddExpenseModal isOpen={isExpenseModalOpen} onClose={() => setIsExpenseModalOpen(false)} />
-        </div>
+        </>
     );
 }
 
@@ -402,7 +366,7 @@ function QuickAddFoodModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =
         <Modal isOpen={isOpen} onClose={onClose} title="Log Meal" size="lg">
             <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
-                    <label className="block text-sm font-medium mb-3 text-gray-700 dark:text-gray-300">Meal Type</label>
+                    <label className="mb-2 block text-sm font-medium text-foreground">Meal Type</label>
                     <div className="flex flex-wrap gap-2">
                         {MEAL_TYPES.map((mt) => (
                             <Chip
@@ -417,20 +381,20 @@ function QuickAddFoodModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =
 
                 <div>
                     <div className="flex items-center justify-between mb-2">
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Food Items</label>
-                        <Button type="button" variant="outline" size="sm" onClick={addItem} className="rounded-lg">
-                            <X className="h-3 w-3 mr-1 rotate-45" />
+                        <label className="block text-sm font-medium text-foreground">Food Items</label>
+                        <Button type="button" variant="outline" size="sm" onClick={addItem}>
+                            <Plus className="h-3.5 w-3.5" strokeWidth={1.8} aria-hidden />
                             Add Item
                         </Button>
                     </div>
                     <div className="space-y-2">
                         {items.map((item, index) => (
-                            <div key={index} className="flex items-center space-x-2 animate-scale-in">
+                            <div key={index} className="flex items-center gap-2">
                                 <FoodInput
                                     value={item.name}
                                     onChange={(value) => updateItem(index, 'name', value)}
                                     placeholder="Type food name or select from options below..."
-                                    className="flex-1 rounded-lg"
+                                    className="flex-1"
                                 />
                                 {items.length > 1 && (
                                     <Button
@@ -438,9 +402,9 @@ function QuickAddFoodModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =
                                         variant="ghost"
                                         size="icon"
                                         onClick={() => removeItem(index)}
-                                        className="rounded-lg"
+                                        aria-label="Remove item"
                                     >
-                                        <X className="h-4 w-4" />
+                                        <X className="h-4 w-4" strokeWidth={1.8} aria-hidden />
                                     </Button>
                                 )}
                             </div>
@@ -449,7 +413,7 @@ function QuickAddFoodModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =
                 </div>
 
                 <div>
-                    <label htmlFor="notes" className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                    <label htmlFor="notes" className="mb-2 block text-sm font-medium text-foreground">
                         Notes (optional)
                     </label>
                     <Textarea
@@ -457,13 +421,12 @@ function QuickAddFoodModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =
                         value={notes}
                         onChange={(e) => setNotes(e.target.value)}
                         rows={3}
-                        className="rounded-lg"
                     />
                 </div>
 
-                <div className="flex justify-end space-x-2 pt-4">
-                    <Button type="button" variant="outline" onClick={onClose} className="rounded-lg">Cancel</Button>
-                    <Button type="submit" className="bg-green-600 hover:bg-green-700 rounded-lg">
+                <div className="flex justify-end gap-2 pt-2">
+                    <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
+                    <Button type="submit">
                         Save
                     </Button>
                 </div>
@@ -504,7 +467,7 @@ function QuickAddSleepModal({ isOpen, onClose }: { isOpen: boolean; onClose: () 
             <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="grid grid-cols-2 gap-4">
                     <div>
-                        <label htmlFor="startTime" className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                        <label htmlFor="startTime" className="mb-2 block text-sm font-medium text-foreground">
                             Start Time
                         </label>
                         <Input
@@ -512,12 +475,11 @@ function QuickAddSleepModal({ isOpen, onClose }: { isOpen: boolean; onClose: () 
                             type="time"
                             value={startTime}
                             onChange={(e) => setStartTime(e.target.value)}
-                            className="rounded-lg"
                             required
                         />
                     </div>
                     <div>
-                        <label htmlFor="endTime" className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                        <label htmlFor="endTime" className="mb-2 block text-sm font-medium text-foreground">
                             End Time
                         </label>
                         <Input
@@ -525,14 +487,13 @@ function QuickAddSleepModal({ isOpen, onClose }: { isOpen: boolean; onClose: () 
                             type="time"
                             value={endTime}
                             onChange={(e) => setEndTime(e.target.value)}
-                            className="rounded-lg"
                             required
                         />
                     </div>
                 </div>
 
                 <div>
-                    <label htmlFor="sleepNotes" className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                    <label htmlFor="sleepNotes" className="mb-2 block text-sm font-medium text-foreground">
                         Notes (optional)
                     </label>
                     <Textarea
@@ -540,13 +501,12 @@ function QuickAddSleepModal({ isOpen, onClose }: { isOpen: boolean; onClose: () 
                         value={notes}
                         onChange={(e) => setNotes(e.target.value)}
                         rows={3}
-                        className="rounded-lg"
                     />
                 </div>
 
-                <div className="flex justify-end space-x-2 pt-4">
-                    <Button type="button" variant="outline" onClick={onClose} className="rounded-lg">Cancel</Button>
-                    <Button type="submit" className="bg-indigo-600 hover:bg-indigo-700 rounded-lg">
+                <div className="flex justify-end gap-2 pt-2">
+                    <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
+                    <Button type="submit">
                         Save
                     </Button>
                 </div>
@@ -589,7 +549,7 @@ function QuickAddExpenseModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
             <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="grid grid-cols-2 gap-4">
                     <div>
-                        <label htmlFor="amount" className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                        <label htmlFor="amount" className="mb-2 block text-sm font-medium text-foreground">
                             Amount
                         </label>
                         <Input
@@ -599,12 +559,11 @@ function QuickAddExpenseModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
                             value={amount}
                             onChange={(e) => setAmount(e.target.value)}
                             placeholder="0.00"
-                            className="rounded-lg"
                             required
                         />
                     </div>
                     <div>
-                        <label htmlFor="currency" className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                        <label htmlFor="currency" className="mb-2 block text-sm font-medium text-foreground">
                             Currency
                         </label>
                         <Input
@@ -612,14 +571,13 @@ function QuickAddExpenseModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
                             type="text"
                             value={currency}
                             onChange={(e) => setCurrency(e.target.value.toUpperCase())}
-                            className="rounded-lg"
                             required
                         />
                     </div>
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium mb-3 text-gray-700 dark:text-gray-300">Category</label>
+                    <label className="mb-2 block text-sm font-medium text-foreground">Category</label>
                     <div className="flex flex-wrap gap-2">
                         {CATEGORIES.map((cat) => (
                             <Chip
@@ -633,7 +591,7 @@ function QuickAddExpenseModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
                 </div>
 
                 <div>
-                    <label htmlFor="expenseNotes" className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                    <label htmlFor="expenseNotes" className="mb-2 block text-sm font-medium text-foreground">
                         Notes (optional)
                     </label>
                     <Textarea
@@ -641,13 +599,12 @@ function QuickAddExpenseModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
                         value={notes}
                         onChange={(e) => setNotes(e.target.value)}
                         rows={3}
-                        className="rounded-lg"
                     />
                 </div>
 
-                <div className="flex justify-end space-x-2 pt-4">
-                    <Button type="button" variant="outline" onClick={onClose} className="rounded-lg">Cancel</Button>
-                    <Button type="submit" className="bg-yellow-600 hover:bg-yellow-700 rounded-lg">
+                <div className="flex justify-end gap-2 pt-2">
+                    <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
+                    <Button type="submit">
                         Save
                     </Button>
                 </div>

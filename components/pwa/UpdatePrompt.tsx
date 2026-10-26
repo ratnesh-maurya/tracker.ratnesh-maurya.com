@@ -21,15 +21,15 @@ export function UpdatePrompt() {
     return (
         <div
             role="status"
-            className="fixed bottom-20 lg:bottom-4 left-4 right-4 lg:left-auto lg:w-80 z-50 flex items-center gap-3 rounded-2xl border border-white/10 bg-[#1a1a2e] p-3 pl-4 shadow-2xl shadow-black/40"
+            className="glass saffron-hairline fixed bottom-20 lg:bottom-4 left-4 right-4 lg:left-auto lg:w-96 z-50 flex items-center gap-3 rounded-full py-2 pl-5 pr-2 shadow-pop"
         >
-            <p className="flex-1 text-sm text-gray-200">A new version is ready.</p>
+            <p className="flex-1 text-sm text-foreground">A new version is ready.</p>
             <button
                 type="button"
                 onClick={applyUpdate}
-                className="inline-flex min-h-[44px] items-center gap-2 rounded-xl bg-indigo-600 px-4 text-sm font-medium text-white transition-colors hover:bg-indigo-500"
+                className="inline-flex min-h-[44px] items-center gap-2 rounded-full bg-primary px-5 text-sm font-medium text-primary-foreground transition-colors duration-150 hover:[background:color-mix(in_srgb,hsl(var(--primary))_82%,hsl(var(--kumkum)))]"
             >
-                <RefreshCw className="h-4 w-4" aria-hidden />
+                <RefreshCw className="h-4 w-4" strokeWidth={1.8} aria-hidden />
                 Reload
             </button>
         </div>

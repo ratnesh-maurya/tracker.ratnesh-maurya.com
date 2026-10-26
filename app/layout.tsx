@@ -1,16 +1,29 @@
 import type { Metadata, Viewport } from "next";
-import { Baloo_Bhai_2 } from "next/font/google";
+import { Geist, Instrument_Serif, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/providers";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { PWAInstaller } from "@/components/pwa/PWAInstaller";
 import { UpdatePrompt } from "@/components/pwa/UpdatePrompt";
 import { SEO } from "@/components/SEO";
+import { THEME_INIT_SCRIPT } from "@/lib/theme";
 
-const balooBhai2 = Baloo_Bhai_2({
+// Ledger type roles: serif for headings, sans for reading, mono for labels and data.
+const instrument = Instrument_Serif({
     subsets: ["latin"],
-    weight: ["400", "500", "600", "700", "800"],
-    variable: "--font-baloo-bhai-2",
+    weight: "400",
+    style: ["normal", "italic"],
+    variable: "--font-instrument",
+});
+const geist = Geist({
+    subsets: ["latin"],
+    weight: ["400", "500", "600"],
+    variable: "--font-geist",
+});
+const jetbrains = JetBrains_Mono({
+    subsets: ["latin"],
+    weight: ["400", "500"],
+    variable: "--font-jetbrains",
 });
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://tracker.ratnesh-maurya.com';
@@ -25,10 +38,8 @@ export const viewport: Viewport = {
     width: "device-width",
     initialScale: 1,
     maximumScale: 5,
-    themeColor: [
-        { media: "(prefers-color-scheme: dark)", color: "#0E0D0B" },
-        { media: "(prefers-color-scheme: light)", color: "#FBFAF7" },
-    ],
+    // Follows the app's own theme (dark by default), not the OS; lib/theme.ts updates it.
+    themeColor: "#0E0D0B",
 };
 
 export const metadata: Metadata = {
@@ -134,14 +145,15 @@ export default function RootLayout({
     };
 
     return (
-        <html lang="en">
+        // Dark is the default; the inline script switches to a saved light theme before paint.
+        <html
+            lang="en"
+            data-theme="dark"
+            className={`${instrument.variable} ${geist.variable} ${jetbrains.variable}`}
+            suppressHydrationWarning
+        >
             <head>
-                {/* Apply dark mode before paint to prevent flash */}
-                <script
-                    dangerouslySetInnerHTML={{
-                        __html: `(function(){try{var s=localStorage.getItem('darkMode');var dark=s!==null?s==='true':true;if(dark){document.documentElement.classList.add('dark');if(s===null)localStorage.setItem('darkMode','true')}}catch(e){}})();`,
-                    }}
-                />
+                <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
                 <link rel="manifest" href="/manifest.json" />
                 <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
                 <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
@@ -154,7 +166,7 @@ export default function RootLayout({
                     dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
                 />
             </head>
-            <body className={balooBhai2.className}>
+            <body>
                 <SEO />
                 <ErrorBoundary>
                     <Providers>

@@ -17,6 +17,7 @@ export function registerServiceWorker() {
     navigator.serviceWorker
       .register('/sw.js')
       .then((registration) => {
+        if (!registration) return;
         // A worker may already be waiting from an earlier visit.
         if (registration.waiting && navigator.serviceWorker.controller) {
           announce(registration.waiting);

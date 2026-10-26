@@ -1,6 +1,8 @@
 import * as React from "react"
 import { cn } from "@/lib/utils"
 
+// Ledger buttons are pills. Primary is ink (paper in dark) and mixes in a little
+// brand colour on hover; brand colour is never a flat fill.
 export interface ButtonProps
     extends React.ButtonHTMLAttributes<HTMLButtonElement> {
     variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link"
@@ -12,20 +14,18 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         return (
             <button
                 className={cn(
-                    "inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
+                    "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full border border-transparent font-medium transition-colors duration-150 disabled:pointer-events-none disabled:opacity-50",
                     {
-                        "bg-primary text-primary-foreground hover:bg-primary/90": variant === "default",
+                        "bg-primary text-primary-foreground hover:[background:color-mix(in_srgb,hsl(var(--primary))_82%,hsl(var(--kumkum)))]": variant === "default",
                         "bg-destructive text-destructive-foreground hover:bg-destructive/90": variant === "destructive",
-                        "border border-input bg-background hover:bg-accent hover:text-accent-foreground": variant === "outline",
-                        "bg-secondary text-secondary-foreground hover:bg-secondary/80": variant === "secondary",
-                        "hover:bg-accent hover:text-accent-foreground": variant === "ghost",
-                        "text-primary underline-offset-4 hover:underline": variant === "link",
-                    },
-                    {
-                        "h-10 px-4 py-2": size === "default",
-                        "h-9 rounded-md px-3": size === "sm",
-                        "h-11 rounded-md px-8": size === "lg",
-                        "h-10 w-10": size === "icon",
+                        "border-input bg-card text-foreground hover:border-rule": variant === "outline",
+                        "bg-secondary text-secondary-foreground hover:bg-hover hover:text-foreground": variant === "secondary",
+                        "text-muted-foreground hover:bg-accent hover:text-foreground": variant === "ghost",
+                        "text-coral underline-offset-4 hover:text-muted-foreground": variant === "link",
+                        "min-h-[44px] px-5 text-[15px]": size === "default",
+                        "min-h-[36px] px-4 text-sm": size === "sm",
+                        "min-h-[52px] px-[26px] text-base": size === "lg",
+                        "h-11 w-11 shrink-0": size === "icon",
                     },
                     className
                 )}
@@ -38,4 +38,3 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 Button.displayName = "Button"
 
 export { Button }
-

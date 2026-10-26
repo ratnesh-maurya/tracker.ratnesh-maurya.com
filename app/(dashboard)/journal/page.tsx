@@ -1,9 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
@@ -11,10 +9,11 @@ import { Modal } from '@/components/ui/modal';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { useToast } from '@/components/ui/toast-provider';
 import { SAVED_OFFLINE_MESSAGE, useOfflineCreate } from '@/lib/offline/useOfflineCreate';
-import { ArrowLeft, Plus, FileText, Star, Edit2, Trash2, X } from 'lucide-react';
+import { Plus, Edit2, Trash2, X } from 'lucide-react';
 import { formatDate, getLocalDateString } from '@/lib/utils';
 import { Pagination } from '@/components/ui/pagination';
 import { handleApiResponse } from '@/lib/api/client';
+import { EmptyState, PageHeader, PageShell } from '@/components/layout/page';
 
 export default function JournalPage() {
     const queryClient = useQueryClient();
@@ -159,113 +158,82 @@ export default function JournalPage() {
     const pagination = (journalData as any)?.pagination;
 
     return (
-        <div className="min-h-screen bg-background">
-            <header className="bg-background/95 backdrop-blur-md border-b border-border sticky top-0 z-10">
-                <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-3">
-                            <Link href="/dashboard">
-                                <Button variant="ghost" size="icon" className="rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-smooth">
-                                    <ArrowLeft className="h-4 w-4" />
-                                </Button>
-                            </Link>
-                            <div>
-                                <h1 className="text-2xl font-bold text-foreground">
-                                    Journal
-                                </h1>
-                            </div>
-                        </div>
-                        <Button
-                            onClick={() => setIsModalOpen(true)}
-                            className="bg-gradient-to-r from-pink-500 to-pink-600 hover:from-pink-600 hover:to-pink-700 text-white rounded-xl shadow-md hover:shadow-lg transition-all duration-200"
-                        >
-                            <Plus className="h-4 w-4 mr-2" />
-                            New Entry
+        <>
+            <PageShell>
+                <PageHeader
+                    kicker="§ 07 · Journal"
+                    title={<>One page a <em>day</em></>}
+                    action={
+                        <Button onClick={() => setIsModalOpen(true)}>
+                            <Plus className="h-4 w-4" strokeWidth={1.8} aria-hidden />
+                            New entry
                         </Button>
-                    </div>
-                </div>
-            </header>
+                    }
+                />
 
-            <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-8">
                 {isLoading ? (
-                    <div className="text-center py-12 animate-pulse text-gray-400 dark:text-gray-500">Loading...</div>
+                    <p className="py-12 text-center font-mono text-sm text-muted-foreground animate-pulse">loading…</p>
                 ) : journalEntries.length === 0 ? (
-                    <Card className="border border-border shadow-sm bg-card animate-fade-in">
-                        <CardContent className="py-16 text-center">
-                            <div className="bg-pink-100 dark:bg-pink-900 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <FileText className="h-8 w-8 text-pink-600 dark:text-pink-400" />
-                            </div>
-                            <p className="text-gray-600 dark:text-gray-300 mb-4 font-medium">No journal entries yet</p>
-                            <Button
-                                onClick={() => setIsModalOpen(true)}
-                                className="bg-gradient-to-r from-pink-500 to-pink-600 hover:from-pink-600 hover:to-pink-700 text-white rounded-xl"
-                            >
-                                <Plus className="h-4 w-4 mr-2" />
-                                New Entry
+                    <EmptyState
+                        action={
+                            <Button onClick={() => setIsModalOpen(true)}>
+                                <Plus className="h-4 w-4" strokeWidth={1.8} aria-hidden />
+                                New entry
                             </Button>
-                        </CardContent>
-                    </Card>
+                        }
+                    >
+                        Nothing written yet.
+                    </EmptyState>
                 ) : (
-                    <div className="space-y-3 animate-fade-in">
-                        {journalEntries.map((entry: any, index: number) => (
-                            <Card
+                    <ol className="border-b border-border">
+                        {journalEntries.map((entry: any) => (
+                            <li
                                 key={entry._id}
-                                className="border border-white/30 dark:border-white/10 shadow-xl hover:shadow-2xl transition-all duration-200 bg-white/40 dark:bg-gray-800/70 backdrop-blur-2xl animate-slide-up"
-                                style={{ animationDelay: `${index * 50}ms` }}
+                                className="grid gap-x-8 gap-y-3 border-t border-border px-2 py-7 transition-colors duration-150 hover:bg-hover sm:grid-cols-[160px_1fr]"
                             >
-                                <CardContent className="py-5">
-                                    <div className="flex items-center justify-between mb-4">
-                                        <div className="flex items-center space-x-3">
-                                            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-pink-400 to-pink-500 flex items-center justify-center shadow-sm">
-                                                <FileText className="h-6 w-6 text-white" />
-                                            </div>
-                                            <h3 className="font-semibold text-lg text-gray-800 dark:text-gray-100">{formatDate(entry.date)}</h3>
-                                        </div>
-                                        <div className="flex gap-2">
-                                            <Button
-                                                variant="ghost"
-                                                size="icon"
-                                                onClick={() => handleEdit(entry)}
-                                                className="rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
-                                            >
-                                                <Edit2 className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                                            </Button>
-                                            <Button
-                                                variant="ghost"
-                                                size="icon"
-                                                onClick={() => handleDeleteClick(entry._id)}
-                                                className="rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
-                                            >
-                                                <Trash2 className="h-4 w-4 text-red-600 dark:text-red-400" />
-                                            </Button>
-                                        </div>
+                                <div className="flex items-start justify-between gap-2 sm:flex-col sm:justify-start">
+                                    <p className="kicker">{formatDate(entry.date)}</p>
+                                    <div className="-mt-2 flex gap-1 sm:-ml-3 sm:mt-1">
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            onClick={() => handleEdit(entry)}
+                                            aria-label={`Edit entry for ${formatDate(entry.date)}`}
+                                        >
+                                            <Edit2 className="h-4 w-4" strokeWidth={1.8} aria-hidden />
+                                        </Button>
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            onClick={() => handleDeleteClick(entry._id)}
+                                            aria-label={`Delete entry for ${formatDate(entry.date)}`}
+                                            className="hover:text-kicker"
+                                        >
+                                            <Trash2 className="h-4 w-4" strokeWidth={1.8} aria-hidden />
+                                        </Button>
                                     </div>
-                                    <div className="space-y-4">
-                                        <div>
-                                            <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap leading-relaxed">{entry.summary}</p>
+                                </div>
+                                <div className="min-w-0">
+                                    <p className="max-w-[68ch] whitespace-pre-wrap text-[17px] leading-relaxed text-body">{entry.summary}</p>
+                                    {entry.highlights && entry.highlights.filter(Boolean).length > 0 && (
+                                        <div className="mt-5">
+                                            <p className="eyebrow">Highlights</p>
+                                            <ul className="mt-2 space-y-1.5">
+                                                {entry.highlights.map((highlight: string, idx: number) => (
+                                                    <li key={idx} className="flex gap-2.5 text-[15px] text-body">
+                                                        <span className="text-muted-foreground" aria-hidden>—</span>
+                                                        <span>{highlight}</span>
+                                                    </li>
+                                                ))}
+                                            </ul>
                                         </div>
-                                        {entry.highlights && entry.highlights.length > 0 && (
-                                            <div className="border-t border-gray-100 dark:border-gray-700 pt-4">
-                                                <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center">
-                                                    <Star className="h-4 w-4 mr-1.5 text-yellow-500 dark:text-yellow-400" />
-                                                    Highlights
-                                                </h3>
-                                                <ul className="space-y-2">
-                                                    {entry.highlights.map((highlight: string, idx: number) => (
-                                                        <li key={idx} className="text-sm text-muted-foreground flex items-start">
-                                                            <span className="w-1.5 h-1.5 rounded-full bg-pink-500 dark:bg-pink-400 mr-2 mt-1.5 flex-shrink-0"></span>
-                                                            <span>{highlight}</span>
-                                                        </li>
-                                                    ))}
-                                                </ul>
-                                            </div>
-                                        )}
-                                    </div>
-                                </CardContent>
-                            </Card>
+                                    )}
+                                </div>
+                            </li>
                         ))}
-                    </div>
+                    </ol>
                 )}
+
                 {pagination && (
                     <Pagination
                         page={pagination.page}
@@ -274,12 +242,12 @@ export default function JournalPage() {
                         isLoading={isLoading}
                     />
                 )}
-            </main>
+            </PageShell>
 
             <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="New Journal Entry" size="lg">
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
-                        <label htmlFor="summary" className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
+                        <label htmlFor="summary" className="block text-sm font-medium mb-1 text-foreground">
                             Summary
                         </label>
                         <Textarea
@@ -288,13 +256,13 @@ export default function JournalPage() {
                             onChange={(e) => setSummary(e.target.value)}
                             rows={6}
                             placeholder="How was your day? What happened?"
-                            className="rounded-lg"
+                           
                             required
                         />
                     </div>
                     <div>
                         <div className="flex items-center justify-between mb-2">
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Highlights</label>
+                            <label className="block text-sm font-medium text-foreground">Highlights</label>
                             <Button type="button" variant="outline" size="sm" onClick={addHighlight}>
                                 <Plus className="h-3 w-3 mr-1" />
                                 Add
@@ -307,7 +275,7 @@ export default function JournalPage() {
                                         value={highlight}
                                         onChange={(e) => updateHighlight(index, e.target.value)}
                                         placeholder="Enter a highlight..."
-                                        className="rounded-lg"
+                                       
                                     />
                                     {highlights.length > 1 && (
                                         <Button
@@ -323,16 +291,15 @@ export default function JournalPage() {
                             ))}
                         </div>
                     </div>
-                    <div className="flex justify-end space-x-2 pt-4">
-                        <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)} className="rounded-lg">
+                    <div className="flex justify-end gap-2 pt-4">
+                        <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)}>
                             Cancel
                         </Button>
                         <Button
                             type="submit"
                             disabled={createMutation.isPending}
-                            className="bg-gradient-to-r from-pink-500 to-pink-600 hover:from-pink-600 hover:to-pink-700 text-white rounded-lg"
                         >
-                            {createMutation.isPending ? 'Saving...' : 'Save'}
+                            {createMutation.isPending ? '…' : 'Save'}
                         </Button>
                     </div>
                 </form>
@@ -341,7 +308,7 @@ export default function JournalPage() {
             <Modal isOpen={isEditModalOpen} onClose={() => { setIsEditModalOpen(false); setEditingJournal(null); }} title="Edit Journal Entry" size="lg">
                 <form onSubmit={handleEditSubmit} className="space-y-4">
                     <div>
-                        <label htmlFor="editSummary" className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
+                        <label htmlFor="editSummary" className="block text-sm font-medium mb-1 text-foreground">
                             Summary
                         </label>
                         <Textarea
@@ -350,14 +317,14 @@ export default function JournalPage() {
                             onChange={(e) => setSummary(e.target.value)}
                             rows={6}
                             placeholder="How was your day? What happened?"
-                            className="rounded-lg"
+                           
                             required
                         />
                     </div>
                     <div>
                         <div className="flex items-center justify-between mb-2">
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Highlights</label>
-                            <Button type="button" variant="outline" size="sm" onClick={addHighlight} className="rounded-lg">
+                            <label className="block text-sm font-medium text-foreground">Highlights</label>
+                            <Button type="button" variant="outline" size="sm" onClick={addHighlight}>
                                 <Plus className="h-3 w-3 mr-1" />
                                 Add
                             </Button>
@@ -369,7 +336,7 @@ export default function JournalPage() {
                                         value={highlight}
                                         onChange={(e) => updateHighlight(index, e.target.value)}
                                         placeholder="Enter a highlight..."
-                                        className="rounded-lg"
+                                       
                                     />
                                     {highlights.length > 1 && (
                                         <Button
@@ -377,7 +344,7 @@ export default function JournalPage() {
                                             variant="ghost"
                                             size="icon"
                                             onClick={() => removeHighlight(index)}
-                                            className="rounded-lg"
+                                           
                                         >
                                             <X className="h-4 w-4" />
                                         </Button>
@@ -386,14 +353,13 @@ export default function JournalPage() {
                             ))}
                         </div>
                     </div>
-                    <div className="flex justify-end space-x-2 pt-4">
-                        <Button type="button" variant="outline" onClick={() => { setIsEditModalOpen(false); setEditingJournal(null); }} className="rounded-lg">
+                    <div className="flex justify-end gap-2 pt-4">
+                        <Button type="button" variant="outline" onClick={() => { setIsEditModalOpen(false); setEditingJournal(null); }}>
                             Cancel
                         </Button>
                         <Button
                             type="submit"
                             disabled={updateMutation.isPending}
-                            className="bg-gradient-to-r from-pink-500 to-pink-600 hover:from-pink-600 hover:to-pink-700 text-white rounded-lg"
                         >
                             {updateMutation.isPending ? 'Updating...' : 'Update'}
                         </Button>
@@ -413,6 +379,6 @@ export default function JournalPage() {
                 isLoading={deleteMutation.isPending}
             />
 
-        </div>
+        </>
     );
 }

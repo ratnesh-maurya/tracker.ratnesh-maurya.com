@@ -1,17 +1,16 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { EmptyState, PageHeader, PageShell, Section, Stat } from '@/components/layout/page';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Modal } from '@/components/ui/modal';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { useToast } from '@/components/ui/toast-provider';
 import { SAVED_OFFLINE_MESSAGE, useOfflineCreate } from '@/lib/offline/useOfflineCreate';
-import { ArrowLeft, Plus, Bed, Edit2, Trash2 } from 'lucide-react';
+import { Edit2, Trash2 } from 'lucide-react';
 import { formatDate, formatTime, getLocalDateString } from '@/lib/utils';
 import { Pagination } from '@/components/ui/pagination';
 import { SkeletonList } from '@/components/ui/skeleton';
@@ -151,131 +150,84 @@ export default function SleepPage() {
     const sleepEntries = (sleepData as any)?.entries || [];
     const pagination = (sleepData as any)?.pagination;
 
-    return (
-        <div className="min-h-screen bg-background">
-            <header className="bg-background/95 backdrop-blur-md border-b border-border sticky top-0 z-10">
-                <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-3">
-                            <Link href="/dashboard">
-                                <Button variant="ghost" size="icon" className="rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-smooth">
-                                    <ArrowLeft className="h-4 w-4" />
-                                </Button>
-                            </Link>
-                            <div>
-                                <h1 className="text-2xl font-bold text-foreground">
-                                    Sleep
-                                </h1>
-                            </div>
-                        </div>
-                        <Button
-                            onClick={() => setIsModalOpen(true)}
-                            className="bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white rounded-xl shadow-md hover:shadow-lg transition-all duration-200"
-                        >
-                            <Plus className="h-4 w-4 mr-2" />
-                            Log Sleep
-                        </Button>
-                    </div>
-                </div>
-            </header>
+    const avgMinutes = sleepEntries.length
+        ? Math.round(sleepEntries.reduce((sum: number, e: any) => sum + (e.duration || 0), 0) / sleepEntries.length)
+        : 0;
 
-            <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-8">
-                {isLoading ? (
-                    <div className="space-y-3">
-                        <SkeletonList count={5} />
-                    </div>
-                ) : sleepEntries.length === 0 ? (
-                    <Card className="border border-border shadow-sm bg-card animate-fade-in">
-                        <CardContent className="py-16 text-center">
-                            <div className="bg-indigo-100 dark:bg-indigo-900 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <Bed className="h-8 w-8 text-indigo-600 dark:text-indigo-400" />
-                            </div>
-                            <p className="text-gray-600 dark:text-gray-300 mb-4 font-medium">No sleep entries yet</p>
-                            <Button
-                                onClick={() => setIsModalOpen(true)}
-                                className="bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white rounded-xl"
-                            >
-                                <Plus className="h-4 w-4 mr-2" />
-                                Log Sleep
-                            </Button>
-                        </CardContent>
-                    </Card>
-                ) : (
-                    <div className="space-y-3 animate-fade-in">
-                        {sleepEntries.map((entry: any, index: number) => {
-                            const duration = entry.duration || 0;
-                            const hours = Math.floor(duration / 60);
-                            const minutes = duration % 60;
-                            return (
-                                <Card
-                                    key={entry._id}
-                                    className="border border-white/30 dark:border-white/10 shadow-xl hover:shadow-2xl transition-all duration-200 bg-white/40 dark:bg-gray-800/70 backdrop-blur-2xl animate-slide-up"
-                                    style={{ animationDelay: `${index * 50}ms` }}
-                                >
-                                    <CardContent className="py-5">
-                                        <div className="flex items-center justify-between mb-4">
-                                            <div className="flex items-center space-x-3">
-                                                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-400 to-indigo-500 flex items-center justify-center shadow-sm">
-                                                    <Bed className="h-6 w-6 text-white" />
-                                                </div>
-                                                <div>
-                                                    <h3 className="font-semibold text-lg text-gray-800 dark:text-gray-100">{formatDate(entry.date)}</h3>
-                                                    <p className="text-sm text-muted-foreground">{formatTime(entry.startTime)} - {formatTime(entry.endTime)}</p>
-                                                </div>
-                                            </div>
-                                            <div className="flex items-center gap-3">
-                                                <div className="text-right">
-                                                    <div className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">
-                                                        {hours}h {minutes}m
-                                                    </div>
-                                                </div>
-                                                <div className="flex gap-2">
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="icon"
-                                                        onClick={() => handleEdit(entry)}
-                                                        className="rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
-                                                    >
-                                                        <Edit2 className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                                                    </Button>
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="icon"
-                                                        onClick={() => handleDeleteClick(entry._id)}
-                                                        className="rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
-                                                    >
-                                                        <Trash2 className="h-4 w-4 text-red-600 dark:text-red-400" />
-                                                    </Button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        {entry.notes && (
-                                            <div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-700">
-                                                <p className="text-sm text-gray-600 dark:text-gray-300">{entry.notes}</p>
-                                            </div>
-                                        )}
-                                    </CardContent>
-                                </Card>
-                            );
-                        })}
-                    </div>
+    return (
+        <>
+            <PageShell>
+                <PageHeader
+                    kicker="§ 04 · Sleep"
+                    title={<>How you <em>slept</em></>}
+                    action={<Button onClick={() => setIsModalOpen(true)}>Log sleep →</Button>}
+                />
+
+                {sleepEntries.length > 0 && (
+                    <dl className="mb-12 grid grid-cols-2 gap-x-6 sm:grid-cols-4">
+                        <Stat label="average a night" value={`${Math.floor(avgMinutes / 60)}h ${avgMinutes % 60}m`} className="border-t border-border pt-4" />
+                        <Stat label="nights logged" value={sleepEntries.length} className="border-t border-border pt-4" />
+                    </dl>
                 )}
-                {pagination && (
-                    <div className="mt-6">
+
+                <Section kicker="§ 01 · Nights">
+                    {isLoading ? (
+                        <SkeletonList count={5} />
+                    ) : sleepEntries.length === 0 ? (
+                        <EmptyState action={<Button onClick={() => setIsModalOpen(true)}>Log sleep →</Button>}>
+                            No nights logged yet.
+                        </EmptyState>
+                    ) : (
+                        <ul className="border-b border-border animate-fade-in">
+                            {sleepEntries.map((entry: any) => {
+                                const duration = entry.duration || 0;
+                                const hours = Math.floor(duration / 60);
+                                const minutes = duration % 60;
+                                return (
+                                    <li
+                                        key={entry._id}
+                                        className="flex items-center gap-3 border-t border-border px-1 py-4 transition-colors duration-150 hover:bg-hover sm:gap-5 sm:px-2"
+                                    >
+                                        <span className="hidden w-28 shrink-0 font-mono text-xs text-muted-foreground sm:block">{formatDate(entry.date)}</span>
+                                        <div className="min-w-0 flex-1">
+                                            <p className="font-semibold text-foreground">
+                                                <span className="sm:hidden">{formatDate(entry.date)} · </span>
+                                                {formatTime(entry.startTime)} → {formatTime(entry.endTime)}
+                                            </p>
+                                            {entry.notes && <p className="truncate text-sm text-muted-foreground">{entry.notes}</p>}
+                                        </div>
+                                        <span className="shrink-0 whitespace-nowrap font-display text-[26px] leading-none sm:text-[30px]">
+                                            {hours}h {minutes}m
+                                        </span>
+                                        <div className="flex shrink-0 items-center gap-0.5">
+                                            <Button variant="ghost" size="icon" onClick={() => handleEdit(entry)} aria-label="Edit sleep entry">
+                                                <Edit2 className="h-4 w-4" strokeWidth={1.8} aria-hidden />
+                                            </Button>
+                                            <Button variant="ghost" size="icon" onClick={() => handleDeleteClick(entry._id)} aria-label="Delete sleep entry" className="text-kicker hover:text-kicker">
+                                                <Trash2 className="h-4 w-4" strokeWidth={1.8} aria-hidden />
+                                            </Button>
+                                        </div>
+                                    </li>
+                                );
+                            })}
+                        </ul>
+                    )}
+
+                    {pagination && (
                         <Pagination
                             page={pagination.page}
                             totalPages={pagination.totalPages}
                             onPageChange={setPage}
                             isLoading={isLoading}
                         />
-                    </div>
-                )}
-            </main>
+                    )}
+                </Section>
+            </PageShell>
 
             <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Log Sleep">
                 <form onSubmit={handleSubmit} className="space-y-6">
                     <div>
-                        <label htmlFor="startTime" className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                        <label htmlFor="startTime" className="mb-2 block text-sm font-medium text-foreground">
                             Start Time
                         </label>
                         <Input
@@ -284,11 +236,11 @@ export default function SleepPage() {
                             value={startTime}
                             onChange={(e) => setStartTime(e.target.value)}
                             required
-                            className="text-lg rounded-lg"
+                            className="text-lg"
                         />
                     </div>
                     <div>
-                        <label htmlFor="endTime" className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                        <label htmlFor="endTime" className="mb-2 block text-sm font-medium text-foreground">
                             End Time
                         </label>
                         <Input
@@ -297,11 +249,11 @@ export default function SleepPage() {
                             value={endTime}
                             onChange={(e) => setEndTime(e.target.value)}
                             required
-                            className="text-lg rounded-lg"
+                            className="text-lg"
                         />
                     </div>
                     <div>
-                        <label htmlFor="notes" className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                        <label htmlFor="notes" className="mb-2 block text-sm font-medium text-foreground">
                             Notes (optional)
                         </label>
                         <Textarea
@@ -309,17 +261,15 @@ export default function SleepPage() {
                             value={notes}
                             onChange={(e) => setNotes(e.target.value)}
                             rows={3}
-                            className="rounded-lg"
                         />
                     </div>
-                    <div className="flex justify-end space-x-2 pt-4">
-                        <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)} className="rounded-lg">
+                    <div className="flex justify-end gap-2 pt-2">
+                        <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)}>
                             Cancel
                         </Button>
                         <Button
                             type="submit"
                             disabled={createMutation.isPending}
-                            className="bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white rounded-lg"
                         >
                             {createMutation.isPending ? 'Saving...' : 'Save'}
                         </Button>
@@ -330,7 +280,7 @@ export default function SleepPage() {
             <Modal isOpen={isEditModalOpen} onClose={() => { setIsEditModalOpen(false); setEditingSleep(null); }} title="Edit Sleep Entry">
                 <form onSubmit={handleEditSubmit} className="space-y-6">
                     <div>
-                        <label htmlFor="editStartTime" className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                        <label htmlFor="editStartTime" className="mb-2 block text-sm font-medium text-foreground">
                             Start Time
                         </label>
                         <Input
@@ -339,11 +289,11 @@ export default function SleepPage() {
                             value={startTime}
                             onChange={(e) => setStartTime(e.target.value)}
                             required
-                            className="text-lg rounded-lg"
+                            className="text-lg"
                         />
                     </div>
                     <div>
-                        <label htmlFor="editEndTime" className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                        <label htmlFor="editEndTime" className="mb-2 block text-sm font-medium text-foreground">
                             End Time
                         </label>
                         <Input
@@ -352,11 +302,11 @@ export default function SleepPage() {
                             value={endTime}
                             onChange={(e) => setEndTime(e.target.value)}
                             required
-                            className="text-lg rounded-lg"
+                            className="text-lg"
                         />
                     </div>
                     <div>
-                        <label htmlFor="editNotes" className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                        <label htmlFor="editNotes" className="mb-2 block text-sm font-medium text-foreground">
                             Notes (optional)
                         </label>
                         <Textarea
@@ -364,17 +314,15 @@ export default function SleepPage() {
                             value={notes}
                             onChange={(e) => setNotes(e.target.value)}
                             rows={3}
-                            className="rounded-lg"
                         />
                     </div>
-                    <div className="flex justify-end space-x-2 pt-4">
-                        <Button type="button" variant="outline" onClick={() => { setIsEditModalOpen(false); setEditingSleep(null); }} className="rounded-lg">
+                    <div className="flex justify-end gap-2 pt-2">
+                        <Button type="button" variant="outline" onClick={() => { setIsEditModalOpen(false); setEditingSleep(null); }}>
                             Cancel
                         </Button>
                         <Button
                             type="submit"
                             disabled={updateMutation.isPending}
-                            className="bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white rounded-lg"
                         >
                             {updateMutation.isPending ? 'Updating...' : 'Update'}
                         </Button>
@@ -393,7 +341,6 @@ export default function SleepPage() {
                 variant="danger"
                 isLoading={deleteMutation.isPending}
             />
-
-        </div>
+        </>
     );
 }

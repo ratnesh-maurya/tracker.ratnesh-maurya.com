@@ -21,7 +21,7 @@ export function ProgressCircle({ percentage, size = 80, strokeWidth = 8, classNa
                     cx={size / 2}
                     cy={size / 2}
                     r={radius}
-                    stroke="#E5E7EB"
+                    stroke="hsl(var(--muted))"
                     strokeWidth={strokeWidth}
                     fill="none"
                 />
@@ -29,17 +29,17 @@ export function ProgressCircle({ percentage, size = 80, strokeWidth = 8, classNa
                     cx={size / 2}
                     cy={size / 2}
                     r={radius}
-                    stroke="#3B82F6"
+                    stroke="hsl(var(--coral))"
                     strokeWidth={strokeWidth}
                     fill="none"
                     strokeDasharray={circumference}
                     strokeDashoffset={offset}
                     strokeLinecap="round"
-                    className="transition-all duration-300"
+                    className="transition-[stroke-dashoffset] duration-300"
                 />
             </svg>
             <div className="absolute inset-0 flex items-center justify-center">
-                <span className="text-lg font-bold text-gray-900">{Math.round(percentage)}%</span>
+                <span className="font-display text-xl text-foreground">{Math.round(percentage)}%</span>
             </div>
         </div>
     );

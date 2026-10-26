@@ -38,7 +38,7 @@ export function Pagination({ page, totalPages, onPageChange, isLoading = false }
                 Previous
             </Button>
 
-            <div className="text-sm text-gray-600">
+            <div className="font-mono text-xs text-muted-foreground">
                 Page {page} of {totalPages}
             </div>
 

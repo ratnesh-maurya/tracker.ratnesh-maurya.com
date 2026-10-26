@@ -1,24 +1,24 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Link from 'next/link';
 import { clearUserData } from '@/lib/query/client';
+import { getTheme, setTheme } from '@/lib/theme';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ArrowLeft, Settings, User, Moon, Volume2, LogOut, ExternalLink, Copy, Check } from 'lucide-react';
+import { LogOut, Copy, Check } from 'lucide-react';
+import { PageHeader, PageShell, Section } from '@/components/layout/page';
 import { useRouter } from 'next/navigation';
 import { handleApiResponse } from '@/lib/api/client';
 
 export default function SettingsPage() {
     const router = useRouter();
     const queryClient = useQueryClient();
-    const [darkMode, setDarkMode] = useState(() => {
-        if (typeof window === 'undefined') return true;
-        const s = localStorage.getItem('darkMode');
-        return s !== null ? s === 'true' : true;
-    });
+    // Server renders dark; read the real theme after mount so hydration matches
+    const [darkMode, setDarkMode] = useState(true);
+    useEffect(() => {
+        setDarkMode(getTheme() === 'dark');
+    }, []);
     const [sounds, setSounds] = useState(true);
     const [profilePublic, setProfilePublic] = useState(false);
     const [name, setName] = useState('');
@@ -78,12 +78,7 @@ export default function SettingsPage() {
     const handleToggle = (setting: string, value: boolean) => {
         if (setting === 'darkMode') {
             setDarkMode(value);
-            localStorage.setItem('darkMode', value.toString());
-            if (value) {
-                document.documentElement.classList.add('dark');
-            } else {
-                document.documentElement.classList.remove('dark');
-            }
+            setTheme(value ? 'dark' : 'light');
         } else if (setting === 'sounds') {
             setSounds(value);
             localStorage.setItem('sounds', value.toString()); // Update localStorage immediately
@@ -94,298 +89,207 @@ export default function SettingsPage() {
         }
     };
 
+    const publicUrl = typeof window !== 'undefined' && (userData as any)?.username
+        ? `${window.location.origin}/u/${(userData as any).username}`
+        : '';
+
     return (
-        <div className="min-h-screen bg-background">
-            <header className="bg-background/95 backdrop-blur-md border-b border-border sticky top-0 z-10">
-                <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-                    <div className="flex items-center space-x-3">
-                        <Link href="/dashboard">
-                            <Button variant="ghost" size="icon" className="rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-smooth">
-                                <ArrowLeft className="h-4 w-4" />
-                            </Button>
-                        </Link>
-                        <div>
-                            <h1 className="text-2xl font-bold text-foreground">
-                                Settings
-                            </h1>
-                        </div>
-                    </div>
-                </div>
-            </header>
+        <PageShell>
+            <PageHeader kicker="§ 11 · Settings" title={<>How it <em>behaves</em></>} />
 
-            <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-8">
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-fade-in">
-                <div className="lg:col-span-2 space-y-6">
-                    {/* General Section */}
-                    <Card className="border border-border shadow-sm bg-card">
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2 text-foreground">
-                                <Settings className="h-5 w-5 text-muted-foreground" />
-                                General
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            <div className="flex items-center justify-between py-3 border-b border-border">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-gray-400 to-gray-500 flex items-center justify-center">
-                                        <Moon className="h-5 w-5 text-white" />
-                                    </div>
-                                    <div>
-                                        <p className="font-medium text-foreground">Dark Mode</p>
-                                        <p className="text-sm text-muted-foreground">Switch to dark theme</p>
-                                    </div>
-                                </div>
-                                <button
-                                    onClick={() => handleToggle('darkMode', !darkMode)}
-                                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${darkMode ? 'bg-blue-600' : 'bg-gray-300'
-                                        }`}
+            <div className="grid grid-cols-1 gap-x-10 gap-y-12 lg:grid-cols-3">
+                <div className="lg:col-span-2">
+                    <Section kicker="§ 01 · General" className="mt-0">
+                        <ul className="border-b border-border">
+                            <SettingRow label="Dark mode" description="Ink paper at night. The default.">
+                                <Switch label="Dark mode" checked={darkMode} onChange={() => handleToggle('darkMode', !darkMode)} />
+                            </SettingRow>
+                            <SettingRow label="Sounds" description="A short tick when you check something in.">
+                                <Switch label="Sounds" checked={sounds} onChange={() => handleToggle('sounds', !sounds)} />
+                            </SettingRow>
+                            <SettingRow label="Public profile" description="Anyone with the link can see your streaks and totals.">
+                                <Switch label="Public profile" checked={profilePublic} onChange={() => handleToggle('profilePublic', !profilePublic)} />
+                            </SettingRow>
+                        </ul>
+
+                        {profilePublic && (userData as any)?.username && (
+                            <div className="mt-4 flex items-center gap-2 rounded-inner bg-muted py-2 pl-4 pr-2">
+                                <p className="min-w-0 flex-1 truncate font-mono text-[13px] text-body">{publicUrl}</p>
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    aria-label={copied ? 'Link copied' : 'Copy link'}
+                                    onClick={async () => {
+                                        const url = typeof window !== 'undefined' ? `${window.location.origin}/u/${(userData as any).username}` : '';
+                                        if (url) {
+                                            await navigator.clipboard.writeText(url);
+                                            setCopied(true);
+                                            setTimeout(() => setCopied(false), 2000);
+                                        }
+                                    }}
                                 >
-                                    <span
-                                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${darkMode ? 'translate-x-6' : 'translate-x-1'
-                                            }`}
-                                    />
-                                </button>
-                            </div>
-
-                            <div className="flex items-center justify-between py-3 border-b border-border">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-green-400 to-green-500 flex items-center justify-center">
-                                        <Volume2 className="h-5 w-5 text-white" />
-                                    </div>
-                                    <div>
-                                        <p className="font-medium text-foreground">Sounds</p>
-                                        <p className="text-sm text-muted-foreground">Enable sound notifications</p>
-                                    </div>
-                                </div>
-                                <button
-                                    onClick={() => handleToggle('sounds', !sounds)}
-                                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${sounds ? 'bg-blue-600' : 'bg-gray-300'
-                                        }`}
+                                    {copied ? <Check className="h-4 w-4" strokeWidth={1.8} aria-hidden /> : <Copy className="h-4 w-4" strokeWidth={1.8} aria-hidden />}
+                                </Button>
+                                <a
+                                    href={`/u/${(userData as any).username}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex h-11 items-center px-3 text-[15px] text-coral transition-colors duration-150 hover:text-muted-foreground"
                                 >
-                                    <span
-                                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${sounds ? 'translate-x-6' : 'translate-x-1'
-                                            }`}
+                                    Open ↗
+                                </a>
+                            </div>
+                        )}
+                    </Section>
+
+                    <Section kicker="§ 02 · Profile">
+                        {!isEditingProfile ? (
+                            <>
+                                <dl className="border-b border-border">
+                                    {[
+                                        ['name', name || 'Not set'],
+                                        ['phone', phone || 'Not set'],
+                                    ].map(([label, value]) => (
+                                        <div key={label} className="flex items-baseline justify-between gap-4 border-t border-border px-2 py-4">
+                                            <dt className="font-mono text-xs text-muted-foreground">{label}</dt>
+                                            <dd className="text-[17px] text-foreground">{value}</dd>
+                                        </div>
+                                    ))}
+                                </dl>
+                                <Button variant="outline" className="mt-5" onClick={() => setIsEditingProfile(true)}>
+                                    Edit profile
+                                </Button>
+                            </>
+                        ) : (
+                            <form onSubmit={async (e) => {
+                                e.preventDefault();
+                                try {
+                                    const updatePayload: any = {};
+                                    if (name !== undefined) updatePayload.name = name || null;
+                                    if (phone !== undefined) updatePayload.phone = phone || null;
+                                    await updateMutation.mutateAsync(updatePayload);
+                                } catch (error) {
+                                    console.error('Error updating profile:', error);
+                                    alert('Failed to update profile. Please try again.');
+                                }
+                            }} className="space-y-4">
+                                <div>
+                                    <label htmlFor="name" className="mb-2 block text-sm font-medium text-foreground">
+                                        Name
+                                    </label>
+                                    <Input
+                                        id="name"
+                                        type="text"
+                                        value={name}
+                                        onChange={(e) => setName(e.target.value)}
+                                        placeholder="Your full name"
+                                        maxLength={100}
                                     />
-                                </button>
-                            </div>
-
-                            <div className="space-y-3">
-                                <div className="flex items-center justify-between py-3">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-400 to-blue-500 flex items-center justify-center">
-                                            <User className="h-5 w-5 text-white" />
-                                        </div>
-                                        <div>
-                                            <p className="font-medium text-foreground">Public Profile</p>
-                                            <p className="text-sm text-muted-foreground">Make your profile visible to others</p>
-                                        </div>
-                                    </div>
-                                    <button
-                                        onClick={() => handleToggle('profilePublic', !profilePublic)}
-                                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${profilePublic ? 'bg-blue-600' : 'bg-gray-300'
-                                            }`}
-                                    >
-                                        <span
-                                            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${profilePublic ? 'translate-x-6' : 'translate-x-1'
-                                                }`}
-                                        />
-                                    </button>
                                 </div>
-                                {profilePublic && (userData as any)?.username && (
-                                    <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-                                        <div className="flex items-center justify-between">
-                                            <div className="flex-1 min-w-0">
-                                                <p className="text-sm font-medium text-blue-900 dark:text-blue-100 mb-1">Your Public Profile</p>
-                                                <p className="text-xs text-blue-700 dark:text-blue-300 truncate">
-                                                    {typeof window !== 'undefined' ? `${window.location.origin}/u/${(userData as any).username}` : ''}
-                                                </p>
-                                            </div>
-                                            <div className="flex gap-2 ml-2">
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    onClick={async () => {
-                                                        const url = typeof window !== 'undefined' ? `${window.location.origin}/u/${(userData as any).username}` : '';
-                                                        if (url) {
-                                                            await navigator.clipboard.writeText(url);
-                                                            setCopied(true);
-                                                            setTimeout(() => setCopied(false), 2000);
-                                                        }
-                                                    }}
-                                                    className="h-8 w-8 text-blue-600 dark:text-blue-400"
-                                                >
-                                                    {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                                                </Button>
-                                                <a
-                                                    href={`/u/${(userData as any).username}`}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="inline-flex items-center justify-center h-8 w-8 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 text-blue-600 dark:text-blue-400 transition-colors"
-                                                >
-                                                    <ExternalLink className="h-4 w-4" />
-                                                </a>
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    {/* Profile Section */}
-                    <Card className="border border-border shadow-sm bg-card">
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2 text-foreground">
-                                <User className="h-5 w-5 text-muted-foreground" />
-                                Profile
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            {!isEditingProfile ? (
-                                <>
-                                    <div className="space-y-4">
-                                        <div className="py-3 border-b border-border">
-                                            <p className="text-sm text-muted-foreground mb-1">Name</p>
-                                            <p className="font-medium text-foreground">{name || 'Not set'}</p>
-                                        </div>
-                                        <div className="py-3">
-                                            <p className="text-sm text-muted-foreground mb-1">Phone</p>
-                                            <p className="font-medium text-foreground">{phone || 'Not set'}</p>
-                                        </div>
-                                    </div>
+                                <div>
+                                    <label htmlFor="phone" className="mb-2 block text-sm font-medium text-foreground">
+                                        Phone
+                                    </label>
+                                    <Input
+                                        id="phone"
+                                        type="tel"
+                                        value={phone}
+                                        onChange={(e) => setPhone(e.target.value)}
+                                        placeholder="+1234567890"
+                                    />
+                                </div>
+                                <div className="flex gap-2">
                                     <Button
+                                        type="button"
                                         variant="outline"
-                                        className="w-full rounded-lg"
-                                        onClick={() => setIsEditingProfile(true)}
+                                        onClick={() => {
+                                            setIsEditingProfile(false);
+                                            if (userData) {
+                                                const data = userData as any;
+                                                setName(data.name || '');
+                                                setPhone(data.phone || '');
+                                            }
+                                        }}
                                     >
-                                        Edit Profile
+                                        Cancel
                                     </Button>
-                                </>
-                            ) : (
-                                <form onSubmit={async (e) => {
-                                    e.preventDefault();
-                                    try {
-                                        const updatePayload: any = {};
-                                        if (name !== undefined) updatePayload.name = name || null;
-                                        if (phone !== undefined) updatePayload.phone = phone || null;
-                                        await updateMutation.mutateAsync(updatePayload);
-                                    } catch (error) {
-                                        console.error('Error updating profile:', error);
-                                        alert('Failed to update profile. Please try again.');
-                                    }
-                                }} className="space-y-4">
-                                    <div>
-                                        <label htmlFor="name" className="block text-sm font-medium mb-2 text-foreground">
-                                            Name
-                                        </label>
-                                        <Input
-                                            id="name"
-                                            type="text"
-                                            value={name}
-                                            onChange={(e) => setName(e.target.value)}
-                                            placeholder="Your full name"
-                                            maxLength={100}
-                                            className="rounded-lg"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label htmlFor="phone" className="block text-sm font-medium mb-2 text-foreground">
-                                            Phone
-                                        </label>
-                                        <Input
-                                            id="phone"
-                                            type="tel"
-                                            value={phone}
-                                            onChange={(e) => setPhone(e.target.value)}
-                                            placeholder="+1234567890"
-                                            className="rounded-lg"
-                                        />
-                                    </div>
-                                    <div className="flex gap-2">
-                                        <Button
-                                            type="button"
-                                            variant="outline"
-                                            className="flex-1 rounded-lg"
-                                            onClick={() => {
-                                                setIsEditingProfile(false);
-                                                if (userData) {
-                                                    const data = userData as any;
-                                                    setName(data.name || '');
-                                                    setPhone(data.phone || '');
-                                                }
-                                            }}
-                                        >
-                                            Cancel
-                                        </Button>
-                                        <Button
-                                            type="submit"
-                                            className="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-lg"
-                                            disabled={updateMutation.isPending}
-                                        >
-                                            {updateMutation.isPending ? 'Saving...' : 'Save'}
-                                        </Button>
-                                    </div>
-                                </form>
-                            )}
-                        </CardContent>
-                    </Card>
+                                    <Button type="submit" disabled={updateMutation.isPending}>
+                                        {updateMutation.isPending ? '…' : 'Save'}
+                                    </Button>
+                                </div>
+                            </form>
+                        )}
+                    </Section>
+                </div>
 
-                    {/* Developer Credit */}
-                    <div className="text-center pt-4 pb-2 animate-fade-in">
-                        <p className="text-sm text-muted-foreground">
-                            Built by{' '}
+                <div>
+                    <Section kicker="§ 03 · Account" className="mt-0">
+                        <dl className="border-b border-border">
+                            {[
+                                ['username', (userData as any)?.username || '—'],
+                                ['email', (userData as any)?.email || '—'],
+                                ['name', (userData as any)?.name || 'Not set'],
+                            ].map(([label, value]) => (
+                                <div key={label} className="border-t border-border px-2 py-3">
+                                    <dt className="font-mono text-xs text-muted-foreground">{label}</dt>
+                                    <dd className="mt-1 truncate text-[15px] text-foreground">{value}</dd>
+                                </div>
+                            ))}
+                        </dl>
+                        <Button onClick={handleLogout} variant="outline" className="mt-5 w-full hover:text-kicker">
+                            <LogOut className="h-4 w-4" strokeWidth={1.8} aria-hidden />
+                            Sign out
+                        </Button>
+                        <p className="mt-6 font-mono text-[11px] text-muted-foreground">
+                            built by{' '}
                             <a
                                 href="https://ratnesh-maurya.com"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:underline font-medium transition-colors"
+                                className="text-coral transition-colors duration-150 hover:text-muted-foreground"
                             >
-                                Ratnesh Maurya
+                                ratnesh maurya ↗
                             </a>
                         </p>
-                    </div>
+                    </Section>
                 </div>
+            </div>
+        </PageShell>
+    );
+}
 
-                {/* Right sidebar — quick info panel */}
-                <div className="space-y-6">
-                    <Card className="border border-border shadow-sm bg-card">
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2 text-foreground text-base">
-                                <User className="h-4 w-4 text-muted-foreground" />
-                                Account Info
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-3">
-                            <div>
-                                <p className="text-xs text-muted-foreground mb-1">Username</p>
-                                <p className="text-sm font-medium text-foreground">{(userData as any)?.username || '—'}</p>
-                            </div>
-                            <div>
-                                <p className="text-xs text-muted-foreground mb-1">Email</p>
-                                <p className="text-sm font-medium text-foreground truncate">{(userData as any)?.email || '—'}</p>
-                            </div>
-                            <div>
-                                <p className="text-xs text-muted-foreground mb-1">Name</p>
-                                <p className="text-sm font-medium text-foreground">{(userData as any)?.name || 'Not set'}</p>
-                            </div>
-                        </CardContent>
-                    </Card>
+// One settings line: label and note on the left, control on the right.
+function SettingRow({ label, description, children }: { label: string; description: string; children: React.ReactNode }) {
+    return (
+        <li className="flex items-center justify-between gap-6 border-t border-border px-2 py-4">
+            <div className="min-w-0">
+                <p className="text-[17px] font-medium text-foreground">{label}</p>
+                <p className="mt-0.5 text-sm text-muted-foreground">{description}</p>
+            </div>
+            {children}
+        </li>
+    );
+}
 
-                    <Card className="border border-border shadow-sm bg-card">
-                        <CardContent className="pt-6">
-                            <Button
-                                onClick={handleLogout}
-                                variant="destructive"
-                                className="w-full rounded-lg"
-                            >
-                                <LogOut className="h-4 w-4 mr-2" />
-                                Sign Out
-                            </Button>
-                        </CardContent>
-                    </Card>
-                </div>
-                </div>
-            </main>
-        </div>
+// Pill switch: ink when on, muted when off. The thumb jumps rather than slides
+// (Ledger motion is colour only); the button keeps a 44px hit area.
+function Switch({ label, checked, onChange }: { label: string; checked: boolean; onChange: () => void }) {
+    return (
+        <button
+            type="button"
+            role="switch"
+            aria-checked={checked}
+            aria-label={label}
+            onClick={onChange}
+            className="inline-flex h-11 w-14 shrink-0 items-center justify-center rounded-full"
+        >
+            <span
+                className={`flex h-7 w-12 items-center rounded-full border p-[3px] transition-colors duration-150 ${
+                    checked ? 'justify-end border-primary bg-primary' : 'justify-start border-border bg-muted'
+                }`}
+            >
+                <span className={`h-5 w-5 rounded-full ${checked ? 'bg-primary-foreground' : 'bg-muted-foreground'}`} />
+            </span>
+        </button>
     );
 }

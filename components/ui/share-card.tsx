@@ -13,12 +13,17 @@ export interface ShareCardData {
     color?: 'purple' | 'orange' | 'blue' | 'green' | 'indigo';
 }
 
+// Ledger ink panel with the saffron gradient. `color` only picks which brand
+// stop leads the glow, so every card reads as the same product.
+const INK = { bg: '#0E0D0B', text: '#F3F0E8', muted: '#A39E92', line: 'rgba(243,240,232,0.14)' };
+const MARIGOLD = '#FF7A18';
+const KUMKUM = '#E8336D';
 const PALETTE = {
-    purple: { bg: ['#7c3aed', '#6d28d9'], accent: '#a78bfa', text: '#ede9fe' },
-    orange: { bg: ['#ea580c', '#c2410c'], accent: '#fb923c', text: '#fff7ed' },
-    blue:   { bg: ['#2563eb', '#1d4ed8'], accent: '#60a5fa', text: '#eff6ff' },
-    green:  { bg: ['#059669', '#047857'], accent: '#34d399', text: '#ecfdf5' },
-    indigo: { bg: ['#4f46e5', '#4338ca'], accent: '#818cf8', text: '#eef2ff' },
+    purple: { accent: KUMKUM },
+    orange: { accent: MARIGOLD },
+    blue:   { accent: KUMKUM },
+    green:  { accent: MARIGOLD },
+    indigo: { accent: MARIGOLD },
 };
 
 function drawCard(canvas: HTMLCanvasElement, data: ShareCardData) {
@@ -28,14 +33,11 @@ function drawCard(canvas: HTMLCanvasElement, data: ShareCardData) {
     const ctx = canvas.getContext('2d')!;
     const pal = PALETTE[data.color || 'indigo'];
 
-    // Background gradient
-    const bgGrad = ctx.createLinearGradient(0, 0, W, H);
-    bgGrad.addColorStop(0, pal.bg[0]);
-    bgGrad.addColorStop(1, pal.bg[1]);
-    ctx.fillStyle = bgGrad;
+    // Background: ink
+    ctx.fillStyle = INK.bg;
     ctx.fillRect(0, 0, W, H);
 
-    // Decorative circles
+    // Decorative circles: soft brand glow
     ctx.globalAlpha = 0.12;
     ctx.fillStyle = pal.accent;
     ctx.beginPath(); ctx.arc(W - 80, 80, 220, 0, Math.PI * 2); ctx.fill();
@@ -45,7 +47,7 @@ function drawCard(canvas: HTMLCanvasElement, data: ShareCardData) {
 
     // Dot grid pattern (subtle)
     ctx.globalAlpha = 0.06;
-    ctx.fillStyle = '#ffffff';
+    ctx.fillStyle = INK.text;
     for (let x = 40; x < W; x += 40) {
         for (let y = 40; y < H; y += 40) {
             ctx.beginPath(); ctx.arc(x, y, 2, 0, Math.PI * 2); ctx.fill();
@@ -56,21 +58,28 @@ function drawCard(canvas: HTMLCanvasElement, data: ShareCardData) {
     // White card in the middle
     const cardX = 80, cardY = 90, cardW = W - 160, cardH = H - 180;
     ctx.save();
-    ctx.shadowColor = 'rgba(0,0,0,0.3)';
+    ctx.shadowColor = 'rgba(0,0,0,0.38)';
     ctx.shadowBlur = 60;
     ctx.shadowOffsetY = 20;
     roundRect(ctx, cardX, cardY, cardW, cardH, 32);
-    ctx.fillStyle = 'rgba(255,255,255,0.12)';
+    ctx.fillStyle = 'rgba(23,21,15,0.82)';
     ctx.fill();
     ctx.restore();
 
     // Card border
     ctx.save();
     roundRect(ctx, cardX, cardY, cardW, cardH, 32);
-    ctx.strokeStyle = 'rgba(255,255,255,0.25)';
+    ctx.strokeStyle = INK.line;
     ctx.lineWidth = 1.5;
     ctx.stroke();
     ctx.restore();
+
+    // 2px saffron hairline across the top of the card
+    const hair = ctx.createLinearGradient(cardX + 40, 0, cardX + cardW - 40, 0);
+    hair.addColorStop(0, MARIGOLD);
+    hair.addColorStop(1, KUMKUM);
+    ctx.fillStyle = hair;
+    ctx.fillRect(cardX + 40, cardY - 1, cardW - 80, 2);
 
     // Emoji / icon circle
     const emojiSize = 90;
@@ -79,7 +88,7 @@ function drawCard(canvas: HTMLCanvasElement, data: ShareCardData) {
     ctx.save();
     ctx.shadowColor = 'rgba(0,0,0,0.2)';
     ctx.shadowBlur = 20;
-    ctx.fillStyle = 'rgba(255,255,255,0.2)';
+    ctx.fillStyle = 'rgba(243,240,232,0.08)';
     ctx.beginPath(); ctx.arc(emojiX + emojiSize / 2, emojiY + emojiSize / 2, emojiSize / 2, 0, Math.PI * 2); ctx.fill();
     ctx.restore();
     ctx.font = `${emojiSize * 0.6}px Arial`;
@@ -95,7 +104,7 @@ function drawCard(canvas: HTMLCanvasElement, data: ShareCardData) {
         ctx.font = 'bold 120px -apple-system, system-ui, sans-serif';
         ctx.textAlign = 'left';
         ctx.textBaseline = 'alphabetic';
-        ctx.fillStyle = '#ffffff';
+        ctx.fillStyle = INK.text;
         ctx.fillText(String(data.value), textX, midY + 20);
     }
 
@@ -103,23 +112,23 @@ function drawCard(canvas: HTMLCanvasElement, data: ShareCardData) {
     ctx.font = 'bold 52px -apple-system, system-ui, sans-serif';
     ctx.textAlign = 'left';
     ctx.textBaseline = 'alphabetic';
-    ctx.fillStyle = '#ffffff';
+    ctx.fillStyle = INK.text;
     ctx.fillText(data.title, textX, data.value !== undefined ? midY + 90 : midY + 10);
 
     // Subtitle
     ctx.font = '36px -apple-system, system-ui, sans-serif';
-    ctx.fillStyle = 'rgba(255,255,255,0.75)';
+    ctx.fillStyle = INK.muted;
     ctx.fillText(data.subtitle, textX, data.value !== undefined ? midY + 140 : midY + 60);
 
     // Bottom bar — username + branding
     const barY = cardY + cardH + 14;
     ctx.font = 'bold 28px -apple-system, system-ui, sans-serif';
     ctx.textAlign = 'left';
-    ctx.fillStyle = 'rgba(255,255,255,0.8)';
+    ctx.fillStyle = INK.text;
     ctx.fillText(`@${data.name || data.username}`, cardX + 20, barY + 28);
 
     ctx.textAlign = 'right';
-    ctx.fillStyle = 'rgba(255,255,255,0.5)';
+    ctx.fillStyle = INK.muted;
     ctx.fillText('tracker.ratnesh-maurya.com', cardX + cardW - 20, barY + 28);
 }
 
@@ -139,7 +148,7 @@ function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: numbe
 
 // Lightweight confetti
 function launchConfetti(container: HTMLElement) {
-    const colors = ['#6366f1', '#ec4899', '#f59e0b', '#10b981', '#3b82f6', '#8b5cf6'];
+    const colors = [MARIGOLD, KUMKUM, '#FFB347', '#C2185B', '#F3F0E8'];
     const count = 80;
     for (let i = 0; i < count; i++) {
         const el = document.createElement('div');

@@ -1,10 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { EmptyState, PageHeader, PageShell, Section } from '@/components/layout/page';
 import { Input } from '@/components/ui/input';
 import { Chip } from '@/components/ui/chip';
 import { Textarea } from '@/components/ui/textarea';
@@ -14,7 +13,7 @@ import { useToast } from '@/components/ui/toast-provider';
 import { PendingTag } from '@/components/ui/pending-tag';
 import { SAVED_OFFLINE_MESSAGE, useOfflineCreate } from '@/lib/offline/useOfflineCreate';
 import { FoodTagInput } from '@/components/ui/food-tag-input';
-import { ArrowLeft, Plus, Coffee, X, Edit2, Trash2 } from 'lucide-react';
+import { Edit2, Trash2 } from 'lucide-react';
 import { formatDate, getLocalDateString } from '@/lib/utils';
 import { Pagination } from '@/components/ui/pagination';
 import { SkeletonList } from '@/components/ui/skeleton';
@@ -186,126 +185,73 @@ export default function FoodPage() {
     }, {});
 
     return (
-        <div className="min-h-screen bg-background">
-            <header className="bg-background/95 backdrop-blur-md border-b border-border sticky top-0 z-10">
-                <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-3">
-                            <Link href="/dashboard">
-                                <Button variant="ghost" size="icon" className="rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-smooth">
-                                    <ArrowLeft className="h-4 w-4" />
-                                </Button>
-                            </Link>
-                            <div>
-                                <h1 className="text-2xl font-bold text-foreground">
-                                    Food
-                                </h1>
-                            </div>
-                        </div>
-                        <Button
-                            onClick={() => setIsModalOpen(true)}
-                            className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white rounded-xl shadow-md hover:shadow-lg transition-all duration-200"
-                        >
-                            <Plus className="h-4 w-4 mr-2" />
-                            Log Meal
-                        </Button>
-                    </div>
-                </div>
-            </header>
+        <>
+            <PageShell>
+                <PageHeader
+                    kicker="§ 03 · Food"
+                    title={<>What you <em>ate</em></>}
+                    action={<Button onClick={() => setIsModalOpen(true)}>Log meal →</Button>}
+                />
 
-            <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-8">
                 {isLoading ? (
-                    <div className="space-y-6">
-                        <SkeletonList count={3} />
-                    </div>
+                    <SkeletonList count={3} />
                 ) : Object.keys(groupedByDate).length === 0 ? (
-                    <Card className="border border-border shadow-sm bg-card animate-fade-in">
-                        <CardContent className="py-16 text-center">
-                            <div className="bg-green-100 dark:bg-green-900 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <Coffee className="h-8 w-8 text-green-600 dark:text-green-400" />
-                            </div>
-                            <p className="text-gray-600 dark:text-gray-300 mb-4 font-medium">No food entries yet</p>
-                            <Button
-                                onClick={() => setIsModalOpen(true)}
-                                className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white rounded-xl"
-                            >
-                                <Plus className="h-4 w-4 mr-2" />
-                                Log Meal
-                            </Button>
-                        </CardContent>
-                    </Card>
+                    <EmptyState action={<Button onClick={() => setIsModalOpen(true)}>Log meal →</Button>}>
+                        No meals logged yet. Start with today’s breakfast.
+                    </EmptyState>
                 ) : (
-                    <div className="space-y-6 animate-fade-in">
-                        {Object.entries(groupedByDate).map(([date, entries]: [string, any], dateIndex: number) => (
-                            <Card key={date} className="border border-border shadow-sm bg-card animate-slide-up" style={{ animationDelay: `${dateIndex * 50}ms` }}>
-                                <CardContent className="p-5">
-                                    <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">{date}</h2>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                                        {entries.map((entry: any) => (
-                                            <div key={entry._id} className="border-l-4 border-green-500 dark:border-green-400 pl-4 bg-gradient-to-r from-green-50 dark:from-green-900/20 to-transparent rounded-r-lg p-4 hover:shadow-md transition-all duration-200 relative">
-                                                <div className="flex items-center justify-between mb-3">
-                                                    <h3 className="font-semibold capitalize text-base text-gray-800 dark:text-gray-100">{entry.mealType}</h3>
-                                                    <div className="flex items-center gap-2">
-                                                        <Coffee className="h-4 w-4 text-green-500 dark:text-green-400" />
-                                                        {entry.pending ? (
-                                                            <PendingTag />
-                                                        ) : (
-                                                            <>
-                                                                <Button
-                                                                    variant="ghost"
-                                                                    size="icon"
-                                                                    onClick={() => handleEdit(entry)}
-                                                                    className="h-6 w-6 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
-                                                                >
-                                                                    <Edit2 className="h-3 w-3 text-blue-600 dark:text-blue-400" />
-                                                                </Button>
-                                                                <Button
-                                                                    variant="ghost"
-                                                                    size="icon"
-                                                                    onClick={() => handleDeleteClick(entry._id)}
-                                                                    className="h-6 w-6 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
-                                                                >
-                                                                    <Trash2 className="h-3 w-3 text-red-600 dark:text-red-400" />
-                                                                </Button>
-                                                            </>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                                <ul className="space-y-1.5">
-                                                    {entry.items.map((item: MealItem, idx: number) => (
-                                                        <li key={idx} className="text-sm text-gray-700 dark:text-gray-300 flex items-center">
-                                                            <span className="w-1.5 h-1.5 rounded-full bg-green-500 dark:bg-green-400 mr-2"></span>
-                                                            {item.name}
-                                                        </li>
-                                                    ))}
-                                                </ul>
-                                                {entry.notes && (
-                                                    <p className="text-xs text-muted-foreground mt-3 italic border-t border-green-100 dark:border-green-800 pt-2">{entry.notes}</p>
+                    <div className="animate-fade-in">
+                        {Object.entries(groupedByDate).map(([date, entries]: [string, any]) => (
+                            <Section key={date} kicker={date} className="mt-8">
+                                <ul className="border-b border-border">
+                                    {entries.map((entry: any) => (
+                                        <li
+                                            key={entry._id}
+                                            className="flex items-start gap-3 border-t border-border px-1 py-4 transition-colors duration-150 hover:bg-hover sm:gap-5 sm:px-2"
+                                        >
+                                            <span className="w-20 shrink-0 pt-1.5 font-mono text-xs capitalize text-muted-foreground sm:w-28">{entry.mealType}</span>
+                                            <div className="min-w-0 flex-1">
+                                                <p className="font-display text-[24px] leading-[1.15] sm:text-[28px]">
+                                                    {entry.items.map((item: MealItem) => item.name).join(', ')}
+                                                </p>
+                                                {entry.notes && <p className="mt-1 text-sm text-muted-foreground">{entry.notes}</p>}
+                                            </div>
+                                            <div className="flex shrink-0 items-center gap-0.5">
+                                                {entry.pending ? (
+                                                    <PendingTag />
+                                                ) : (
+                                                    <>
+                                                        <Button variant="ghost" size="icon" onClick={() => handleEdit(entry)} aria-label="Edit meal">
+                                                            <Edit2 className="h-4 w-4" strokeWidth={1.8} aria-hidden />
+                                                        </Button>
+                                                        <Button variant="ghost" size="icon" onClick={() => handleDeleteClick(entry._id)} aria-label="Delete meal" className="text-kicker hover:text-kicker">
+                                                            <Trash2 className="h-4 w-4" strokeWidth={1.8} aria-hidden />
+                                                        </Button>
+                                                    </>
                                                 )}
                                             </div>
-                                        ))}
-                                    </div>
-                                </CardContent>
-                            </Card>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </Section>
                         ))}
                     </div>
                 )}
+
                 {pagination && (
-                    <div className="mt-6">
-                        <Pagination
-                            page={pagination.page}
-                            totalPages={pagination.totalPages}
-                            onPageChange={setPage}
-                            isLoading={isLoading}
-                        />
-                    </div>
+                    <Pagination
+                        page={pagination.page}
+                        totalPages={pagination.totalPages}
+                        onPageChange={setPage}
+                        isLoading={isLoading}
+                    />
                 )}
-            </main>
+            </PageShell>
 
             <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Log Meal" size="lg">
                 <form onSubmit={handleSubmit} className="space-y-6">
                     <div>
-                        <label className="block text-sm font-medium mb-3 text-gray-700 dark:text-gray-300">Meal Type</label>
+                        <label className="mb-2 block text-sm font-medium text-foreground">Meal Type</label>
                         <div className="flex flex-wrap gap-2">
                             {MEAL_TYPES.map((mt) => (
                                 <Chip
@@ -319,7 +265,7 @@ export default function FoodPage() {
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                        <label className="mb-2 block text-sm font-medium text-foreground">
                             Food Items
                             {itemNames.length > 0 && (
                                 <span className="ml-2 text-xs text-muted-foreground font-normal">({itemNames.length} added)</span>
@@ -334,7 +280,7 @@ export default function FoodPage() {
                     </div>
 
                     <div>
-                        <label htmlFor="notes" className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                        <label htmlFor="notes" className="mb-2 block text-sm font-medium text-foreground">
                             Notes (optional)
                         </label>
                         <Textarea
@@ -342,18 +288,16 @@ export default function FoodPage() {
                             value={notes}
                             onChange={(e) => setNotes(e.target.value)}
                             rows={3}
-                            className="rounded-lg"
                         />
                     </div>
 
-                    <div className="flex justify-end space-x-2 pt-4">
-                        <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)} className="rounded-lg">
+                    <div className="flex justify-end gap-2 pt-2">
+                        <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)}>
                             Cancel
                         </Button>
                         <Button
                             type="submit"
                             disabled={createMutation.isPending}
-                            className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white rounded-lg"
                         >
                             {createMutation.isPending ? 'Saving...' : 'Save'}
                         </Button>
@@ -364,7 +308,7 @@ export default function FoodPage() {
             <Modal isOpen={isEditModalOpen} onClose={() => { setIsEditModalOpen(false); setEditingFood(null); }} title="Edit Food Entry" size="lg">
                 <form onSubmit={handleEditSubmit} className="space-y-6">
                     <div>
-                        <label className="block text-sm font-medium mb-3 text-gray-700 dark:text-gray-300">Meal Type</label>
+                        <label className="mb-2 block text-sm font-medium text-foreground">Meal Type</label>
                         <div className="flex flex-wrap gap-2">
                             {MEAL_TYPES.map((mt) => (
                                 <Chip
@@ -378,7 +322,7 @@ export default function FoodPage() {
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                        <label className="mb-2 block text-sm font-medium text-foreground">
                             Food Items
                             {itemNames.length > 0 && (
                                 <span className="ml-2 text-xs text-muted-foreground font-normal">({itemNames.length} added)</span>
@@ -393,7 +337,7 @@ export default function FoodPage() {
                     </div>
 
                     <div>
-                        <label htmlFor="editNotes" className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                        <label htmlFor="editNotes" className="mb-2 block text-sm font-medium text-foreground">
                             Notes (optional)
                         </label>
                         <Textarea
@@ -401,18 +345,16 @@ export default function FoodPage() {
                             value={notes}
                             onChange={(e) => setNotes(e.target.value)}
                             rows={3}
-                            className="rounded-lg"
                         />
                     </div>
 
-                    <div className="flex justify-end space-x-2 pt-4">
-                        <Button type="button" variant="outline" onClick={() => { setIsEditModalOpen(false); setEditingFood(null); }} className="rounded-lg">
+                    <div className="flex justify-end gap-2 pt-2">
+                        <Button type="button" variant="outline" onClick={() => { setIsEditModalOpen(false); setEditingFood(null); }}>
                             Cancel
                         </Button>
                         <Button
                             type="submit"
                             disabled={updateMutation.isPending}
-                            className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white rounded-lg"
                         >
                             {updateMutation.isPending ? 'Updating...' : 'Update'}
                         </Button>
@@ -431,7 +373,6 @@ export default function FoodPage() {
                 variant="danger"
                 isLoading={deleteMutation.isPending}
             />
-
-        </div>
+        </>
     );
 }

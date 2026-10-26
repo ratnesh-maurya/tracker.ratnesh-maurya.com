@@ -2,71 +2,99 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ── Design tokens ── */
+/*
+ * "Ledger" design tokens (see DESIGN.md). Values are HSL channels so Tailwind
+ * opacity modifiers work (bg-primary/90). The shadcn names map to Ledger roles:
+ *   background=bg  foreground=text  card=surface  muted/secondary/accent=surface-2
+ *   primary=pill (ink in light, paper in dark)  border=line  input=num  ring=accent
+ * Contrast on --background (AA): foreground 17+, muted-foreground 5.4/7.3,
+ * coral 5.4/5.2, kicker 5.6/8.2.
+ */
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    color-scheme: light;
+    --background: 45 33% 97.6%;
+    --foreground: 45 21% 7.5%;
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 45 21% 7.5%;
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 239 68% 55%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 239 68% 55%;
-    --radius: 0.75rem;
-    --chart-1: 12 76% 61%;
-    --chart-2: 173 58% 39%;
-    --chart-3: 197 37% 24%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
+    --popover-foreground: 45 21% 7.5%;
+    --primary: 45 21% 7.5%;
+    --primary-foreground: 45 33% 97.6%;
+    --secondary: 42 36% 94.5%;
+    --secondary-foreground: 42 9% 22%;
+    --muted: 42 36% 94.5%;
+    --muted-foreground: 42 6% 39.4%;
+    --accent: 42 36% 94.5%;
+    --accent-foreground: 45 21% 7.5%;
+    --destructive: 340 73% 43.9%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 42 21% 88%;
+    --input: 42 18% 81.8%;
+    --ring: 358 52% 47.5%;
+    --radius: 1.125rem;
 
-    /* App surface (internal pages) */
-    --app-bg: 240 10% 97%;
-    --app-card: 0 0% 100%;
-    --app-border: 214.3 31.8% 91.4%;
-    --sidebar-bg: 237 27% 8%;
+    /* Ledger-only roles */
+    --body: 40 9% 26.7%;
+    --line-2: 40 27% 91.4%;
+    --rule: 45 21% 7.5%;
+    --coral: 358 52% 47.5%;
+    --kicker: 340 73% 43.9%;
+    --num: 42 18% 81.8%;
+    --hover: 42 36% 94.5%;
+    --marigold: 25 100% 54.7%;
+    --kumkum: 341 80% 55.5%;
+    --peacock: 35 100% 63.9%;
+    --ok: 151 68% 38.2%;
+
+    --chart-1: 25 100% 54.7%;
+    --chart-2: 341 80% 55.5%;
+    --chart-3: 35 100% 63.9%;
+    --chart-4: 42 6% 39.4%;
+    --chart-5: 151 68% 38.2%;
+
+    --dot: rgba(23, 21, 15, 0.085);
+    --glow-1: rgba(255, 122, 24, 0.1);
+    --glow-2: rgba(232, 51, 109, 0.07);
+    --glass: rgba(255, 255, 255, 0.72);
+    --shadow: 0 1px 2px rgba(23, 21, 15, 0.04), 0 10px 30px rgba(23, 21, 15, 0.06);
+    --saffron: linear-gradient(90deg, hsl(var(--marigold)), hsl(var(--kumkum)));
   }
 
-  .dark {
-    --background: 237 27% 6%;
-    --foreground: 210 40% 95%;
-    --card: 237 25% 9%;
-    --card-foreground: 210 40% 95%;
-    --popover: 237 25% 9%;
-    --popover-foreground: 210 40% 95%;
-    --primary: 239 68% 65%;
-    --primary-foreground: 237 27% 6%;
-    --secondary: 237 20% 14%;
-    --secondary-foreground: 210 40% 95%;
-    --muted: 237 20% 14%;
-    --muted-foreground: 215 20% 55%;
-    --accent: 237 20% 14%;
-    --accent-foreground: 210 40% 95%;
-    --destructive: 0 62.8% 50%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 237 20% 16%;
-    --input: 237 20% 16%;
-    --ring: 239 68% 65%;
-    --chart-1: 220 70% 55%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
+  [data-theme='dark'] {
+    color-scheme: dark;
+    --background: 40 12% 4.9%;
+    --foreground: 44 31% 93.1%;
+    --card: 45 21% 7.5%;
+    --card-foreground: 44 31% 93.1%;
+    --popover: 45 21% 7.5%;
+    --popover-foreground: 44 31% 93.1%;
+    --primary: 44 31% 93.1%;
+    --primary-foreground: 45 21% 7.5%;
+    --secondary: 38 15% 10.6%;
+    --secondary-foreground: 42 17% 80.6%;
+    --muted: 38 15% 10.6%;
+    --muted-foreground: 42 8% 60.6%;
+    --accent: 38 15% 10.6%;
+    --accent-foreground: 44 31% 93.1%;
+    --destructive: 340 73% 43.9%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 36 12% 16.5%;
+    --input: 38 10% 20.6%;
+    --ring: 1 67% 60%;
 
-    --app-bg: 237 27% 6%;
-    --app-card: 237 25% 9%;
-    --app-border: 237 20% 16%;
+    --body: 42 14% 75.5%;
+    --line-2: 38 12% 13.3%;
+    --rule: 44 31% 93.1%;
+    --coral: 1 67% 60%;
+    --kicker: 342 100% 74.9%;
+    --num: 38 10% 20.6%;
+    --hover: 40 13% 9%;
+
+    --dot: rgba(110, 105, 89, 0.06);
+    --glow-2: rgba(232, 51, 109, 0.08);
+    --glass: rgba(23, 21, 15, 0.72);
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 12px 32px rgba(0, 0, 0, 0.38);
   }
 }
 
@@ -74,100 +102,167 @@
   * {
     @apply border-border;
   }
+
+  html {
+    scroll-padding-top: 96px;
+  }
+
   body {
-    @apply bg-background text-foreground;
-    font-feature-settings: "rlig" 1, "calt" 1;
+    @apply bg-background text-foreground font-sans;
+    position: relative;
+    isolation: isolate;
+    background-image: radial-gradient(circle at 1px 1px, var(--dot) 1px, transparent 1.4px);
+    background-size: 22px 22px;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
   }
 
-  /* Better focus rings */
+  /* Warm glow under the first screen */
+  body::before {
+    content: '';
+    position: absolute;
+    z-index: -1;
+    inset: 0 0 auto;
+    height: 900px;
+    pointer-events: none;
+    background:
+      radial-gradient(ellipse 46% 60% at 88% 0%, var(--glow-1), transparent 70%),
+      radial-gradient(ellipse 30% 40% at 6% 2%, var(--glow-1), transparent 70%),
+      radial-gradient(ellipse 36% 46% at 62% 6%, var(--glow-2), transparent 70%);
+  }
+
+  h1, h2, h3 {
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  ::selection {
+    background: #ff7a18;
+    color: #17150f;
+  }
+
   :focus-visible {
     outline: 2px solid hsl(var(--ring));
-    outline-offset: 2px;
+    outline-offset: 3px;
+    border-radius: 6px;
   }
 }
 
-/* ── Landing dark surface utilities ── */
+@layer components {
+  /* Display serif heading; wrap one word in <em> for the brand gradient. */
+  .display {
+    @apply font-display font-normal;
+    letter-spacing: -0.02em;
+    line-height: 1;
+  }
+  .display em,
+  em.saffron {
+    font-style: italic;
+    background-image: var(--saffron);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    padding-right: 0.06em;
+  }
+
+  /* Mono labels */
+  .eyebrow {
+    @apply font-mono font-medium uppercase text-muted-foreground;
+    font-size: 12.5px;
+    line-height: 1.3;
+    letter-spacing: 0.14em;
+  }
+  .kicker {
+    @apply font-mono text-kicker;
+    font-size: 12px;
+    line-height: 1.4;
+    letter-spacing: 0.08em;
+  }
+
+  /* Section opener: 1px rule, then the kicker */
+  .section-rule {
+    border-top: 1px solid hsl(var(--rule));
+    padding-top: 16px;
+  }
+
+  /* Small gradient dot (brand mark, bullets) */
+  .saffron-dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 9999px;
+    background-image: var(--saffron);
+    flex-shrink: 0;
+  }
+
+  /* 2px gradient hairline across the top of a card or popover */
+  .saffron-hairline {
+    position: relative;
+  }
+  .saffron-hairline::before {
+    content: '';
+    position: absolute;
+    top: -1px;
+    left: 24px;
+    right: 24px;
+    height: 2px;
+    border-radius: 2px;
+    background-image: var(--saffron);
+    opacity: 0.85;
+  }
+
+  .glass {
+    background: var(--glass);
+    -webkit-backdrop-filter: blur(16px) saturate(1.3);
+    backdrop-filter: blur(16px) saturate(1.3);
+    border: 1px solid color-mix(in srgb, hsl(var(--border)) 80%, transparent);
+  }
+}
+
+/* Motion: colour, border and opacity only (DESIGN.md §6). The legacy class names
+ * are kept so existing markup fades instead of sliding or scaling. */
 @layer utilities {
-  .bg-white\/3  { background-color: rgba(255,255,255,0.03); }
-  .bg-white\/4  { background-color: rgba(255,255,255,0.04); }
-  .bg-white\/5  { background-color: rgba(255,255,255,0.05); }
-  .bg-white\/6  { background-color: rgba(255,255,255,0.06); }
-  .bg-white\/7  { background-color: rgba(255,255,255,0.07); }
-  .bg-white\/8  { background-color: rgba(255,255,255,0.08); }
-
-  .hover\:bg-white\/7:hover  { background-color: rgba(255,255,255,0.07); }
-  .hover\:bg-white\/8:hover  { background-color: rgba(255,255,255,0.08); }
-
-  .border-white\/6  { border-color: rgba(255,255,255,0.06); }
-  .border-white\/8  { border-color: rgba(255,255,255,0.08); }
-  .border-white\/10 { border-color: rgba(255,255,255,0.10); }
-  .border-white\/12 { border-color: rgba(255,255,255,0.12); }
-  .border-white\/16 { border-color: rgba(255,255,255,0.16); }
-
-  .hover\:border-white\/10:hover { border-color: rgba(255,255,255,0.10); }
-  .hover\:border-white\/12:hover { border-color: rgba(255,255,255,0.12); }
-  .hover\:border-white\/16:hover { border-color: rgba(255,255,255,0.16); }
-
-  /* App internal page surface */
-  .app-page {
-    @apply min-h-screen;
-    background: hsl(var(--app-bg));
+  .animate-fade-in,
+  .animate-slide-up,
+  .animate-scale-in {
+    animation: fadeIn 0.15s ease;
   }
-
-  .app-card {
-    background: hsl(var(--app-card));
-    border: 1px solid hsl(var(--app-border));
-    border-radius: var(--radius);
+  .transition-smooth {
+    transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
   }
-
-  /* Sidebar active glow */
-  .bg-indigo-600\/18 { background-color: rgba(99, 102, 241, 0.18); }
-
-  /* Grid pattern */
-  .bg-grid-pattern {
-    background-image:
-      linear-gradient(to right, rgba(255,255,255,0.1) 1px, transparent 1px),
-      linear-gradient(to bottom, rgba(255,255,255,0.1) 1px, transparent 1px);
-    background-size: 20px 20px;
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
   }
 }
 
-/* ── Animations ── */
-@layer utilities {
-  .animate-fade-in   { animation: fadeIn   0.25s ease-out; }
-  .animate-slide-up  { animation: slideUp  0.3s  cubic-bezier(0.22, 1, 0.36, 1); }
-  .animate-scale-in  { animation: scaleIn  0.2s  cubic-bezier(0.22, 1, 0.36, 1); }
-  .transition-smooth { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
-@keyframes fadeIn  { from { opacity: 0; }                                to { opacity: 1; } }
-@keyframes slideUp { from { opacity: 0; transform: translateY(8px);  }  to { opacity: 1; transform: translateY(0); } }
-@keyframes scaleIn { from { opacity: 0; transform: scale(0.96);     }   to { opacity: 1; transform: scale(1); } }
-
-@keyframes aurora {
-  from { background-position: 50% 50%, 50% 50%; }
-  to   { background-position: 350% 50%, 350% 50%; }
-}
-.animate-aurora { animation: aurora 60s linear infinite; }
-
-/* ── Scrollbar ── */
-.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
-.scrollbar-hide::-webkit-scrollbar { display: none; }
-
-::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(99,102,241,0.25); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(99,102,241,0.4); }
+::-webkit-scrollbar-thumb { background: hsl(var(--input)); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: hsl(var(--muted-foreground)); }
 
-/* ── Dark mode ── */
-.dark { color-scheme: dark; }
-
-/* ── Safe area for mobile bottom nav ── */
-.safe-bottom { padding-bottom: env(safe-area-inset-bottom, 0px); }
-
-/* ── Page-level background for internal dark pages ── */
-.dark .app-page {
-  background: hsl(237 27% 6%);
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

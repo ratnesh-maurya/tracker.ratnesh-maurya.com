@@ -8,12 +8,12 @@ interface SkeletonProps {
 }
 
 export function Skeleton({ className, variant = 'rectangular' }: SkeletonProps) {
-    const baseClasses = 'animate-pulse bg-gray-200 dark:bg-gray-700';
+    const baseClasses = 'animate-pulse bg-muted';
 
     const variantClasses = {
         text: 'h-4 rounded',
         circular: 'rounded-full',
-        rectangular: 'rounded-lg',
+        rectangular: 'rounded-inner',
     };
 
     return (
@@ -30,7 +30,7 @@ export function Skeleton({ className, variant = 'rectangular' }: SkeletonProps) 
 // Pre-built skeleton components
 export function SkeletonCard() {
     return (
-        <div className="border-0 shadow-md bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-xl p-5 space-y-4">
+        <div className="rounded-card bg-card shadow-card p-6 space-y-4">
             <Skeleton className="h-6 w-3/4" variant="text" />
             <Skeleton className="h-4 w-full" variant="text" />
             <Skeleton className="h-4 w-5/6" variant="text" />
@@ -43,7 +43,7 @@ export function SkeletonList({ count = 3 }: { count?: number }) {
     return (
         <div className="space-y-3">
             {Array.from({ length: count }).map((_, i) => (
-                <div key={i} className="border-0 shadow-sm bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-xl p-4">
+                <div key={i} className="rounded-inner bg-card shadow-card p-5">
                     <div className="flex items-center justify-between mb-2">
                         <Skeleton className="h-5 w-1/4" variant="text" />
                         <Skeleton className="h-4 w-16" variant="text" />

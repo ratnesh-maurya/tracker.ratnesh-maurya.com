@@ -1,10 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { EmptyState, PageHeader, PageShell, Section, Stat } from '@/components/layout/page';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Modal } from '@/components/ui/modal';
@@ -13,7 +12,7 @@ import { Chip } from '@/components/ui/chip';
 import { useToast } from '@/components/ui/toast-provider';
 import { PendingTag } from '@/components/ui/pending-tag';
 import { SAVED_OFFLINE_MESSAGE, useOfflineCreate } from '@/lib/offline/useOfflineCreate';
-import { ArrowLeft, Plus, IndianRupee, Edit2, Trash2 } from 'lucide-react';
+import { Edit2, Trash2 } from 'lucide-react';
 import { formatDate, getLocalDateString } from '@/lib/utils';
 import { Pagination } from '@/components/ui/pagination';
 import { handleApiResponse } from '@/lib/api/client';
@@ -163,152 +162,81 @@ export default function ExpensesPage() {
     const totalExpenses = expenses.reduce((sum: number, exp: any) => sum + exp.amount, 0);
 
     return (
-        <div className="min-h-screen bg-background">
-            <header className="bg-background/95 backdrop-blur-md border-b border-border sticky top-0 z-10">
-                <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-3">
-                            <Link href="/dashboard">
-                                <Button variant="ghost" size="icon" className="rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-smooth">
-                                    <ArrowLeft className="h-4 w-4" />
-                                </Button>
-                            </Link>
-                            <div>
-                                <h1 className="text-2xl font-bold text-foreground">
-                                    Expenses
-                                </h1>
-                            </div>
-                        </div>
-                        <Button
-                            onClick={() => setIsModalOpen(true)}
-                            className="bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-white rounded-xl shadow-md hover:shadow-lg transition-all duration-200"
-                        >
-                            <Plus className="h-4 w-4 mr-2" />
-                            Add
-                        </Button>
-                    </div>
-                </div>
-            </header>
+        <>
+            <PageShell>
+                <PageHeader
+                    kicker="§ 06 · Expenses"
+                    title={<>Where the <em>money</em> went</>}
+                    action={<Button onClick={() => setIsModalOpen(true)}>Add expense →</Button>}
+                />
 
-            <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-8">
                 {expenses.length > 0 && (
-                    <div className="animate-fade-in mb-6">
-                        <Card className="border-0 shadow-lg bg-gradient-to-br from-yellow-500 to-yellow-600 text-white">
-                            <CardContent className="py-6">
-                                <div className="flex items-center justify-between">
-                                    <div>
-                                        <p className="text-yellow-100 text-sm mb-1 font-medium">Total Expenses</p>
-                                        <p className="text-3xl font-bold">₹{totalExpenses.toFixed(2)}</p>
-                                    </div>
-                                    <div className="bg-white/20 p-4 rounded-full backdrop-blur-sm">
-                                        <IndianRupee className="h-8 w-8" />
-                                    </div>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </div>
+                    <dl className="mb-12 grid grid-cols-2 gap-x-6 sm:grid-cols-4">
+                        <Stat label="on this page, ₹" value={totalExpenses.toLocaleString('en-IN', { maximumFractionDigits: 0 })} className="border-t border-border pt-4" />
+                        <Stat label="entries" value={expenses.length} className="border-t border-border pt-4" />
+                    </dl>
                 )}
 
-                {isLoading ? (
-                    <div className="space-y-3">
+                <Section kicker="§ 01 · Ledger">
+                    {isLoading ? (
                         <SkeletonList count={5} />
-                    </div>
-                ) : expenses.length === 0 ? (
-                    <Card className="border border-border shadow-sm bg-card animate-fade-in">
-                        <CardContent className="py-16 text-center">
-                            <div className="bg-yellow-100 dark:bg-yellow-900 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <IndianRupee className="h-8 w-8 text-yellow-600 dark:text-yellow-400" />
-                            </div>
-                            <p className="text-gray-600 dark:text-gray-300 mb-4 font-medium">No expenses yet</p>
-                            <Button
-                                onClick={() => setIsModalOpen(true)}
-                                className="bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-white rounded-xl"
-                            >
-                                <Plus className="h-4 w-4 mr-2" />
-                                Add Expense
-                            </Button>
-                        </CardContent>
-                    </Card>
-                ) : (
-                    <div className="space-y-3 animate-fade-in">
-                        {expenses.map((expense: any, index: number) => (
-                            <Card
-                                key={expense._id}
-                                className="border border-white/30 dark:border-white/10 shadow-xl hover:shadow-2xl transition-all duration-200 bg-white/40 dark:bg-gray-800/70 backdrop-blur-2xl animate-slide-up"
-                                style={{ animationDelay: `${index * 50}ms` }}
-                            >
-                                <CardContent className="py-4">
-                                    <div className="flex items-start justify-between gap-4">
-                                        <div className="flex-1 min-w-0">
-                                            <div className="flex items-center space-x-3">
-                                                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-yellow-400 to-yellow-500 flex items-center justify-center shadow-sm flex-shrink-0">
-                                                    <span className="text-white font-bold text-lg">
-                                                        {expense.category.charAt(0)}
-                                                    </span>
-                                                </div>
-                                                <div className="flex-1 min-w-0">
-                                                    <h3 className="font-semibold text-base md:text-lg text-gray-800 dark:text-gray-100 truncate">{expense.category}</h3>
-                                                    <p className="text-sm text-muted-foreground">{formatDate(expense.date)}</p>
-                                                </div>
-                                            </div>
-                                            {expense.notes && (
-                                                <p className="text-sm text-gray-600 dark:text-gray-300 mt-2 ml-15 truncate">{expense.notes}</p>
-                                            )}
-                                        </div>
-                                        <div className="flex items-center gap-2 flex-shrink-0">
-                                            <div className="text-right">
-                                                <div className="text-lg md:text-2xl font-bold text-gray-900 dark:text-gray-100 whitespace-nowrap">
-                                                    ₹{expense.amount.toFixed(2)}
-                                                </div>
-                                            </div>
-                                            <div className="flex gap-1">
-                                                {expense.pending ? (
-                                                    <PendingTag />
-                                                ) : (
-                                                    <>
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="icon"
-                                                            onClick={() => handleEdit(expense)}
-                                                            className="rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 h-8 w-8"
-                                                        >
-                                                            <Edit2 className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                                                        </Button>
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="icon"
-                                                            onClick={() => handleDeleteClick(expense._id)}
-                                                            className="rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 h-8 w-8"
-                                                        >
-                                                            <Trash2 className="h-4 w-4 text-red-600 dark:text-red-400" />
-                                                        </Button>
-                                                    </>
-                                                )}
-                                            </div>
-                                        </div>
+                    ) : expenses.length === 0 ? (
+                        <EmptyState action={<Button onClick={() => setIsModalOpen(true)}>Add expense →</Button>}>
+                            No expenses yet. The first one is the hardest.
+                        </EmptyState>
+                    ) : (
+                        <ul className="border-b border-border animate-fade-in">
+                            {expenses.map((expense: any) => (
+                                <li
+                                    key={expense._id}
+                                    className="flex items-center gap-3 border-t border-border px-1 py-4 transition-colors duration-150 hover:bg-hover sm:gap-5 sm:px-2"
+                                >
+                                    <span className="hidden w-28 shrink-0 font-mono text-xs text-muted-foreground sm:block">{formatDate(expense.date)}</span>
+                                    <div className="min-w-0 flex-1">
+                                        <p className="truncate font-semibold text-foreground">{expense.category}</p>
+                                        <p className="truncate text-sm text-muted-foreground">
+                                            <span className="font-mono text-xs sm:hidden">{formatDate(expense.date)}{expense.notes ? ' · ' : ''}</span>
+                                            {expense.notes}
+                                        </p>
                                     </div>
-                                </CardContent>
-                            </Card>
-                        ))}
-                    </div>
-                )}
-                {pagination && (
-                    <div className="mt-6">
+                                    <span className="shrink-0 whitespace-nowrap font-display text-[26px] leading-none sm:text-[30px]">
+                                        ₹{expense.amount.toLocaleString('en-IN', { maximumFractionDigits: 2 })}
+                                    </span>
+                                    <div className="flex shrink-0 items-center gap-0.5">
+                                        {expense.pending ? (
+                                            <PendingTag />
+                                        ) : (
+                                            <>
+                                                <Button variant="ghost" size="icon" onClick={() => handleEdit(expense)} aria-label="Edit expense">
+                                                    <Edit2 className="h-4 w-4" strokeWidth={1.8} aria-hidden />
+                                                </Button>
+                                                <Button variant="ghost" size="icon" onClick={() => handleDeleteClick(expense._id)} aria-label="Delete expense" className="text-kicker hover:text-kicker">
+                                                    <Trash2 className="h-4 w-4" strokeWidth={1.8} aria-hidden />
+                                                </Button>
+                                            </>
+                                        )}
+                                    </div>
+                                </li>
+                            ))}
+                        </ul>
+                    )}
+
+                    {pagination && (
                         <Pagination
                             page={pagination.page}
                             totalPages={pagination.totalPages}
                             onPageChange={setPage}
                             isLoading={isLoading}
                         />
-                    </div>
-                )}
-            </main>
+                    )}
+                </Section>
+            </PageShell>
 
             {/* Add Modal */}
             <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Add Expense">
                 <form onSubmit={handleSubmit} className="space-y-6">
                     <div>
-                        <label htmlFor="amount" className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                        <label htmlFor="amount" className="mb-2 block text-sm font-medium text-foreground">
                             Amount (₹)
                         </label>
                         <Input
@@ -319,13 +247,13 @@ export default function ExpensesPage() {
                             value={amount}
                             onChange={(e) => setAmount(e.target.value)}
                             placeholder="0.00"
-                            className="text-lg rounded-lg"
+                            className="text-lg"
                             required
                         />
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium mb-3 text-gray-700 dark:text-gray-300">Category</label>
+                        <label className="mb-2 block text-sm font-medium text-foreground">Category</label>
                         <div className="flex flex-wrap gap-2">
                             {CATEGORIES.map((cat) => (
                                 <Chip
@@ -339,7 +267,7 @@ export default function ExpensesPage() {
                     </div>
 
                     <div>
-                        <label htmlFor="notes" className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                        <label htmlFor="notes" className="mb-2 block text-sm font-medium text-foreground">
                             Notes (optional)
                         </label>
                         <Textarea
@@ -348,18 +276,16 @@ export default function ExpensesPage() {
                             onChange={(e) => setNotes(e.target.value)}
                             rows={3}
                             placeholder="Add any notes about this expense..."
-                            className="rounded-lg"
                         />
                     </div>
 
-                    <div className="flex justify-end space-x-2 pt-4">
-                        <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)} className="rounded-lg">
+                    <div className="flex justify-end gap-2 pt-2">
+                        <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)}>
                             Cancel
                         </Button>
                         <Button
                             type="submit"
                             disabled={createMutation.isPending}
-                            className="bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-white rounded-lg"
                         >
                             {createMutation.isPending ? 'Saving...' : 'Save'}
                         </Button>
@@ -377,7 +303,7 @@ export default function ExpensesPage() {
             }} title="Edit Expense">
                 <form onSubmit={handleEditSubmit} className="space-y-6">
                     <div>
-                        <label htmlFor="edit-amount" className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                        <label htmlFor="edit-amount" className="mb-2 block text-sm font-medium text-foreground">
                             Amount (₹)
                         </label>
                         <Input
@@ -388,13 +314,13 @@ export default function ExpensesPage() {
                             value={amount}
                             onChange={(e) => setAmount(e.target.value)}
                             placeholder="0.00"
-                            className="text-lg rounded-lg"
+                            className="text-lg"
                             required
                         />
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium mb-3 text-gray-700 dark:text-gray-300">Category</label>
+                        <label className="mb-2 block text-sm font-medium text-foreground">Category</label>
                         <div className="flex flex-wrap gap-2">
                             {CATEGORIES.map((cat) => (
                                 <Chip
@@ -408,7 +334,7 @@ export default function ExpensesPage() {
                     </div>
 
                     <div>
-                        <label htmlFor="edit-notes" className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                        <label htmlFor="edit-notes" className="mb-2 block text-sm font-medium text-foreground">
                             Notes (optional)
                         </label>
                         <Textarea
@@ -417,11 +343,10 @@ export default function ExpensesPage() {
                             onChange={(e) => setNotes(e.target.value)}
                             rows={3}
                             placeholder="Add any notes about this expense..."
-                            className="rounded-lg"
                         />
                     </div>
 
-                    <div className="flex justify-end space-x-2 pt-4">
+                    <div className="flex justify-end gap-2 pt-2">
                         <Button
                             type="button"
                             variant="outline"
@@ -432,14 +357,12 @@ export default function ExpensesPage() {
                                 setCategory('Food');
                                 setNotes('');
                             }}
-                            className="rounded-lg"
                         >
                             Cancel
                         </Button>
                         <Button
                             type="submit"
                             disabled={updateMutation.isPending}
-                            className="bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-white rounded-lg"
                         >
                             {updateMutation.isPending ? 'Saving...' : 'Save Changes'}
                         </Button>
@@ -462,7 +385,6 @@ export default function ExpensesPage() {
                 variant="danger"
                 isLoading={deleteMutation.isPending}
             />
-
-        </div>
+        </>
     );
 }

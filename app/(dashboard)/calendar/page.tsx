@@ -1,20 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
-import {
-    ChevronLeft,
-    ChevronRight,
-    ArrowLeft,
-    Activity,
-    Moon,
-    UtensilsCrossed,
-    BookOpen,
-    DollarSign,
-    FileText,
-} from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { EmptyState, PageHeader, PageShell, Section } from '@/components/layout/page';
 import { formatDate, getStartOfDay, getEndOfDay } from '@/lib/utils';
 import { cn } from '@/lib/utils';
 
@@ -24,55 +14,14 @@ const MONTHS = [
     'July', 'August', 'September', 'October', 'November', 'December',
 ];
 
+// Each category is marked by a small dot only (Ledger: brand colour never fills an area).
 const CATEGORY_CONFIG = [
-    {
-        key: 'habits',
-        label: 'Habits',
-        icon: Activity,
-        dotColor: 'bg-indigo-500',
-        borderColor: 'border-l-indigo-500',
-        badgeColor: 'bg-indigo-500/10 text-indigo-600',
-    },
-    {
-        key: 'sleep',
-        label: 'Sleep',
-        icon: Moon,
-        dotColor: 'bg-violet-500',
-        borderColor: 'border-l-violet-500',
-        badgeColor: 'bg-violet-500/10 text-violet-600',
-    },
-    {
-        key: 'food',
-        label: 'Meals',
-        icon: UtensilsCrossed,
-        dotColor: 'bg-green-500',
-        borderColor: 'border-l-green-500',
-        badgeColor: 'bg-green-500/10 text-green-600',
-    },
-    {
-        key: 'study',
-        label: 'Study',
-        icon: BookOpen,
-        dotColor: 'bg-blue-500',
-        borderColor: 'border-l-blue-500',
-        badgeColor: 'bg-blue-500/10 text-blue-600',
-    },
-    {
-        key: 'expenses',
-        label: 'Expenses',
-        icon: DollarSign,
-        dotColor: 'bg-amber-500',
-        borderColor: 'border-l-amber-500',
-        badgeColor: 'bg-amber-500/10 text-amber-600',
-    },
-    {
-        key: 'journal',
-        label: 'Journal',
-        icon: FileText,
-        dotColor: 'bg-pink-500',
-        borderColor: 'border-l-pink-500',
-        badgeColor: 'bg-pink-500/10 text-pink-600',
-    },
+    { key: 'habits', label: 'Habits', dotColor: 'bg-marigold' },
+    { key: 'sleep', label: 'Sleep', dotColor: 'bg-kumkum' },
+    { key: 'food', label: 'Meals', dotColor: 'bg-ok' },
+    { key: 'study', label: 'Study', dotColor: 'bg-peacock' },
+    { key: 'expenses', label: 'Expenses', dotColor: 'bg-coral' },
+    { key: 'journal', label: 'Journal', dotColor: 'bg-muted-foreground' },
 ] as const;
 
 type CategoryKey = (typeof CATEGORY_CONFIG)[number]['key'];
@@ -132,13 +81,15 @@ export default function CalendarPage() {
                 fetch(`/api/journal?startDate=${start.toISOString()}&endDate=${end.toISOString()}`).then(r => r.json()),
             ]);
 
+            // List endpoints answer { entries, pagination }; /api/habits answers an array.
+            const list = (r: any): any[] => (r.success ? (Array.isArray(r.data) ? r.data : r.data?.entries ?? []) : []);
             return {
-                habits: habits.success ? habits.data : [],
-                sleep: sleep.success ? sleep.data : [],
-                food: food.success ? food.data : [],
-                study: study.success ? study.data : [],
-                expenses: expenses.success ? expenses.data : [],
-                journal: journal.success ? journal.data : [],
+                habits: list(habits),
+                sleep: list(sleep),
+                food: list(food),
+                study: list(study),
+                expenses: list(expenses),
+                journal: list(journal),
             };
         },
         enabled: !!selectedDate,
@@ -159,224 +110,164 @@ export default function CalendarPage() {
         year === today.getFullYear() && month === today.getMonth();
 
     return (
-        <div className="min-h-screen bg-background">
-            {/* Header */}
-            <header className="sticky top-0 z-10 bg-background/95 backdrop-blur-md border-b border-border">
-                <div className="max-w-2xl mx-auto px-4 py-4 flex items-center gap-3">
-                    <Link href="/dashboard">
-                        <Button variant="ghost" size="icon" className="shrink-0">
-                            <ArrowLeft className="h-4 w-4" />
+        <PageShell className="max-w-3xl">
+            <PageHeader
+                kicker="§ 09 · Calendar"
+                title={<>Any day, <em>recalled</em></>}
+                action={
+                    !isCurrentMonth && (
+                        <Button variant="outline" onClick={goToToday}>
+                            Today
                         </Button>
-                    </Link>
-                    <h1 className="text-xl font-bold text-foreground">Calendar</h1>
-                </div>
-            </header>
+                    )
+                }
+            />
 
-            <main className="max-w-2xl mx-auto px-4 pt-6 pb-24 space-y-6">
-
-                {/* Calendar Card */}
-                <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-sm">
-
-                    {/* Month navigation */}
-                    <div className="flex items-center justify-between px-5 pt-5 pb-4">
-                        <div>
-                            <h2 className="text-2xl font-bold text-foreground tracking-tight">
-                                {MONTHS[month]}
-                            </h2>
-                            <p className="text-sm text-muted-foreground">{year}</p>
-                        </div>
-                        <div className="flex items-center gap-1">
-                            {!isCurrentMonth && (
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={goToToday}
-                                    className="mr-1 h-8 text-xs px-3"
-                                >
-                                    Today
-                                </Button>
-                            )}
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => navigateMonth('prev')}
-                                className="h-9 w-9"
-                            >
-                                <ChevronLeft className="h-4 w-4" />
-                            </Button>
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => navigateMonth('next')}
-                                className="h-9 w-9"
-                            >
-                                <ChevronRight className="h-4 w-4" />
-                            </Button>
-                        </div>
-                    </div>
-
-                    {/* Day-of-week headers */}
-                    <div className="grid grid-cols-7 px-3 pb-1">
-                        {DAYS.map(d => (
-                            <div
-                                key={d}
-                                className="text-center text-[10px] font-semibold uppercase tracking-widest text-muted-foreground py-1"
-                            >
-                                {d}
-                            </div>
-                        ))}
-                    </div>
-
-                    {/* Calendar grid */}
-                    <div className="grid grid-cols-7 px-3 pb-4 gap-y-1">
-                        {calendarCells.map((cell, idx) => {
-                            if (!cell) {
-                                return <div key={`empty-${idx}`} />;
-                            }
-                            const { day } = cell;
-                            const todayDay = isToday(day);
-                            const selectedDay = isSelected(day);
-                            const pastDay = new Date(year, month, day) < today && !todayDay;
-
-                            return (
-                                <div key={day} className="flex flex-col items-center py-0.5">
-                                    <button
-                                        onClick={() => setSelectedDate(new Date(year, month, day))}
-                                        className={cn(
-                                            'relative flex items-center justify-center w-full h-12 rounded-xl text-sm font-medium transition-all select-none',
-                                            todayDay && !selectedDay && 'bg-indigo-600 text-white shadow-md',
-                                            selectedDay && !todayDay && 'ring-2 ring-foreground ring-offset-2 ring-offset-card text-foreground',
-                                            selectedDay && todayDay && 'bg-indigo-600 text-white ring-2 ring-white ring-offset-2 ring-offset-indigo-600 shadow-md',
-                                            !todayDay && !selectedDay && pastDay && 'text-muted-foreground hover:bg-muted',
-                                            !todayDay && !selectedDay && !pastDay && 'text-foreground hover:bg-muted',
-                                        )}
-                                    >
-                                        {day}
-                                    </button>
-                                </div>
-                            );
-                        })}
-                    </div>
-
-                    {/* Legend */}
-                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 px-5 pb-4">
-                        {CATEGORY_CONFIG.map(c => (
-                            <span key={c.key} className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
-                                <span className={cn('inline-block w-1.5 h-1.5 rounded-full', c.dotColor)} />
-                                {c.label}
-                            </span>
-                        ))}
+            <div className="rounded-card bg-card p-4 shadow-card sm:p-6">
+                {/* Month navigation */}
+                <div className="flex items-center justify-between gap-4 px-1 pb-5">
+                    <h2 className="font-display text-[32px] leading-none sm:text-[40px]">
+                        {MONTHS[month]} <span className="font-mono text-sm text-muted-foreground">{year}</span>
+                    </h2>
+                    <div className="flex items-center gap-1">
+                        <Button variant="outline" size="icon" onClick={() => navigateMonth('prev')} aria-label="Previous month">
+                            <ChevronLeft className="h-4 w-4" strokeWidth={1.8} aria-hidden />
+                        </Button>
+                        <Button variant="outline" size="icon" onClick={() => navigateMonth('next')} aria-label="Next month">
+                            <ChevronRight className="h-4 w-4" strokeWidth={1.8} aria-hidden />
+                        </Button>
                     </div>
                 </div>
 
-                {/* Detail Panel */}
-                {!selectedDate ? (
-                    <div className="bg-card border border-border rounded-2xl p-10 flex flex-col items-center justify-center text-center">
-                        <span className="text-5xl mb-4 select-none" aria-hidden>📅</span>
-                        <p className="text-base font-semibold text-foreground mb-1">Pick a day</p>
-                        <p className="text-sm text-muted-foreground">Tap any date above to see your tracked activities.</p>
-                    </div>
-                ) : (
-                    <div className="space-y-3">
-                        <div className="flex items-baseline justify-between px-1">
-                            <h2 className="text-base font-semibold text-foreground">
-                                {formatDate(selectedDate)}
-                            </h2>
-                            {isLoading && (
-                                <span className="text-xs text-muted-foreground animate-pulse">Loading…</span>
-                            )}
+                {/* Day-of-week headers */}
+                <div className="grid grid-cols-7 border-t border-border pt-3 pb-1">
+                    {DAYS.map(d => (
+                        <div key={d} className="py-1 text-center font-mono text-[11px] lowercase tracking-[0.08em] text-muted-foreground">
+                            {d}
                         </div>
+                    ))}
+                </div>
 
-                        {!isLoading && !hasActivities && (
-                            <div className="bg-card border border-border rounded-2xl p-10 flex flex-col items-center justify-center text-center">
-                                <span className="text-5xl mb-4 select-none" aria-hidden>🌿</span>
-                                <p className="text-base font-semibold text-foreground mb-1">Nothing recorded</p>
-                                <p className="text-sm text-muted-foreground">No activities were logged for this day.</p>
-                            </div>
-                        )}
+                {/* Calendar grid */}
+                <div className="grid grid-cols-7 gap-1">
+                    {calendarCells.map((cell, idx) => {
+                        if (!cell) {
+                            return <div key={`empty-${idx}`} />;
+                        }
+                        const { day } = cell;
+                        const todayDay = isToday(day);
+                        const selectedDay = isSelected(day);
+                        const pastDay = new Date(year, month, day) < today && !todayDay;
 
-                        {!isLoading && hasActivities && CATEGORY_CONFIG.map(cat => {
-                            const items = activities[cat.key as CategoryKey];
-                            if (items.length === 0) return null;
-                            const Icon = cat.icon;
+                        return (
+                            <button
+                                key={day}
+                                onClick={() => setSelectedDate(new Date(year, month, day))}
+                                aria-pressed={selectedDay}
+                                aria-current={todayDay ? 'date' : undefined}
+                                className={cn(
+                                    'relative flex h-11 w-full select-none items-center justify-center rounded-full font-mono text-sm transition-colors duration-150 sm:h-12',
+                                    selectedDay && 'bg-primary text-primary-foreground',
+                                    !selectedDay && todayDay && 'border border-rule text-foreground',
+                                    !selectedDay && !todayDay && pastDay && 'text-muted-foreground hover:bg-hover hover:text-foreground',
+                                    !selectedDay && !todayDay && !pastDay && 'text-foreground hover:bg-hover',
+                                )}
+                            >
+                                {day}
+                                {todayDay && <span className="saffron-dot absolute bottom-1 h-[5px] w-[5px]" aria-hidden />}
+                            </button>
+                        );
+                    })}
+                </div>
 
-                            return (
-                                <div
-                                    key={cat.key}
-                                    className={cn(
-                                        'bg-card border border-border rounded-2xl overflow-hidden border-l-4',
-                                        cat.borderColor,
-                                    )}
-                                >
-                                    <div className="flex items-center gap-3 px-4 pt-4 pb-2">
-                                        <span className={cn('flex items-center justify-center w-8 h-8 rounded-lg shrink-0', cat.badgeColor)}>
-                                            <Icon className="w-4 h-4" />
-                                        </span>
-                                        <div>
-                                            <p className="text-sm font-semibold text-foreground">{cat.label}</p>
-                                            <p className="text-xs text-muted-foreground">
+                {/* Legend */}
+                <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-border px-1 pt-4">
+                    {CATEGORY_CONFIG.map(c => (
+                        <span key={c.key} className="flex items-center gap-1.5 font-mono text-[11.5px] text-muted-foreground">
+                            <span className={cn('inline-block h-[7px] w-[7px] rounded-full', c.dotColor)} aria-hidden />
+                            {c.label.toLowerCase()}
+                        </span>
+                    ))}
+                </div>
+            </div>
+
+            {/* Detail panel */}
+            {!selectedDate ? (
+                <div className="mt-10">
+                    <EmptyState>Pick a day to see everything you logged on it.</EmptyState>
+                </div>
+            ) : (
+                <Section
+                    kicker={`§ 01 · ${formatDate(selectedDate)}`}
+                    aside={isLoading ? <span className="font-mono text-xs text-muted-foreground animate-pulse">loading…</span> : undefined}
+                    className="mt-12"
+                >
+                    {!isLoading && !hasActivities && <EmptyState>Nothing was logged on this day.</EmptyState>}
+
+                    {!isLoading && hasActivities && (
+                        <div className="grid gap-3 sm:grid-cols-2">
+                            {CATEGORY_CONFIG.map(cat => {
+                                const items = activities[cat.key as CategoryKey];
+                                if (items.length === 0) return null;
+
+                                return (
+                                    <div key={cat.key} className="rounded-card bg-card p-6 shadow-card">
+                                        <div className="flex items-baseline justify-between gap-3">
+                                            <h3 className="flex items-center gap-2 text-[19px] font-semibold">
+                                                <span className={cn('inline-block h-[7px] w-[7px] rounded-full', cat.dotColor)} aria-hidden />
+                                                {cat.label}
+                                            </h3>
+                                            <p className="font-mono text-xs text-muted-foreground">
                                                 {items.length} {items.length === 1 ? 'entry' : 'entries'}
                                             </p>
                                         </div>
+
+                                        <ul className="mt-4">
+                                            {cat.key === 'habits' && items.map((h: any) => (
+                                                <li key={h._id} className="border-t border-border py-2.5 text-[15px]">{h.title}</li>
+                                            ))}
+
+                                            {cat.key === 'sleep' && items.map((s: any) => (
+                                                <li key={s._id} className="flex items-center justify-between border-t border-border py-2.5">
+                                                    <span className="text-[15px]">Duration</span>
+                                                    <span className="font-mono text-sm">{Math.floor(s.duration / 60)}h {s.duration % 60}m</span>
+                                                </li>
+                                            ))}
+
+                                            {cat.key === 'food' && items.map((f: any) => (
+                                                <li key={f._id} className="flex items-center justify-between border-t border-border py-2.5">
+                                                    <span className="text-[15px] capitalize">{f.mealType}</span>
+                                                    {f.calories > 0 && <span className="font-mono text-xs text-muted-foreground">{f.calories} kcal</span>}
+                                                </li>
+                                            ))}
+
+                                            {cat.key === 'study' && items.map((s: any) => (
+                                                <li key={s._id} className="flex items-center justify-between gap-3 border-t border-border py-2.5">
+                                                    <span className="text-[15px]">{s.topic}</span>
+                                                    <span className="font-mono text-xs text-muted-foreground">{Math.floor(s.timeSpent / 60)}h {s.timeSpent % 60}m</span>
+                                                </li>
+                                            ))}
+
+                                            {cat.key === 'expenses' && items.map((e: any) => (
+                                                <li key={e._id} className="flex items-center justify-between border-t border-border py-2.5">
+                                                    <span className="text-[15px] capitalize">{e.category}</span>
+                                                    <span className="font-mono text-sm">₹{e.amount.toFixed(2)}</span>
+                                                </li>
+                                            ))}
+
+                                            {cat.key === 'journal' && items.map((j: any) => (
+                                                <li key={j._id} className="border-t border-border py-2.5">
+                                                    <p className="text-[15px] text-body">{j.summary}</p>
+                                                </li>
+                                            ))}
+                                        </ul>
                                     </div>
-
-                                    <div className="px-4 pb-4 space-y-2">
-                                        {cat.key === 'habits' && items.map((h: any) => (
-                                            <div key={h._id} className="flex items-center gap-2 py-1.5 border-t border-border">
-                                                <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 shrink-0" />
-                                                <span className="text-sm text-foreground">{h.title}</span>
-                                            </div>
-                                        ))}
-
-                                        {cat.key === 'sleep' && items.map((s: any) => (
-                                            <div key={s._id} className="flex items-center justify-between py-1.5 border-t border-border">
-                                                <span className="text-sm text-foreground">Duration</span>
-                                                <span className="text-sm font-medium text-foreground tabular-nums">
-                                                    {Math.floor(s.duration / 60)}h {s.duration % 60}m
-                                                </span>
-                                            </div>
-                                        ))}
-
-                                        {cat.key === 'food' && items.map((f: any) => (
-                                            <div key={f._id} className="flex items-center justify-between py-1.5 border-t border-border">
-                                                <span className="text-sm text-foreground capitalize">{f.mealType}</span>
-                                                {f.calories > 0 && (
-                                                    <span className="text-xs text-muted-foreground">{f.calories} kcal</span>
-                                                )}
-                                            </div>
-                                        ))}
-
-                                        {cat.key === 'study' && items.map((s: any) => (
-                                            <div key={s._id} className="flex items-center justify-between py-1.5 border-t border-border">
-                                                <span className="text-sm text-foreground">{s.topic}</span>
-                                                <span className="text-xs text-muted-foreground tabular-nums">
-                                                    {Math.floor(s.timeSpent / 60)}h {s.timeSpent % 60}m
-                                                </span>
-                                            </div>
-                                        ))}
-
-                                        {cat.key === 'expenses' && items.map((e: any) => (
-                                            <div key={e._id} className="flex items-center justify-between py-1.5 border-t border-border">
-                                                <span className="text-sm text-foreground capitalize">{e.category}</span>
-                                                <span className="text-sm font-medium text-foreground tabular-nums">
-                                                    ₹{e.amount.toFixed(2)}
-                                                </span>
-                                            </div>
-                                        ))}
-
-                                        {cat.key === 'journal' && items.map((j: any) => (
-                                            <div key={j._id} className="pt-2 border-t border-border">
-                                                <p className="text-sm text-foreground leading-relaxed">{j.summary}</p>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            );
-                        })}
-                    </div>
-                )}
-            </main>
-
-        </div>
+                                );
+                            })}
+                        </div>
+                    )}
+                </Section>
+            )}
+        </PageShell>
     );
 }

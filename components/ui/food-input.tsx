@@ -132,7 +132,7 @@ export function FoodInput({
     return (
         <div ref={containerRef} className="relative w-full">
             <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
                 <Input
                     ref={inputRef}
                     type="text"
@@ -142,19 +142,19 @@ export function FoodInput({
                     onKeyDown={handleKeyDown}
                     placeholder={defaultPlaceholder}
                     autoComplete="off"
-                    className={cn('pl-8', className)}
+                    className={cn('pl-10', className)}
                 />
             </div>
 
             {open && (
-                <div className="absolute z-50 left-0 right-0 mt-1 bg-card border border-border rounded-xl shadow-xl shadow-black/20 overflow-hidden animate-in fade-in slide-in-from-top-1 duration-100">
+                <div className="absolute z-50 left-0 right-0 mt-2 bg-popover border border-border rounded-inner shadow-pop overflow-hidden animate-fade-in">
                     {/* Section label */}
                     <div className="flex items-center gap-1.5 px-3 py-2 border-b border-border">
                         {isSearch
                             ? <Search className="h-3 w-3 text-muted-foreground" />
                             : <Clock className="h-3 w-3 text-muted-foreground" />
                         }
-                        <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                        <span className="font-mono text-[11px] uppercase tracking-[0.08em] text-muted-foreground">
                             {isSearch
                                 ? `${suggestions.length} match${suggestions.length !== 1 ? 'es' : ''}`
                                 : recentFoods.length > 0 ? 'Recent & suggested' : `${mealType} suggestions`
@@ -180,8 +180,8 @@ export function FoodInput({
                                     onMouseDown={(e) => { e.preventDefault(); select(food); }}
                                     onMouseEnter={() => setActiveIdx(i)}
                                     className={cn(
-                                        'flex items-center justify-between px-3 py-2 cursor-pointer text-sm transition-colors select-none',
-                                        isActive ? 'bg-accent text-accent-foreground' : 'text-foreground hover:bg-accent/50',
+                                        'flex min-h-[40px] items-center justify-between px-4 py-2 cursor-pointer text-sm transition-colors duration-150 select-none',
+                                        isActive ? 'bg-hover text-foreground' : 'text-foreground hover:bg-hover',
                                     )}
                                 >
                                     <span className="flex items-center gap-2 min-w-0">
@@ -196,7 +196,7 @@ export function FoodInput({
                                         )}
                                     </span>
                                     {isSelected && (
-                                        <Check className="h-3.5 w-3.5 text-green-500 flex-shrink-0" />
+                                        <Check className="h-3.5 w-3.5 text-ok flex-shrink-0" strokeWidth={1.8} aria-hidden />
                                     )}
                                 </li>
                             );
@@ -206,7 +206,7 @@ export function FoodInput({
                     {/* Quick type hint */}
                     {!isSearch && (
                         <div className="px-3 py-2 border-t border-border">
-                            <p className="text-[10px] text-muted-foreground">
+                            <p className="font-mono text-[11px] text-muted-foreground">
                                 Start typing to search all foods
                             </p>
                         </div>

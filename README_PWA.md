@@ -1,101 +1,41 @@
-# PWA Setup Guide
+# PWA and offline
 
-This app is configured as a Progressive Web App (PWA) that can be installed on mobile devices and desktops.
+The tracker installs as an app, opens instantly from a saved copy of your data, and accepts new entries while offline.
 
-## Features
+## How it works
 
-- ✅ Service Worker for offline functionality
-- ✅ Web App Manifest for installability
-- ✅ Offline caching of static assets
-- ✅ Network-first strategy for API calls
-- ✅ Install prompt for users
-- ✅ App-like experience when installed
+| Layer | What it does | Where |
+|---|---|---|
+| Service worker | Pages: network first, saved copy when offline. `/_next/static`: cache first (hashed, never changes). Images/fonts: stale-while-revalidate. **Never caches `/api`** (per-user data). | `public/sw.js` |
+| Query cache | All successful API reads are saved to IndexedDB and restored at launch (7 days max), then refreshed in the background. | `lib/query/client.ts`, `lib/query/persister.ts` |
+| Offline queue | Adds (expenses, food, study, sleep, journal) and habit check-ins go through a queue: shown at once, saved across restarts, sent in order when back online. | `lib/offline/queue.ts`, `lib/offline/useOfflineCreate.ts` |
+| No duplicates | Expense, food and study creates send a device-made `clientId`; the server returns the first copy on a retry (unique index per user). Sleep, journal and check-ins overwrite by day. | `lib/api/idempotent.ts` |
+| Updates | A new version waits until the user taps **Reload** in the "new version is ready" prompt; it never reloads mid-entry. | `lib/pwa/register.ts`, `components/pwa/UpdatePrompt.tsx` |
 
-## Icon Generation
+Logout, login, register and an expired session all wipe the cached data, the queue and saved pages (`clearUserData`), so the next person on the device sees nothing. Logout warns first if unsynced saves exist.
 
-To generate PWA icons, you have two options:
+Editing and deleting still need a connection.
 
-### Option 1: Use the provided script (requires sharp)
+## Releasing a change
+
+- **Changed `sw.js` caching rules:** bump `VERSION` in `public/sw.js`. Old caches are deleted on activation.
+- **Changed an API response shape:** bump `PERSIST_BUSTER` in `lib/query/client.ts`, or devices restore data in the old shape.
+- **Added a new kind of offline save:** register it in `registerOfflineMutations` (`lib/offline/queue.ts`). A queued save restored after a restart needs those defaults to know how to send itself.
+
+## Manifest
+
+`public/manifest.json`: `id` and `start_url` `/dashboard`, standalone display, dark `#0E0D0B` theme and background, separate `any` and `maskable` icons, and home-screen shortcuts for habits, expense, food and journal. No `screenshots` yet; adding them enables the richer install prompt on Android.
+
+## Testing
 
 ```bash
-npm install sharp --save-dev
-node scripts/generate-icons.js
+npm run build:next && npx next start
 ```
 
-### Option 2: Create icons manually
+1. **Install:** DevTools → Application → Manifest shows no errors; the install prompt appears after ~3 s (dismiss snoozes it for 7 days).
+2. **Offline reads:** open a few pages, then DevTools → Network → Offline and reload. Pages show the saved data and the offline banner.
+3. **Offline saves:** while offline, add an expense. It appears with a "Not synced" tag and the banner counts it. Reload (still offline): it is still queued. Go online: it syncs once, with no duplicate.
+4. **Update prompt:** change `VERSION` in `sw.js`, rebuild, reload: the "new version is ready" prompt appears, and **Reload** switches over.
+5. **Unit tests:** `npm test` covers the queue (offline → restart → sync once), the server de-duplication, the check-in merge and the persister fallback.
 
-Create two PNG files:
-- `public/icon-192.png` (192x192 pixels)
-- `public/icon-512.png` (512x512 pixels)
-
-You can use any image editor or online tool to create these icons. The icons should represent your app and work well as app icons.
-
-## Testing PWA
-
-1. **Build the app:**
-   ```bash
-   npm run build
-   npm start
-   ```
-
-2. **Test in Chrome DevTools:**
-   - Open Chrome DevTools (F12)
-   - Go to Application tab
-   - Check "Service Workers" section
-   - Check "Manifest" section
-   - Use "Lighthouse" to test PWA score
-
-3. **Test Install Prompt:**
-   - On mobile: Visit the site, browser will show install banner
-   - On desktop: Look for install icon in address bar
-   - Or use the custom install button that appears
-
-4. **Test Offline:**
-   - Open DevTools > Network tab
-   - Check "Offline" checkbox
-   - Refresh page - should still work for cached content
-
-## Service Worker Behavior
-
-- **Static Assets:** Cached on install, served from cache first
-- **API Calls:** Network first, fallback to cache if offline
-- **Updates:** New service worker activates on next visit
-
-## Manifest Configuration
-
-The manifest is located at `public/manifest.json`. Key settings:
-- `display: "standalone"` - App-like experience
-- `start_url: "/dashboard"` - Where app opens
-- `theme_color: "#3B82F6"` - Browser theme color
-
-## Browser Support
-
-- ✅ Chrome/Edge (Android & Desktop)
-- ✅ Safari (iOS 11.3+)
-- ✅ Firefox (Android)
-- ⚠️ Safari (Desktop) - Limited support
-
-## Troubleshooting
-
-1. **Service Worker not registering:**
-   - Ensure you're using HTTPS (or localhost)
-   - Check browser console for errors
-   - Clear browser cache and try again
-
-2. **Icons not showing:**
-   - Verify icon files exist in `public/` folder
-   - Check manifest.json paths are correct
-   - Clear browser cache
-
-3. **Install prompt not appearing:**
-   - App must meet PWA criteria (HTTPS, manifest, service worker)
-   - User must visit site multiple times
-   - Check if already installed
-
-## Future Enhancements
-
-- [ ] Background sync for offline actions
-- [ ] Push notifications
-- [ ] Offline data queue
-- [ ] Advanced caching strategies
-
+The service worker only registers over HTTPS or on localhost.

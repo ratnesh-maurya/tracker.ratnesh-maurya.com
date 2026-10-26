@@ -2,7 +2,7 @@
 
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import { ToastProvider } from '@/components/ui/toast-provider';
-import { DarkModeInit } from '@/components/dark-mode-init';
+import { ThemeSync } from '@/components/theme-sync';
 import { getQueryClient, PERSIST_BUSTER, PERSIST_MAX_AGE } from '@/lib/query/client';
 import { idbPersister } from '@/lib/query/persister';
 import { isOfflineMutation } from '@/lib/offline/queue';
@@ -27,7 +27,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
             onSuccess={() => queryClient.resumePausedMutations()}
         >
             <ToastProvider>
-                <DarkModeInit />
+                <ThemeSync />
                 {children}
             </ToastProvider>
         </PersistQueryClientProvider>

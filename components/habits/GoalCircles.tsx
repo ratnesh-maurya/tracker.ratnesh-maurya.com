@@ -13,7 +13,7 @@ export function GoalCircles({ target, current, onCircleClick }: GoalCirclesProps
     const circles = Array.from({ length: target }, (_, i) => i + 1);
 
     return (
-        <div className="flex flex-wrap gap-2 mt-2">
+        <div className="mt-4 flex flex-wrap gap-2">
             {circles.map((circleNum) => {
                 const isCompleted = circleNum <= current;
                 return (
@@ -21,14 +21,16 @@ export function GoalCircles({ target, current, onCircleClick }: GoalCirclesProps
                         key={circleNum}
                         type="button"
                         onClick={() => onCircleClick(circleNum)}
+                        aria-pressed={isCompleted}
+                        aria-label={`${circleNum} of ${target}`}
                         className={cn(
-                            'w-10 h-10 rounded-full border-2 flex items-center justify-center transition-all hover:scale-110',
+                            'flex h-11 w-11 items-center justify-center rounded-full border transition-colors duration-150',
                             isCompleted
-                                ? 'bg-green-500 border-green-600 text-white shadow-md'
-                                : 'bg-white border-gray-300 text-gray-400 hover:border-gray-400 hover:bg-gray-50'
+                                ? 'border-primary bg-primary text-primary-foreground'
+                                : 'border-input bg-card text-muted-foreground hover:border-rule'
                         )}
                     >
-                        {isCompleted && <Check className="h-5 w-5" />}
+                        {isCompleted ? <Check className="h-[18px] w-[18px]" strokeWidth={1.8} aria-hidden /> : <span className="font-mono text-xs">{circleNum}</span>}
                     </button>
                 );
             })}

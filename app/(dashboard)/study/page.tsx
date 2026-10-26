@@ -1,9 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -12,11 +10,12 @@ import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { useToast } from '@/components/ui/toast-provider';
 import { PendingTag } from '@/components/ui/pending-tag';
 import { SAVED_OFFLINE_MESSAGE, useOfflineCreate } from '@/lib/offline/useOfflineCreate';
-import { ArrowLeft, Plus, GraduationCap, Tag, Edit2, Trash2 } from 'lucide-react';
+import { Plus, Edit2, Trash2 } from 'lucide-react';
 import { formatDate, getLocalDateString } from '@/lib/utils';
 import { Pagination } from '@/components/ui/pagination';
 import { Chip } from '@/components/ui/chip';
 import { handleApiResponse } from '@/lib/api/client';
+import { EmptyState, PageHeader, PageShell, Section, Stat } from '@/components/layout/page';
 
 const TOPIC_OPTIONS = ['DSA', 'Golang', 'System Design', 'Other'];
 const TAG_OPTIONS = ['golang', 'dsa', 'LLD', 'HLD', 'leetcode', 'codechef'];
@@ -228,171 +227,119 @@ export default function StudyPage() {
     const totalHours = studyEntries.reduce((sum: number, entry: any) => sum + (entry.timeSpent || 0), 0) / 60;
 
     return (
-        <div className="min-h-screen bg-background">
-            <header className="bg-background/95 backdrop-blur-md border-b border-border sticky top-0 z-10">
-                <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-3">
-                            <Link href="/dashboard">
-                                <Button variant="ghost" size="icon" className="rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-smooth">
-                                    <ArrowLeft className="h-4 w-4" />
-                                </Button>
-                            </Link>
-                            <div>
-                                <h1 className="text-2xl font-bold text-foreground">
-                                    Study
-                                </h1>
-                            </div>
-                        </div>
-                        <Button
-                            onClick={() => setIsModalOpen(true)}
-                            className="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white rounded-xl shadow-md hover:shadow-lg transition-all duration-200"
-                        >
-                            <Plus className="h-4 w-4 mr-2" />
-                            Log Study
+        <>
+            <PageShell>
+                <PageHeader
+                    kicker="§ 05 · Study"
+                    title={<>What I <em>learned</em></>}
+                    action={
+                        <Button onClick={() => setIsModalOpen(true)}>
+                            <Plus className="h-4 w-4" strokeWidth={1.8} aria-hidden />
+                            Log study
                         </Button>
-                    </div>
-                </div>
-            </header>
+                    }
+                />
 
-            <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-8">
                 {studyEntries.length > 0 && (
-                    <div className="animate-fade-in mb-6">
-                        <Card className="border-0 shadow-lg bg-gradient-to-br from-purple-500 to-purple-600 text-white">
-                            <CardContent className="py-5">
-                                <div className="flex items-center justify-between">
-                                    <div>
-                                        <p className="text-purple-100 text-sm mb-1 font-medium">Total Study Time</p>
-                                        <p className="text-3xl font-bold">{totalHours.toFixed(1)} hours</p>
-                                    </div>
-                                    <div className="bg-white/20 p-4 rounded-full backdrop-blur-sm">
-                                        <GraduationCap className="h-8 w-8" />
-                                    </div>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </div>
+                    <dl className="grid grid-cols-2 gap-x-6 gap-y-8 sm:grid-cols-4">
+                        <Stat label="hours on this page" value={totalHours.toFixed(1)} className="border-t border-border pt-4" />
+                        <Stat label="sessions" value={studyEntries.length} className="border-t border-border pt-4" />
+                    </dl>
                 )}
 
-                {isLoading ? (
-                    <div className="text-center py-12 animate-pulse text-gray-400 dark:text-gray-500">Loading...</div>
-                ) : studyEntries.length === 0 ? (
-                    <Card className="border border-border shadow-sm bg-card animate-fade-in">
-                        <CardContent className="py-16 text-center">
-                            <div className="bg-purple-100 dark:bg-purple-900 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <GraduationCap className="h-8 w-8 text-purple-600 dark:text-purple-400" />
-                            </div>
-                            <p className="text-gray-600 dark:text-gray-300 mb-4 font-medium">No study entries yet</p>
-                            <Button
-                                onClick={() => setIsModalOpen(true)}
-                                className="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white rounded-xl"
-                            >
-                                <Plus className="h-4 w-4 mr-2" />
-                                Log Study
-                            </Button>
-                        </CardContent>
-                    </Card>
-                ) : (
-                    <div className="space-y-3 animate-fade-in">
-                        {studyEntries.map((entry: any, index: number) => {
-                            const hours = Math.floor(entry.timeSpent / 60);
-                            const minutes = entry.timeSpent % 60;
-                            return (
-                                <Card
-                                    key={entry._id}
-                                    className="border border-white/30 dark:border-white/10 shadow-xl hover:shadow-2xl transition-all duration-200 bg-white/40 dark:bg-gray-800/70 backdrop-blur-2xl animate-slide-up"
-                                    style={{ animationDelay: `${index * 50}ms` }}
-                                >
-                                    <CardContent className="py-5">
-                                        <div className="flex items-start justify-between mb-4">
-                                            <div className="flex items-center space-x-3 flex-1">
-                                                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-400 to-purple-500 flex items-center justify-center shadow-sm">
-                                                    <GraduationCap className="h-6 w-6 text-white" />
-                                                </div>
-                                                <div className="flex-1">
-                                                    <h3 className="font-semibold text-lg text-gray-800 dark:text-gray-100">{entry.topic}</h3>
-                                                    <p className="text-sm text-muted-foreground mt-0.5">{formatDate(entry.date)}</p>
-                                                </div>
-                                            </div>
-                                            <div className="flex items-center gap-3">
-                                                <div className="text-right">
-                                                    <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
-                                                        {hours}h {minutes}m
-                                                    </div>
-                                                </div>
-                                                <div className="flex gap-2">
-                                                    {entry.pending ? (
-                                                        <PendingTag />
-                                                    ) : (
-                                                        <>
-                                                            <Button
-                                                                variant="ghost"
-                                                                size="icon"
-                                                                onClick={() => handleEdit(entry)}
-                                                                className="rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
-                                                            >
-                                                                <Edit2 className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                                                            </Button>
-                                                            <Button
-                                                                variant="ghost"
-                                                                size="icon"
-                                                                onClick={() => handleDeleteClick(entry._id)}
-                                                                className="rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
-                                                            >
-                                                                <Trash2 className="h-4 w-4 text-red-600 dark:text-red-400" />
-                                                            </Button>
-                                                        </>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div className="space-y-2">
+                <Section kicker="§ 01 · Sessions" className="mt-12">
+                    {isLoading ? (
+                        <p className="py-12 text-center font-mono text-sm text-muted-foreground animate-pulse">loading…</p>
+                    ) : studyEntries.length === 0 ? (
+                        <EmptyState
+                            action={
+                                <Button onClick={() => setIsModalOpen(true)}>
+                                    <Plus className="h-4 w-4" strokeWidth={1.8} aria-hidden />
+                                    Log study
+                                </Button>
+                            }
+                        >
+                            No study sessions yet.
+                        </EmptyState>
+                    ) : (
+                        <ul className="border-b border-border">
+                            {studyEntries.map((entry: any) => {
+                                const hours = Math.floor(entry.timeSpent / 60);
+                                const minutes = entry.timeSpent % 60;
+                                return (
+                                    <li
+                                        key={entry._id}
+                                        className="grid grid-cols-[1fr_auto] gap-x-4 gap-y-2 border-t border-border px-2 py-5 transition-colors duration-150 hover:bg-hover sm:grid-cols-[140px_1fr_auto]"
+                                    >
+                                        <p className="col-start-1 row-start-1 pt-2 font-mono text-xs text-muted-foreground">{formatDate(entry.date)}</p>
+                                        <div className="col-span-2 row-start-2 min-w-0 sm:col-span-1 sm:row-start-1 sm:col-start-2">
+                                            <h3 className="font-display text-[26px] leading-[1.1] sm:text-[30px]">{entry.topic}</h3>
                                             {entry.tags && entry.tags.length > 0 && (
-                                                <div className="flex flex-wrap gap-2">
+                                                <div className="mt-3 flex flex-wrap gap-1.5">
                                                     {entry.tags.map((tag: string, idx: number) => (
-                                                        <span
-                                                            key={idx}
-                                                            className="inline-flex items-center px-2.5 py-1 rounded-full text-xs bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 font-medium"
-                                                        >
-                                                            <Tag className="h-3 w-3 mr-1" />
+                                                        <span key={idx} className="rounded-full bg-muted px-2.5 py-1 font-mono text-[12.5px] text-muted-foreground">
                                                             {tag}
                                                         </span>
                                                     ))}
                                                 </div>
                                             )}
                                             {entry.projectReference && (
-                                                <div className="text-sm">
-                                                    <span className="text-muted-foreground">Project: </span>
-                                                    <span className="font-medium text-gray-800 dark:text-gray-200">{entry.projectReference}</span>
-                                                </div>
+                                                <p className="mt-2 text-sm text-muted-foreground">
+                                                    project — <span className="text-body">{entry.projectReference}</span>
+                                                </p>
                                             )}
-                                            {entry.notes && (
-                                                <p className="text-sm text-gray-700 dark:text-gray-300 mt-2 border-t border-gray-100 dark:border-gray-700 pt-2">{entry.notes}</p>
+                                            {entry.notes && <p className="mt-2 max-w-lede text-[15px] text-body">{entry.notes}</p>}
+                                        </div>
+                                        <div className="col-start-2 row-start-1 flex items-start justify-end gap-1 sm:col-start-3">
+                                            <span className="mr-2 font-display text-[26px] leading-none sm:text-[30px]">
+                                                {hours}h {minutes}m
+                                            </span>
+                                            {entry.pending ? (
+                                                <PendingTag />
+                                            ) : (
+                                                <>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        onClick={() => handleEdit(entry)}
+                                                        aria-label={`Edit ${entry.topic}`}
+                                                        className="-mt-2"
+                                                    >
+                                                        <Edit2 className="h-4 w-4" strokeWidth={1.8} aria-hidden />
+                                                    </Button>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        onClick={() => handleDeleteClick(entry._id)}
+                                                        aria-label={`Delete ${entry.topic}`}
+                                                        className="-mt-2 hover:text-kicker"
+                                                    >
+                                                        <Trash2 className="h-4 w-4" strokeWidth={1.8} aria-hidden />
+                                                    </Button>
+                                                </>
                                             )}
                                         </div>
-                                    </CardContent>
-                                </Card>
-                            );
-                        })}
-                    </div>
-                )}
+                                    </li>
+                                );
+                            })}
+                        </ul>
+                    )}
 
-                {pagination && pagination.totalPages > 1 && (
-                    <div className="mt-6">
+                    {pagination && pagination.totalPages > 1 && (
                         <Pagination
                             page={page}
                             totalPages={pagination.totalPages}
                             onPageChange={setPage}
                             isLoading={isLoading}
                         />
-                    </div>
-                )}
-            </main>
+                    )}
+                </Section>
+            </PageShell>
 
             <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Log Study Session" size="lg">
                 <form onSubmit={handleSubmit} className="space-y-6">
                     <div>
-                        <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                        <label className="block text-sm font-medium mb-2 text-foreground">
                             Topic / What did you study?
                         </label>
                         <div className="flex flex-wrap gap-2 mb-3">
@@ -411,13 +358,13 @@ export default function StudyPage() {
                                 value={customTopic}
                                 onChange={(e) => setCustomTopic(e.target.value)}
                                 placeholder="Enter your custom topic"
-                                className="mt-2 rounded-lg"
+                                className="mt-2"
                                 required
                             />
                         )}
                     </div>
                     <div>
-                        <label htmlFor="timeSpent" className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
+                        <label htmlFor="timeSpent" className="block text-sm font-medium mb-1 text-foreground">
                             Time Spent (minutes)
                         </label>
                         <Input
@@ -426,12 +373,12 @@ export default function StudyPage() {
                             min="1"
                             value={timeSpent}
                             onChange={(e) => setTimeSpent(e.target.value)}
-                            className="rounded-lg"
+                           
                             required
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                        <label className="block text-sm font-medium mb-2 text-foreground">
                             Tags
                         </label>
                         <div className="flex flex-wrap gap-2 mb-3">
@@ -453,7 +400,7 @@ export default function StudyPage() {
                                 value={customTags}
                                 onChange={(e) => setCustomTags(e.target.value)}
                                 placeholder="e.g., react, nodejs, mongodb"
-                                className="text-sm rounded-lg"
+                                className="text-sm"
                             />
                         </div>
                         {(selectedTags.length > 0 || customTags.trim()) && (
@@ -465,7 +412,7 @@ export default function StudyPage() {
                         )}
                     </div>
                     <div>
-                        <label htmlFor="projectReference" className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
+                        <label htmlFor="projectReference" className="block text-sm font-medium mb-1 text-foreground">
                             Project Reference (optional)
                         </label>
                         <Input
@@ -473,11 +420,11 @@ export default function StudyPage() {
                             value={projectReference}
                             onChange={(e) => setProjectReference(e.target.value)}
                             placeholder="e.g., Personal Tracker App"
-                            className="rounded-lg"
+                           
                         />
                     </div>
                     <div>
-                        <label htmlFor="notes" className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
+                        <label htmlFor="notes" className="block text-sm font-medium mb-1 text-foreground">
                             Notes (optional)
                         </label>
                         <Textarea
@@ -486,19 +433,18 @@ export default function StudyPage() {
                             onChange={(e) => setNotes(e.target.value)}
                             rows={4}
                             placeholder="What did you learn? Any insights?"
-                            className="rounded-lg"
+                           
                         />
                     </div>
-                    <div className="flex justify-end space-x-2 pt-4">
-                        <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)} className="rounded-lg">
+                    <div className="flex justify-end gap-2 pt-4">
+                        <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)}>
                             Cancel
                         </Button>
                         <Button
                             type="submit"
                             disabled={createMutation.isPending}
-                            className="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white rounded-lg"
                         >
-                            {createMutation.isPending ? 'Saving...' : 'Save'}
+                            {createMutation.isPending ? '…' : 'Save'}
                         </Button>
                     </div>
                 </form>
@@ -507,7 +453,7 @@ export default function StudyPage() {
             <Modal isOpen={isEditModalOpen} onClose={() => { setIsEditModalOpen(false); setEditingStudy(null); }} title="Edit Study Entry" size="lg">
                 <form onSubmit={handleEditSubmit} className="space-y-6">
                     <div>
-                        <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                        <label className="block text-sm font-medium mb-2 text-foreground">
                             Topic / What did you study?
                         </label>
                         <div className="flex flex-wrap gap-2 mb-3">
@@ -526,13 +472,13 @@ export default function StudyPage() {
                                 value={customTopic}
                                 onChange={(e) => setCustomTopic(e.target.value)}
                                 placeholder="Enter your custom topic"
-                                className="mt-2 rounded-lg"
+                                className="mt-2"
                                 required
                             />
                         )}
                     </div>
                     <div>
-                        <label htmlFor="editTimeSpent" className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
+                        <label htmlFor="editTimeSpent" className="block text-sm font-medium mb-1 text-foreground">
                             Time Spent (minutes)
                         </label>
                         <Input
@@ -541,12 +487,12 @@ export default function StudyPage() {
                             min="1"
                             value={timeSpent}
                             onChange={(e) => setTimeSpent(e.target.value)}
-                            className="rounded-lg"
+                           
                             required
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                        <label className="block text-sm font-medium mb-2 text-foreground">
                             Tags
                         </label>
                         <div className="flex flex-wrap gap-2 mb-3">
@@ -568,7 +514,7 @@ export default function StudyPage() {
                                 value={customTags}
                                 onChange={(e) => setCustomTags(e.target.value)}
                                 placeholder="e.g., react, nodejs, mongodb"
-                                className="text-sm rounded-lg"
+                                className="text-sm"
                             />
                         </div>
                         {(selectedTags.length > 0 || customTags.trim()) && (
@@ -580,7 +526,7 @@ export default function StudyPage() {
                         )}
                     </div>
                     <div>
-                        <label htmlFor="editProjectReference" className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
+                        <label htmlFor="editProjectReference" className="block text-sm font-medium mb-1 text-foreground">
                             Project Reference (optional)
                         </label>
                         <Input
@@ -588,11 +534,11 @@ export default function StudyPage() {
                             value={projectReference}
                             onChange={(e) => setProjectReference(e.target.value)}
                             placeholder="e.g., Personal Tracker App"
-                            className="rounded-lg"
+                           
                         />
                     </div>
                     <div>
-                        <label htmlFor="editNotes" className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
+                        <label htmlFor="editNotes" className="block text-sm font-medium mb-1 text-foreground">
                             Notes (optional)
                         </label>
                         <Textarea
@@ -601,17 +547,16 @@ export default function StudyPage() {
                             onChange={(e) => setNotes(e.target.value)}
                             rows={4}
                             placeholder="What did you learn? Any insights?"
-                            className="rounded-lg"
+                           
                         />
                     </div>
-                    <div className="flex justify-end space-x-2 pt-4">
-                        <Button type="button" variant="outline" onClick={() => { setIsEditModalOpen(false); setEditingStudy(null); }} className="rounded-lg">
+                    <div className="flex justify-end gap-2 pt-4">
+                        <Button type="button" variant="outline" onClick={() => { setIsEditModalOpen(false); setEditingStudy(null); }}>
                             Cancel
                         </Button>
                         <Button
                             type="submit"
                             disabled={updateMutation.isPending}
-                            className="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white rounded-lg"
                         >
                             {updateMutation.isPending ? 'Updating...' : 'Update'}
                         </Button>
@@ -631,6 +576,6 @@ export default function StudyPage() {
                 isLoading={deleteMutation.isPending}
             />
 
-        </div>
+        </>
     );
 }

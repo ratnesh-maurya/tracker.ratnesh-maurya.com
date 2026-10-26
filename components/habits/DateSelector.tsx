@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { format, subDays, startOfWeek, addDays, isSameDay } from 'date-fns';
 import { cn } from '@/lib/utils';
 
@@ -11,6 +11,15 @@ interface DateSelectorProps {
 
 export function DateSelector({ selectedDate, onDateSelect }: DateSelectorProps) {
     const [dates, setDates] = useState<Date[]>([]);
+    const selectedRef = useRef<HTMLButtonElement>(null);
+
+    // Newest day is on the right; keep the selected one visible on narrow screens.
+    useEffect(() => {
+        // Scroll only the strip, never the page.
+        const el = selectedRef.current;
+        const strip = el?.parentElement;
+        if (el && strip) strip.scrollLeft = el.offsetLeft - strip.clientWidth / 2 + el.clientWidth / 2;
+    }, [dates, selectedDate]);
 
     useEffect(() => {
         // Show past 7 days + today
@@ -20,7 +29,7 @@ export function DateSelector({ selectedDate, onDateSelect }: DateSelectorProps) 
     }, []);
 
     return (
-        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+        <div className="relative -mx-1 flex gap-2 overflow-x-auto px-1 pb-1 scrollbar-hide">
             {dates.map((date) => {
                 const isSelected = isSameDay(date, selectedDate);
                 const dayName = format(date, 'EEE').toUpperCase();
@@ -30,17 +39,20 @@ export function DateSelector({ selectedDate, onDateSelect }: DateSelectorProps) 
                 return (
                     <button
                         key={date.toISOString()}
+                        ref={isSelected ? selectedRef : undefined}
                         onClick={() => onDateSelect(date)}
+                        aria-pressed={isSelected}
+                        aria-label={format(date, 'EEEE, d MMMM')}
                         className={cn(
-                            'flex flex-col items-center justify-center min-w-[60px] py-2 px-3 rounded-lg transition-all flex-shrink-0',
+                            'relative flex min-h-[64px] min-w-[56px] flex-shrink-0 flex-col items-center justify-center gap-1 rounded-full border px-3 transition-colors duration-150',
                             isSelected
-                                ? 'bg-blue-600 text-white'
-                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200',
-                            isToday && !isSelected && 'border-2 border-blue-400'
+                                ? 'border-primary bg-primary text-primary-foreground'
+                                : 'border-border bg-card text-muted-foreground hover:border-rule hover:text-foreground'
                         )}
                     >
-                        <span className="text-xs font-medium">{dayName}</span>
-                        <span className="text-lg font-bold">{dayNumber}</span>
+                        <span className="font-mono text-[11px] tracking-[0.08em]">{dayName}</span>
+                        <span className="font-display text-[22px] leading-none">{dayNumber}</span>
+                        {isToday && !isSelected && <span className="saffron-dot absolute bottom-1.5 h-[5px] w-[5px]" aria-hidden />}
                     </button>
                 );
             })}

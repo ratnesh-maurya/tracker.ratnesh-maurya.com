@@ -159,10 +159,10 @@ export function FoodTagInput({
             {/* Tag container + input */}
             <div
                 className={cn(
-                    'min-h-[44px] w-full flex flex-wrap items-center gap-1.5 px-3 py-2 rounded-lg border bg-background text-sm transition-colors cursor-text',
+                    'min-h-[44px] w-full flex flex-wrap items-center gap-1.5 px-4 py-2 rounded-inner border bg-card text-base transition-colors duration-150 cursor-text',
                     focused
-                        ? 'border-ring ring-2 ring-ring/20'
-                        : 'border-input hover:border-ring/50',
+                        ? 'border-rule'
+                        : 'border-border hover:border-rule',
                 )}
                 onClick={() => inputRef.current?.focus()}
             >
@@ -170,16 +170,16 @@ export function FoodTagInput({
                 {tags.map((tag, i) => (
                     <span
                         key={i}
-                        className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-300 text-xs font-medium border border-green-200 dark:border-green-700/50 shrink-0"
+                        className="inline-flex items-center gap-1 rounded-full bg-muted px-2.5 py-1 font-mono text-[12.5px] font-medium text-secondary-foreground shrink-0"
                     >
                         {tag}
                         <button
                             type="button"
                             onMouseDown={(e) => { e.preventDefault(); removeTag(i); }}
-                            className="ml-0.5 hover:text-green-600 dark:hover:text-green-200 transition-colors"
+                            className="ml-0.5 text-muted-foreground transition-colors duration-150 hover:text-foreground"
                             tabIndex={-1}
                         >
-                            <X className="h-3 w-3" />
+                            <X className="h-3 w-3" strokeWidth={1.8} aria-hidden />
                         </button>
                     </span>
                 ))}
@@ -196,32 +196,32 @@ export function FoodTagInput({
                         onKeyDown={handleKeyDown}
                         placeholder={defaultPlaceholder}
                         autoComplete="off"
-                        className="flex-1 bg-transparent outline-none placeholder:text-muted-foreground text-sm min-w-0"
+                        className="flex-1 bg-transparent outline-none placeholder:text-muted-foreground text-base min-w-0"
                     />
                 </div>
             </div>
 
             {/* Hint */}
             {focused && input.trim() && !isSearch && (
-                <p className="text-[10px] text-muted-foreground mt-1 px-1">
-                    Press <kbd className="px-1 py-0.5 rounded bg-muted text-[10px]">Enter</kbd> to add &quot;{input.trim()}&quot; as a custom item
+                <p className="font-mono text-[11px] text-muted-foreground mt-1.5 px-2">
+                    Press <kbd className="px-1 py-0.5 rounded bg-muted text-[11px]">Enter</kbd> to add &quot;{input.trim()}&quot; as a custom item
                 </p>
             )}
             {focused && input.trim() && isSearch && suggestions.length === 0 && (
-                <p className="text-[10px] text-muted-foreground mt-1 px-1">
-                    No match — press <kbd className="px-1 py-0.5 rounded bg-muted text-[10px]">Enter</kbd> to add &quot;{input.trim()}&quot;
+                <p className="font-mono text-[11px] text-muted-foreground mt-1.5 px-2">
+                    No match — press <kbd className="px-1 py-0.5 rounded bg-muted text-[11px]">Enter</kbd> to add &quot;{input.trim()}&quot;
                 </p>
             )}
 
             {/* Dropdown */}
             {open && (
-                <div className="absolute z-50 left-0 right-0 mt-1 bg-card border border-border rounded-xl shadow-xl shadow-black/20 overflow-hidden animate-in fade-in slide-in-from-top-1 duration-100">
+                <div className="absolute z-50 left-0 right-0 mt-2 bg-popover border border-border rounded-inner shadow-pop overflow-hidden animate-fade-in">
                     <div className="flex items-center gap-1.5 px-3 py-2 border-b border-border">
                         {isSearch
                             ? <Search className="h-3 w-3 text-muted-foreground" />
                             : <Clock className="h-3 w-3 text-muted-foreground" />
                         }
-                        <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                        <span className="font-mono text-[11px] uppercase tracking-[0.08em] text-muted-foreground">
                             {isSearch
                                 ? `${suggestions.length} match${suggestions.length !== 1 ? 'es' : ''}`
                                 : recentFoods.length > 0 ? 'Recent & suggested' : `${mealType} suggestions`
@@ -242,8 +242,8 @@ export function FoodTagInput({
                                     onMouseDown={(e) => { e.preventDefault(); addTag(food); }}
                                     onMouseEnter={() => setActiveIdx(i)}
                                     className={cn(
-                                        'flex items-center justify-between px-3 py-2 cursor-pointer text-sm transition-colors select-none',
-                                        isActive ? 'bg-accent text-accent-foreground' : 'text-foreground hover:bg-accent/50',
+                                        'flex min-h-[40px] items-center justify-between px-4 py-2 cursor-pointer text-sm transition-colors duration-150 select-none',
+                                        isActive ? 'bg-hover text-foreground' : 'text-foreground hover:bg-hover',
                                     )}
                                 >
                                     <span className="flex items-center gap-2 min-w-0">
@@ -264,7 +264,7 @@ export function FoodTagInput({
 
                     {!isSearch && (
                         <div className="px-3 py-2 border-t border-border">
-                            <p className="text-[10px] text-muted-foreground">
+                            <p className="font-mono text-[11px] text-muted-foreground">
                                 Type to search · <kbd className="px-1 py-0.5 rounded bg-muted">Enter</kbd> to add custom
                             </p>
                         </div>

@@ -18,7 +18,6 @@ import {
     LayoutGrid,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import Image from 'next/image';
 
 const navItems = [
     { name: 'Dashboard', href: '/dashboard', icon: Home },
@@ -63,44 +62,44 @@ export function NavBar() {
     return (
         <>
             {/* ── Desktop sidebar ── */}
-            <aside className="hidden lg:flex fixed left-0 top-0 h-full w-56 xl:w-60 flex-col bg-[#0d0d14] border-r border-white/6 z-40">
-                {/* Logo */}
-                <div className="flex items-center gap-2.5 px-5 py-5 border-b border-white/6">
-                    <Image src="/web-app-manifest-192x192.png" alt="Logo" width={28} height={28} className="rounded-lg" />
-                    <span className="text-sm font-semibold text-white">Personal Tracker</span>
-                </div>
+            <aside className="hidden lg:flex fixed left-0 top-0 h-full w-56 xl:w-60 flex-col bg-background/90 backdrop-blur-md border-r border-border z-40">
+                {/* Wordmark: lowercase display serif after a gradient dot */}
+                <Link href="/dashboard" className="flex items-center gap-2.5 px-6 pt-7 pb-6">
+                    <span className="saffron-dot" aria-hidden />
+                    <span className="font-display text-[26px] leading-none tracking-[-0.01em]">tracker</span>
+                </Link>
 
-                {/* Nav items */}
-                <nav className="flex-1 px-3 py-4 overflow-y-auto space-y-0.5">
-                    {navItems.map((item) => {
-                        const active = isActive(item.href);
-                        return (
-                            <Link
-                                key={item.href}
-                                href={item.href}
-                                className={cn(
-                                    'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150',
-                                    active
-                                        ? 'bg-indigo-600/18 text-indigo-300 border border-indigo-500/20'
-                                        : 'text-gray-500 hover:text-gray-200 hover:bg-white/5 border border-transparent'
-                                )}
-                            >
-                                <item.icon className={cn('h-4 w-4 flex-shrink-0', active ? 'text-indigo-400' : 'text-gray-500')} />
-                                {item.name}
-                            </Link>
-                        );
-                    })}
+                <nav className="flex-1 px-3 overflow-y-auto" aria-label="Main">
+                    <ul className="flex flex-col gap-0.5">
+                        {navItems.map((item) => {
+                            const active = isActive(item.href);
+                            return (
+                                <li key={item.href}>
+                                    <Link
+                                        href={item.href}
+                                        aria-current={active ? 'page' : undefined}
+                                        className={cn(
+                                            'flex min-h-[44px] items-center gap-3 rounded-full px-4 text-sm transition-colors duration-150',
+                                            active
+                                                ? 'bg-muted text-foreground font-medium'
+                                                : 'text-muted-foreground hover:text-foreground'
+                                        )}
+                                    >
+                                        <item.icon className="h-[18px] w-[18px] shrink-0" strokeWidth={1.8} aria-hidden />
+                                        {item.name}
+                                    </Link>
+                                </li>
+                            );
+                        })}
+                    </ul>
                 </nav>
 
-                {/* Bottom branding */}
-                <div className="px-5 py-4 border-t border-white/6">
-                    <p className="text-xs text-gray-700">
-                        Built by{' '}
-                        <a href="https://ratnesh-maurya.com" target="_blank" rel="noopener noreferrer" className="text-indigo-500 hover:text-indigo-400 transition-colors">
-                            Ratnesh Maurya
-                        </a>
-                    </p>
-                </div>
+                <p className="px-6 py-5 border-t border-border font-mono text-[11px] text-muted-foreground">
+                    built by{' '}
+                    <a href="https://ratnesh-maurya.com" target="_blank" rel="noopener noreferrer" className="text-coral hover:text-muted-foreground transition-colors">
+                        ratnesh maurya ↗
+                    </a>
+                </p>
             </aside>
 
             {/* ── Mobile "More" sheet: every page not in the bottom bar ── */}
@@ -109,10 +108,11 @@ export function NavBar() {
                     <button
                         type="button"
                         aria-label="Close menu"
-                        className="absolute inset-0 bg-black/50"
+                        className="absolute inset-0 bg-[rgba(10,10,16,.6)]"
                         onClick={() => setMoreOpen(false)}
                     />
-                    <div className="absolute bottom-0 left-0 right-0 bg-[#0d0d14] border-t border-white/8 rounded-t-2xl px-3 pt-3 pb-24 safe-bottom">
+                    <div className="saffron-hairline absolute bottom-0 left-0 right-0 bg-popover border-t border-border rounded-t-card px-4 pt-5 pb-24 safe-bottom">
+                        <p className="eyebrow px-2 pb-3">All pages</p>
                         <div className="grid grid-cols-3 gap-2">
                             {moreItems.map((item) => {
                                 const active = isActive(item.href);
@@ -123,13 +123,13 @@ export function NavBar() {
                                         onClick={() => setMoreOpen(false)}
                                         aria-current={active ? 'page' : undefined}
                                         className={cn(
-                                            'flex flex-col items-center justify-center gap-1.5 min-h-[72px] rounded-xl text-xs font-medium transition-colors duration-150',
+                                            'flex flex-col items-center justify-center gap-2 min-h-[76px] rounded-inner border text-[13px] transition-colors duration-150',
                                             active
-                                                ? 'bg-indigo-600/18 text-indigo-300'
-                                                : 'text-gray-400 hover:text-gray-200 hover:bg-white/5'
+                                                ? 'border-primary bg-primary text-primary-foreground'
+                                                : 'border-border bg-card text-muted-foreground hover:text-foreground hover:border-rule'
                                         )}
                                     >
-                                        <item.icon className="h-5 w-5" />
+                                        <item.icon className="h-5 w-5" strokeWidth={1.8} aria-hidden />
                                         {item.name}
                                     </Link>
                                 );
@@ -140,7 +140,10 @@ export function NavBar() {
             )}
 
             {/* ── Mobile bottom nav ── */}
-            <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-[#0d0d14]/90 backdrop-blur-xl border-t border-white/8 z-50 safe-bottom">
+            <nav
+                aria-label="Main"
+                className="lg:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-border backdrop-blur-md safe-bottom [background:color-mix(in_srgb,hsl(var(--background))_88%,transparent)]"
+            >
                 <div className="flex items-stretch">
                     {mobileItems.map((item) => {
                         const active = isActive(item.href);
@@ -150,13 +153,12 @@ export function NavBar() {
                                 href={item.href}
                                 aria-current={active ? 'page' : undefined}
                                 className={cn(
-                                    'flex-1 flex flex-col items-center justify-center gap-1 min-h-[56px] transition-colors duration-150',
-                                    active
-                                        ? 'text-indigo-400'
-                                        : 'text-gray-500 hover:text-gray-300'
+                                    'relative flex-1 flex flex-col items-center justify-center gap-1 min-h-[58px] transition-colors duration-150',
+                                    active ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'
                                 )}
                             >
-                                <item.icon className="h-5 w-5" />
+                                {active && <span className="saffron-dot absolute top-1.5 h-[5px] w-[5px]" aria-hidden />}
+                                <item.icon className="h-5 w-5" strokeWidth={1.8} aria-hidden />
                                 <span className="text-[11px] font-medium">{item.name}</span>
                             </Link>
                         );
@@ -167,11 +169,12 @@ export function NavBar() {
                         aria-expanded={moreOpen}
                         aria-haspopup="dialog"
                         className={cn(
-                            'flex-1 flex flex-col items-center justify-center gap-1 min-h-[56px] transition-colors duration-150',
-                            moreOpen || moreActive ? 'text-indigo-400' : 'text-gray-500 hover:text-gray-300'
+                            'relative flex-1 flex flex-col items-center justify-center gap-1 min-h-[58px] transition-colors duration-150',
+                            moreOpen || moreActive ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'
                         )}
                     >
-                        <LayoutGrid className="h-5 w-5" />
+                        {moreActive && !moreOpen && <span className="saffron-dot absolute top-1.5 h-[5px] w-[5px]" aria-hidden />}
+                        <LayoutGrid className="h-5 w-5" strokeWidth={1.8} aria-hidden />
                         <span className="text-[11px] font-medium">More</span>
                     </button>
                 </div>

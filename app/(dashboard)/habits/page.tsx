@@ -1,11 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Plus, Check, Edit, Trash2, Flame, Sparkles } from 'lucide-react';
+import { Plus, Check, Edit, Trash2 } from 'lucide-react';
+import { EmptyState, PageHeader, PageShell, Section } from '@/components/layout/page';
 import { HabitModal } from '@/components/habits/HabitModal';
 import { DateSelector } from '@/components/habits/DateSelector';
 import { DailyGoalsCard } from '@/components/habits/DailyGoalsCard';
@@ -187,178 +186,161 @@ export default function HabitsPage() {
         });
 
     return (
-        <div className="min-h-screen bg-background">
+        <>
             <HabitReminderManager />
-            <header className="bg-background/95 backdrop-blur-md border-b border-border sticky top-0 z-10">
-                <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
-                    <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center space-x-4">
-                            <Link href="/dashboard">
-                                <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-smooth">
-                                    <ArrowLeft className="h-4 w-4" />
-                                </Button>
-                            </Link>
-                            <div>
-                                <h1 className="text-xl font-bold text-foreground">Habits</h1>
-                                <p className="text-xs text-muted-foreground">{format(selectedDate, 'MMMM, d')}</p>
-                            </div>
-                        </div>
+            <PageShell>
+                <PageHeader
+                    kicker={`§ 02 · ${format(selectedDate, 'EEEE, d MMM').toLowerCase()}`}
+                    title={<>Small things, <em>daily</em></>}
+                    action={
                         <Button
                             onClick={() => {
                                 setEditingHabit(null);
                                 setIsModalOpen(true);
                             }}
-                            className="bg-blue-600 hover:bg-blue-700"
                         >
-                            <Plus className="h-4 w-4 mr-2" />
-                            New
+                            <Plus className="h-4 w-4" strokeWidth={1.8} aria-hidden />
+                            New habit
                         </Button>
-                    </div>
-                    <DateSelector selectedDate={selectedDate} onDateSelect={setSelectedDate} />
-                </div>
-            </header>
+                    }
+                />
 
-            <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-8">
+                <DateSelector selectedDate={selectedDate} onDateSelect={setSelectedDate} />
+
                 {isLoading ? (
-                    <div className="text-center py-12 animate-pulse text-gray-400 dark:text-gray-500">Loading...</div>
+                    <p className="py-12 text-center font-mono text-sm text-muted-foreground animate-pulse">loading…</p>
                 ) : habits.length === 0 ? (
-                    <Card className="border border-border shadow-sm bg-card">
-                        <CardContent className="py-12 text-center">
-                            <p className="text-gray-600 dark:text-gray-300 mb-4">No habits yet. Create your first habit to get started!</p>
-                            <Button
-                                onClick={() => setIsModalOpen(true)}
-                                className="bg-blue-600 hover:bg-blue-700"
-                            >
-                                <Plus className="h-4 w-4 mr-2" />
-                                Create Habit
-                            </Button>
-                        </CardContent>
-                    </Card>
+                    <div className="mt-8">
+                        <EmptyState
+                            action={
+                                <Button onClick={() => setIsModalOpen(true)}>
+                                    <Plus className="h-4 w-4" strokeWidth={1.8} aria-hidden />
+                                    Create a habit
+                                </Button>
+                            }
+                        >
+                            No habits yet. Start with one you can do in two minutes.
+                        </EmptyState>
+                    </div>
                 ) : (
                     <>
-                        <DailyGoalsCard completed={completedHabits.length} total={habits.length} />
-
-                        <div className="mt-6 flex items-center justify-between mb-4">
-                            <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100">Habits</h2>
-                            <div className="flex gap-2">
-                                <button
-                                    onClick={() => setViewMode('view')}
-                                    className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${viewMode === 'view'
-                                        ? 'bg-blue-600 text-white'
-                                        : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300'
-                                        }`}
-                                >
-                                    View
-                                </button>
-                                <button
-                                    onClick={() => setViewMode('done')}
-                                    className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${viewMode === 'done'
-                                        ? 'bg-blue-600 text-white'
-                                        : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300'
-                                        }`}
-                                >
-                                    Done
-                                </button>
-                            </div>
+                        <div className="mt-8">
+                            <DailyGoalsCard completed={completedHabits.length} total={habits.length} />
                         </div>
 
-                        <div className="space-y-3">
-                            {displayedHabits.map((habit) => {
-                                const dateCheckIn = getDateCheckIn(habit._id);
-                                const currentValue = dateCheckIn ? (habit.type === 'boolean' ? (dateCheckIn.value === true ? 1 : 0) : Number(dateCheckIn.value)) : 0;
-                                const isCompleted = habit.type === 'boolean'
-                                    ? currentValue === 1
-                                    : habit.target ? currentValue >= habit.target : currentValue > 0;
-                                const streak = getStreak(habit._id);
+                        <Section
+                            kicker={viewMode === 'done' ? `§ 01 · done (${completedHabits.length})` : `§ 01 · to do (${habits.length - completedHabits.length})`}
+                            aside={
+                                <div className="flex gap-2">
+                                    {(['view', 'done'] as const).map((mode) => (
+                                        <button
+                                            key={mode}
+                                            type="button"
+                                            onClick={() => setViewMode(mode)}
+                                            aria-pressed={viewMode === mode}
+                                            className={`inline-flex min-h-[40px] items-center rounded-full border px-4 text-sm font-medium transition-colors duration-150 ${viewMode === mode
+                                                ? 'border-primary bg-primary text-primary-foreground'
+                                                : 'border-border bg-card text-muted-foreground hover:border-rule hover:text-foreground'
+                                                }`}
+                                        >
+                                            {mode === 'view' ? 'To do' : 'Done'}
+                                        </button>
+                                    ))}
+                                </div>
+                            }
+                        >
+                            {displayedHabits.length === 0 ? (
+                                <EmptyState>
+                                    {viewMode === 'done' ? 'Nothing checked off yet for this day.' : 'Everything is done for this day.'}
+                                </EmptyState>
+                            ) : (
+                                <ul className="grid gap-3 sm:grid-cols-2">
+                                    {displayedHabits.map((habit) => {
+                                        const dateCheckIn = getDateCheckIn(habit._id);
+                                        const currentValue = dateCheckIn ? (habit.type === 'boolean' ? (dateCheckIn.value === true ? 1 : 0) : Number(dateCheckIn.value)) : 0;
+                                        const isCompleted = habit.type === 'boolean'
+                                            ? currentValue === 1
+                                            : habit.target ? currentValue >= habit.target : currentValue > 0;
+                                        const streak = getStreak(habit._id);
 
-                                return (
-                                    <Card key={habit._id} className="hover:shadow-md transition-shadow border border-border shadow-sm bg-card">
-                                        <CardContent className="p-4">
-                                            <div className="flex items-start gap-4">
-                                                <div
-                                                    className="w-12 h-12 rounded-full flex items-center justify-center text-2xl flex-shrink-0"
-                                                    style={{ backgroundColor: `${habit.color || '#3B82F6'}20` }}
-                                                >
-                                                    {habit.icon || '📝'}
-                                                </div>
-                                                <div className="flex-1 min-w-0">
-                                                    <div className="flex items-start justify-between gap-2 mb-2">
-                                                        <div className="flex-1 min-w-0 pr-2 overflow-hidden">
-                                                            <div className="flex items-center gap-2 mb-1">
-                                                                <h3 className="font-semibold text-lg truncate text-gray-800 dark:text-gray-100">{habit.title}</h3>
-                                                                {streak > 0 && (
-                                                                    <span className="hidden sm:inline-flex items-center gap-1 text-xs text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/30 px-2 py-1 rounded-full flex-shrink-0">
-                                                                        <Flame className="h-3 w-3" />
-                                                                        {streak}
-                                                                    </span>
-                                                                )}
-                                                            </div>
-                                                            {habit.type === 'count' && habit.target && (
-                                                                <p className="text-sm text-muted-foreground mb-2">
-                                                                    {currentValue} / {habit.target} {habit.schedule === 'daily' ? 'per day' : 'per week'}
-                                                                </p>
-                                                            )}
-                                                        </div>
-                                                        <div className="flex items-center gap-1 flex-shrink-0 ml-auto">
-                                                            <Button
-                                                                variant="ghost"
-                                                                size="icon"
-                                                                onClick={() => handleEdit(habit)}
-                                                                className="h-8 w-8 flex-shrink-0"
-                                                            >
-                                                                <Edit className="h-4 w-4" />
-                                                            </Button>
-                                                            <Button
-                                                                variant="ghost"
-                                                                size="icon"
-                                                                onClick={() => handleDelete(habit._id)}
-                                                                className="h-8 w-8 flex-shrink-0 text-red-500 hover:text-red-700"
-                                                            >
-                                                                <Trash2 className="h-4 w-4" />
-                                                            </Button>
-                                                        </div>
+                                        return (
+                                            <li key={habit._id} className="flex flex-col rounded-card bg-card p-6 shadow-card">
+                                                <div className="flex items-start gap-3">
+                                                    <div className="min-w-0 flex-1">
+                                                        <p className="font-mono text-xs text-muted-foreground">
+                                                            {habit.habitualType === 'quit' ? 'quit' : 'build'} · {habit.timeRange || 'anytime'}
+                                                        </p>
+                                                        <h3 className="mt-2 flex items-center gap-2 text-[19px] font-semibold leading-snug">
+                                                            {habit.icon && <span aria-hidden>{habit.icon}</span>}
+                                                            <span className="truncate">{habit.title}</span>
+                                                        </h3>
                                                     </div>
-
-                                                    {habit.type === 'count' && habit.target && habit.target > 1 && (
-                                                        <GoalCircles
-                                                            target={habit.target}
-                                                            current={currentValue}
-                                                            onCircleClick={(circleIndex) => handleCircleClick(habit._id, circleIndex, currentValue, habit.target!)}
-                                                        />
-                                                    )}
-
-                                                    {habit.type === 'boolean' && (
-                                                        <Button
-                                                            onClick={() => handleCheckIn(habit._id, !isCompleted)}
-                                                            size="lg"
-                                                            className={`w-full mt-2 rounded-lg ${isCompleted
-                                                                ? 'bg-green-500 hover:bg-green-600 text-white'
-                                                                : 'bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200'
-                                                                }`}
-                                                        >
-                                                            {isCompleted ? (
-                                                                <>
-                                                                    <Check className="h-5 w-5 mr-2" />
-                                                                    Completed
-                                                                </>
-                                                            ) : (
-                                                                <>
-                                                                    <Plus className="h-5 w-5 mr-2" />
-                                                                    Mark Complete
-                                                                </>
-                                                            )}
+                                                    <div className="-mr-2 -mt-2 flex shrink-0 items-center">
+                                                        <Button variant="ghost" size="icon" onClick={() => handleEdit(habit)} aria-label={`Edit ${habit.title}`}>
+                                                            <Edit className="h-4 w-4" strokeWidth={1.8} aria-hidden />
                                                         </Button>
-                                                    )}
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            onClick={() => handleDelete(habit._id)}
+                                                            aria-label={`Delete ${habit.title}`}
+                                                            className="hover:text-kicker"
+                                                        >
+                                                            <Trash2 className="h-4 w-4" strokeWidth={1.8} aria-hidden />
+                                                        </Button>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        </CardContent>
-                                    </Card>
-                                );
-                            })}
-                        </div>
+
+                                                {(streak > 0 || (habit.type === 'count' && habit.target)) && (
+                                                <p className="mt-3 flex items-center gap-3 font-mono text-xs text-muted-foreground">
+                                                    {streak > 0 && (
+                                                        <span className="inline-flex items-center gap-1.5 text-foreground">
+                                                            <span className="saffron-dot h-[7px] w-[7px]" aria-hidden />
+                                                            {streak}-day streak
+                                                        </span>
+                                                    )}
+                                                    {habit.type === 'count' && habit.target && (
+                                                        <span>
+                                                            {currentValue} / {habit.target} {habit.schedule === 'daily' ? 'today' : 'this week'}
+                                                        </span>
+                                                    )}
+                                                </p>
+                                                )}
+
+                                                {habit.type === 'count' && habit.target && habit.target > 1 && (
+                                                    <GoalCircles
+                                                        target={habit.target}
+                                                        current={currentValue}
+                                                        onCircleClick={(circleIndex) => handleCircleClick(habit._id, circleIndex, currentValue, habit.target!)}
+                                                    />
+                                                )}
+
+                                                {habit.type === 'boolean' && (
+                                                    <Button
+                                                        onClick={() => handleCheckIn(habit._id, !isCompleted)}
+                                                        variant={isCompleted ? 'default' : 'outline'}
+                                                        aria-pressed={isCompleted}
+                                                        className="mt-5 w-full"
+                                                    >
+                                                        {isCompleted ? (
+                                                            <>
+                                                                <Check className="h-4 w-4" strokeWidth={1.8} aria-hidden />
+                                                                Done
+                                                            </>
+                                                        ) : (
+                                                            'Mark done'
+                                                        )}
+                                                    </Button>
+                                                )}
+                                            </li>
+                                        );
+                                    })}
+                                </ul>
+                            )}
+                        </Section>
                     </>
                 )}
-            </main>
+            </PageShell>
 
             <HabitModal
                 isOpen={isModalOpen}
@@ -369,6 +351,6 @@ export default function HabitsPage() {
                 onSave={handleSave}
                 habit={editingHabit}
             />
-        </div>
+        </>
     );
 }

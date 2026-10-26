@@ -3,7 +3,7 @@
 import { Habit } from '@/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Check, X, Edit, Trash2, Flame } from 'lucide-react';
+import { Check, X, Edit, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 
 interface HabitCardProps {
@@ -33,44 +33,43 @@ export function HabitCard({ habit, onCheckIn, onEdit, onDelete, streak = 0, toda
     };
 
     return (
-        <Card className="hover:shadow-lg transition-all border-l-4" style={{ borderLeftColor: habit.color || '#3B82F6' }}>
+        <Card>
             <CardHeader>
                 <div className="flex items-start justify-between">
-                    <div className="flex items-center space-x-3 flex-1">
+                    <div className="flex items-center gap-3 flex-1">
                         {habit.icon && (
-                            <div className="text-3xl">{habit.icon}</div>
+                            <div className="text-2xl" aria-hidden>{habit.icon}</div>
                         )}
                         <div className="flex-1">
-                            <CardTitle className="text-xl mb-1">{habit.title}</CardTitle>
+                            <CardTitle className="font-sans text-[19px] font-semibold leading-snug tracking-normal mb-1">{habit.title}</CardTitle>
                             <div className="flex items-center gap-2 flex-wrap">
-                                <span className="text-xs px-2 py-1 rounded-full bg-gray-100 text-gray-600 capitalize">
+                                <span className="font-mono text-[12.5px] px-2.5 py-1 rounded-full bg-muted text-muted-foreground">
                                     {habit.schedule}
                                 </span>
                                 {streak > 0 && (
-                                    <span className="text-xs px-2 py-1 rounded-full bg-orange-100 text-orange-600 flex items-center gap-1">
-                                        <Flame className="h-3 w-3" />
+                                    <span className="font-mono text-[12.5px] px-2.5 py-1 rounded-full bg-muted text-foreground flex items-center gap-1.5">
+                                        <span className="saffron-dot h-[7px] w-[7px]" aria-hidden />
                                         {streak} day streak
                                     </span>
                                 )}
                             </div>
                         </div>
                     </div>
-                    <div className="flex items-center space-x-1">
+                    <div className="flex items-center">
                         <Button
                             variant="ghost"
                             size="icon"
                             onClick={() => onEdit(habit)}
-                            className="h-8 w-8"
                         >
-                            <Edit className="h-4 w-4" />
+                            <Edit className="h-4 w-4" strokeWidth={1.8} aria-hidden />
                         </Button>
                         <Button
                             variant="ghost"
                             size="icon"
                             onClick={() => onDelete(habit._id)}
-                            className="h-8 w-8 text-red-500 hover:text-red-700"
+                            className="hover:text-kicker"
                         >
-                            <Trash2 className="h-4 w-4" />
+                            <Trash2 className="h-4 w-4" strokeWidth={1.8} aria-hidden />
                         </Button>
                     </div>
                 </div>
@@ -79,7 +78,7 @@ export function HabitCard({ habit, onCheckIn, onEdit, onDelete, streak = 0, toda
                 <div className="flex items-center justify-between">
                     <div>
                         {habit.type === 'count' && habit.target && (
-                            <p className="text-sm text-gray-600">
+                            <p className="font-mono text-xs text-muted-foreground">
                                 Target: {habit.target} {habit.schedule === 'daily' ? 'per day' : 'per week'}
                             </p>
                         )}
@@ -87,22 +86,20 @@ export function HabitCard({ habit, onCheckIn, onEdit, onDelete, streak = 0, toda
                     <Button
                         onClick={handleCheckIn}
                         disabled={isChecking}
-                        size="lg"
-                        className={`min-w-[120px] ${todayChecked
-                            ? 'bg-green-500 hover:bg-green-600 text-white'
-                            : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
-                            }`}
+                        variant={todayChecked ? 'default' : 'outline'}
+                        aria-pressed={todayChecked}
+                        className="min-w-[120px]"
                     >
                         {isChecking ? (
-                            '...'
+                            '…'
                         ) : todayChecked ? (
                             <>
-                                <Check className="h-5 w-5 mr-2" />
+                                <Check className="h-4 w-4" strokeWidth={1.8} aria-hidden />
                                 Done
                             </>
                         ) : (
                             <>
-                                <X className="h-5 w-5 mr-2" />
+                                <X className="h-4 w-4" strokeWidth={1.8} aria-hidden />
                                 Check In
                             </>
                         )}

@@ -25,23 +25,26 @@ export function Modal({ isOpen, onClose, title, children, size = 'md' }: ModalPr
 
     return (
         <div
-            className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
+            className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-[rgba(10,10,16,.6)] p-0 sm:p-4"
             onClick={onClose}
         >
             <div
                 className={cn(
-                    'bg-white/50 dark:bg-gray-800/80 backdrop-blur-3xl rounded-2xl border border-white/40 dark:border-white/10 shadow-2xl shadow-black/20 dark:shadow-black/40 w-full flex flex-col max-h-[90vh]',
+                    'saffron-hairline bg-popover text-popover-foreground border border-border shadow-pop w-full flex flex-col max-h-[92vh] rounded-t-card sm:rounded-card',
                     sizeClasses[size]
                 )}
                 onClick={(e) => e.stopPropagation()}
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="modal-title"
             >
-                <div className="flex items-center justify-between p-6 border-b border-white/20 dark:border-white/10 flex-shrink-0">
-                    <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">{title}</h2>
-                    <Button variant="ghost" size="icon" onClick={onClose} className="hover:bg-white/20 dark:hover:bg-white/10">
-                        <X className="h-4 w-4" />
+                <div className="flex items-center justify-between gap-4 px-6 pt-6 pb-4 border-b border-border flex-shrink-0">
+                    <h2 id="modal-title" className="font-display text-[30px] leading-[1.1] tracking-[-0.02em]">{title}</h2>
+                    <Button variant="ghost" size="icon" onClick={onClose} aria-label="Close" className="border border-border">
+                        <X className="h-[18px] w-[18px]" strokeWidth={1.8} aria-hidden />
                     </Button>
                 </div>
-                <div className="p-6 overflow-y-auto flex-1">{children}</div>
+                <div className="p-6 overflow-y-auto flex-1 safe-bottom">{children}</div>
             </div>
         </div>
     );

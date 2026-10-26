@@ -48,9 +48,9 @@ export function NetworkStatus() {
     return (
         <div
             role="status"
-            className="sticky top-0 z-40 flex items-center justify-center gap-2 px-4 py-2 text-xs font-medium bg-amber-500/15 text-amber-700 dark:text-amber-200 border-b border-amber-500/20 backdrop-blur-md"
+            className="sticky top-0 z-40 flex items-center justify-center gap-2 px-4 py-2 font-mono text-xs text-foreground border-b border-border backdrop-blur-md [background:color-mix(in_srgb,hsl(var(--background))_88%,transparent)]"
         >
-            <WifiOff className="h-3.5 w-3.5" aria-hidden />
+            <WifiOff className="h-3.5 w-3.5 text-marigold" strokeWidth={1.8} aria-hidden />
             {queued > 0
                 ? `Offline · ${plural(queued)} will sync when you are back online`
                 : 'Offline · showing data saved on this device'}

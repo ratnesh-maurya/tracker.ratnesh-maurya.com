@@ -6,18 +6,8 @@ import Link from 'next/link';
 import { clearUserData } from '@/lib/query/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Eye, EyeOff, ArrowRight, Check, UserPlus } from 'lucide-react';
-import Image from 'next/image';
-import { motion } from 'framer-motion';
+import { Eye, EyeOff } from 'lucide-react';
 
-const features = [
-    'Habit tracking with streaks',
-    'Sleep & wellness analytics',
-    'Food logging (Indian foods)',
-    'Study time & productivity',
-    'Expense management',
-    'Daily journaling',
-];
 
 function RegisterForm() {
     const router = useRouter();
@@ -50,190 +40,117 @@ function RegisterForm() {
     };
 
     return (
-        <div className="min-h-screen flex bg-[#0a0a0f]">
-            {/* Left panel */}
-            <div className="hidden lg:flex lg:w-[480px] xl:w-[520px] flex-col justify-between p-12 relative overflow-hidden border-r border-white/6 flex-shrink-0">
-                <div className="absolute inset-0 pointer-events-none">
-                    <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[400px] h-[400px] bg-purple-600/12 rounded-full blur-[100px]" />
-                    <div className="absolute bottom-1/4 right-1/4 w-[200px] h-[200px] bg-pink-600/8 rounded-full blur-[80px]" />
-                    <div className="absolute inset-0 opacity-[0.025]" style={{ backgroundImage: 'radial-gradient(circle, #fff 1px, transparent 1px)', backgroundSize: '24px 24px' }} />
-                </div>
+        <div className="saffron-hairline w-full max-w-[440px] rounded-card bg-card p-7 shadow-card sm:p-9">
+            {refUsername && (
+                <p className="mb-6 rounded-inner border border-border bg-muted px-4 py-3 text-sm text-body">
+                    <span className="font-mono text-kicker">@{refUsername}</span> invited you. Their streaks are waiting for company.
+                </p>
+            )}
 
-                <div className="relative z-10 flex items-center gap-3">
-                    <Image src="/web-app-manifest-192x192.png" alt="Logo" width={36} height={36} className="rounded-xl" />
-                    <div>
-                        <p className="text-white font-semibold text-lg leading-none">Personal Tracker</p>
-                        <p className="text-gray-500 text-xs mt-0.5">Your life, organized</p>
-                    </div>
-                </div>
+            <p className="eyebrow">Create an account</p>
+            <h1 className="display mt-3 text-[clamp(36px,4.4vw,48px)]">
+                Start the <em>streak</em>
+            </h1>
+            <p className="mt-2 text-[15px] text-muted-foreground">Free, and it takes about thirty seconds.</p>
 
-                <div className="relative z-10 space-y-6">
-                    <div>
-                        <h2 className="text-3xl font-bold text-white mb-2 leading-tight">Start tracking<br />your life today</h2>
-                        <p className="text-gray-400 text-sm leading-relaxed">Free forever. No credit card. Sign up in 30 seconds.</p>
-                    </div>
-                    <ul className="space-y-3">
-                        {features.map((f) => (
-                            <li key={f} className="flex items-center gap-3 text-sm text-gray-400">
-                                <div className="w-5 h-5 rounded-full bg-indigo-500/15 flex items-center justify-center flex-shrink-0">
-                                    <Check className="h-3 w-3 text-indigo-400" />
-                                </div>
-                                {f}
-                            </li>
-                        ))}
-                    </ul>
-                </div>
-
-                <div className="relative z-10">
-                    <p className="text-xs text-gray-600">
-                        Built by{' '}
-                        <a href="https://ratnesh-maurya.com" target="_blank" rel="noopener noreferrer" className="text-indigo-400 hover:text-indigo-300">
-                            Ratnesh Maurya
-                        </a>
+            <form onSubmit={handleSubmit} className="mt-7 flex flex-col gap-4">
+                {error && (
+                    <p role="alert" className="rounded-inner border border-kicker/30 px-4 py-3 text-sm text-kicker">
+                        {error}
                     </p>
+                )}
+
+                <div className="flex flex-col gap-1.5">
+                    <label htmlFor="email" className="text-sm font-medium text-secondary-foreground">Email</label>
+                    <Input
+                        id="email"
+                        type="email"
+                        autoComplete="email"
+                        placeholder="you@example.com"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        required
+                        autoFocus
+                    />
                 </div>
-            </div>
 
-            {/* Right panel — form */}
-            <div className="flex-1 flex items-center justify-center p-6 sm:p-10 overflow-y-auto">
-                <motion.div
-                    initial={{ opacity: 0, y: 16 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-                    className="w-full max-w-[400px] py-8"
-                >
-                    {/* Mobile logo */}
-                    <div className="flex items-center gap-2.5 mb-8 lg:hidden">
-                        <Image src="/web-app-manifest-192x192.png" alt="Logo" width={32} height={32} className="rounded-xl" />
-                        <p className="text-white font-semibold">Personal Tracker</p>
-                    </div>
-
-                    {refUsername && (
-                        <motion.div
-                            initial={{ opacity: 0, y: -8 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-                            className="mb-6 px-4 py-3.5 rounded-xl bg-indigo-500/10 border border-indigo-500/25 flex items-start gap-3"
-                        >
-                            <div className="w-8 h-8 rounded-full bg-indigo-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-                                <UserPlus className="h-4 w-4 text-indigo-400" />
-                            </div>
-                            <div>
-                                <p className="text-sm font-medium text-indigo-300">You were invited by <span className="font-bold">@{refUsername}</span></p>
-                                <p className="text-xs text-gray-500 mt-0.5">Join them on their tracking journey!</p>
-                            </div>
-                        </motion.div>
-                    )}
-
-                    <div className="mb-8">
-                        <h1 className="text-2xl sm:text-3xl font-bold text-white mb-1.5">Create your account</h1>
-                        <p className="text-gray-500 text-sm">{refUsername ? `Invited by @${refUsername} · Start your journey` : 'Start your journey to a better you'}</p>
-                    </div>
-
-                    <form onSubmit={handleSubmit} className="space-y-4">
-                        {error && (
-                            <div className="px-4 py-3 rounded-xl bg-red-500/8 border border-red-500/20 text-red-400 text-sm">
-                                {error}
-                            </div>
-                        )}
-
-                        <div className="space-y-1.5">
-                            <label htmlFor="email" className="text-sm font-medium text-gray-400">Email</label>
-                            <Input
-                                id="email"
-                                type="email"
-                                placeholder="you@example.com"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                required
-                                autoFocus
-                                className="h-11 bg-white/4 border-white/10 text-white placeholder:text-gray-600 focus:border-indigo-500/60 focus:bg-white/6 transition-all duration-200 rounded-xl"
-                            />
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-3">
-                            <div className="space-y-1.5">
-                                <label htmlFor="name" className="text-sm font-medium text-gray-400">Name <span className="text-gray-600 text-xs font-normal">(optional)</span></label>
-                                <Input
-                                    id="name"
-                                    type="text"
-                                    placeholder="Your name"
-                                    value={name}
-                                    onChange={(e) => setName(e.target.value)}
-                                    maxLength={100}
-                                    className="h-11 bg-white/4 border-white/10 text-white placeholder:text-gray-600 focus:border-indigo-500/60 focus:bg-white/6 transition-all duration-200 rounded-xl"
-                                />
-                            </div>
-                            <div className="space-y-1.5">
-                                <label htmlFor="username" className="text-sm font-medium text-gray-400">Username</label>
-                                <Input
-                                    id="username"
-                                    type="text"
-                                    placeholder="username"
-                                    value={username}
-                                    onChange={(e) => setUsername(e.target.value)}
-                                    required
-                                    minLength={3}
-                                    maxLength={30}
-                                    className="h-11 bg-white/4 border-white/10 text-white placeholder:text-gray-600 focus:border-indigo-500/60 focus:bg-white/6 transition-all duration-200 rounded-xl"
-                                />
-                            </div>
-                        </div>
-
-                        <div className="space-y-1.5">
-                            <label htmlFor="password" className="text-sm font-medium text-gray-400">Password</label>
-                            <div className="relative">
-                                <Input
-                                    id="password"
-                                    type={showPassword ? 'text' : 'password'}
-                                    placeholder="At least 6 characters"
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    required
-                                    minLength={6}
-                                    className="h-11 bg-white/4 border-white/10 text-white placeholder:text-gray-600 focus:border-indigo-500/60 focus:bg-white/6 transition-all duration-200 rounded-xl pr-10"
-                                />
-                                <button
-                                    type="button"
-                                    onClick={() => setShowPassword((v) => !v)}
-                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 transition-colors"
-                                >
-                                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                                </button>
-                            </div>
-                        </div>
-
-                        <label className="flex items-center gap-2 cursor-pointer pt-1">
-                            <input
-                                type="checkbox"
-                                checked={rememberMe}
-                                onChange={(e) => setRememberMe(e.target.checked)}
-                                className="w-4 h-4 rounded accent-indigo-500"
-                            />
-                            <span className="text-sm text-gray-500">Remember me for 30 days</span>
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-3">
+                    <div className="flex flex-col gap-1.5">
+                        <label htmlFor="name" className="text-sm font-medium text-secondary-foreground">
+                            Name <span className="font-mono text-xs font-normal text-muted-foreground">optional</span>
                         </label>
+                        <Input
+                            id="name"
+                            type="text"
+                            autoComplete="name"
+                            placeholder="Your name"
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                            maxLength={100}
+                        />
+                    </div>
+                    <div className="flex flex-col gap-1.5">
+                        <label htmlFor="username" className="text-sm font-medium text-secondary-foreground">Username</label>
+                        <Input
+                            id="username"
+                            type="text"
+                            autoComplete="username"
+                            placeholder="username"
+                            value={username}
+                            onChange={(e) => setUsername(e.target.value)}
+                            required
+                            minLength={3}
+                            maxLength={30}
+                        />
+                    </div>
+                </div>
 
-                        <Button
-                            type="submit"
-                            disabled={loading}
-                            className="w-full h-11 bg-indigo-600 hover:bg-indigo-500 text-white font-medium rounded-xl shadow-lg shadow-indigo-900/30 transition-all duration-200 flex items-center justify-center gap-2 mt-2"
+                <div className="flex flex-col gap-1.5">
+                    <label htmlFor="password" className="text-sm font-medium text-secondary-foreground">Password</label>
+                    <div className="relative">
+                        <Input
+                            id="password"
+                            type={showPassword ? 'text' : 'password'}
+                            autoComplete="new-password"
+                            placeholder="At least 6 characters"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            required
+                            minLength={6}
+                            className="pr-12"
+                        />
+                        <button
+                            type="button"
+                            onClick={() => setShowPassword((v) => !v)}
+                            aria-label={showPassword ? 'Hide password' : 'Show password'}
+                            className="absolute right-1 top-1/2 inline-flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full text-muted-foreground transition-colors duration-150 hover:text-foreground"
                         >
-                            {loading ? (
-                                <span className="w-4 h-4 border-2 border-white/50 border-t-white rounded-full animate-spin" />
-                            ) : (
-                                <>Create account <ArrowRight className="h-4 w-4" /></>
-                            )}
-                        </Button>
-                    </form>
+                            {showPassword ? <EyeOff className="h-4 w-4" strokeWidth={1.8} aria-hidden /> : <Eye className="h-4 w-4" strokeWidth={1.8} aria-hidden />}
+                        </button>
+                    </div>
+                </div>
 
-                    <p className="mt-6 text-center text-sm text-gray-600">
-                        Already have an account?{' '}
-                        <Link href="/login" className="text-indigo-400 hover:text-indigo-300 font-medium transition-colors">
-                            Sign in
-                        </Link>
-                    </p>
-                </motion.div>
-            </div>
+                <label className="flex min-h-[44px] cursor-pointer items-center gap-2.5">
+                    <input
+                        type="checkbox"
+                        checked={rememberMe}
+                        onChange={(e) => setRememberMe(e.target.checked)}
+                        className="h-4 w-4 accent-[hsl(var(--coral))]"
+                    />
+                    <span className="text-sm text-muted-foreground">Remember me for 30 days</span>
+                </label>
+
+                <Button type="submit" size="lg" disabled={loading} className="mt-1 w-full">
+                    {loading ? '…' : 'Create account →'}
+                </Button>
+            </form>
+
+            <p className="mt-6 text-sm text-muted-foreground">
+                Already have an account?{' '}
+                <Link href="/login" className="text-coral transition-colors duration-150 hover:text-muted-foreground">
+                    Sign in →
+                </Link>
+            </p>
         </div>
     );
 }
