@@ -3,6 +3,7 @@
 import { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import { clearUserData } from '@/lib/query/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Eye, EyeOff, ArrowRight, Check, UserPlus } from 'lucide-react';
@@ -42,7 +43,7 @@ function RegisterForm() {
                 body: JSON.stringify({ email, username, name, password, rememberMe }),
             });
             const data = await res.json();
-            if (data.success) { router.push('/dashboard'); router.refresh(); }
+            if (data.success) { await clearUserData(); router.push('/dashboard'); router.refresh(); }
             else setError(data.error || 'Registration failed');
         } catch { setError('An error occurred. Please try again.'); }
         finally { setLoading(false); }

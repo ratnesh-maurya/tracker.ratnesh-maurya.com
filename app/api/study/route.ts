@@ -5,6 +5,7 @@ import { z } from 'zod';
 import connectDB from '@/lib/db/connect';
 import Study from '@/models/Study';
 import { requireAuth } from '@/lib/auth/middleware';
+import { clientIdSchema, saveOnce } from '@/lib/api/idempotent';
 import { ApiResponse } from '@/types';
 import { getStartOfDay, getEndOfDay } from '@/lib/utils';
 
@@ -15,6 +16,7 @@ const studySchema = z.object({
   tags: z.array(z.string()).max(10).optional().default([]),
   projectReference: z.string().max(200).optional(),
   notes: z.string().max(1000).optional(),
+  clientId: clientIdSchema,
 });
 
 export async function GET(request: NextRequest) {
@@ -95,6 +97,7 @@ export async function POST(request: NextRequest) {
 
     const study = new Study({
       userId: auth.userId,
+      clientId: validatedData.clientId,
       date: startOfDay,
       topic: validatedData.topic,
       timeSpent: validatedData.timeSpent,
@@ -103,13 +106,13 @@ export async function POST(request: NextRequest) {
       notes: validatedData.notes,
     });
 
-    await study.save();
+    const { doc, created } = await saveOnce(Study, study, auth.userId, validatedData.clientId);
 
     return NextResponse.json<ApiResponse>({
       success: true,
-      data: study,
-      message: 'Study entry created successfully',
-    }, { status: 201 });
+      data: doc,
+      message: created ? 'Study entry created successfully' : 'Study entry already saved',
+    }, { status: created ? 201 : 200 });
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json<ApiResponse>({ success: false, error: error.errors[0].message }, { status: 400 });

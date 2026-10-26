@@ -1,170 +1,125 @@
-const CACHE_NAME = 'personal-tracker-v1';
-const RUNTIME_CACHE = 'personal-tracker-runtime-v1';
+// Bump VERSION to purge every cache on the next activation.
+const VERSION = 'v2';
+const STATIC_CACHE = `pt-static-${VERSION}`;
+const PAGES_CACHE = `pt-pages-${VERSION}`;
+const ASSETS_CACHE = `pt-assets-${VERSION}`;
+const KEEP = [STATIC_CACHE, PAGES_CACHE, ASSETS_CACHE];
 
-// Assets to cache on install
-const PRECACHE_ASSETS = [
-  '/',
-  '/dashboard',
-  '/habits',
-  '/sleep',
-  '/food',
-  '/study',
-  '/expenses',
-  '/journal',
-  '/analytics',
-  '/login',
-  '/register',
+// Only public, user-agnostic files. App pages are cached as they are visited.
+const PRECACHE = [
+  '/manifest.json',
+  '/favicon.svg',
+  '/web-app-manifest-192x192.png',
+  '/web-app-manifest-512x512.png',
 ];
 
-// Install event - cache static assets
+const OFFLINE_HTML = `<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>Offline</title>
+<style>body{margin:0;min-height:100vh;display:grid;place-items:center;background:#0E0D0B;color:#F3F0E8;
+font:16px/1.6 system-ui,sans-serif;text-align:center;padding:24px}p{color:#A39E92}
+a{color:#DD5755}</style></head><body><main><h1>You are offline</h1>
+<p>This page has not been opened on this device yet.</p><a href="/dashboard">Go to dashboard →</a></main></body></html>`;
+
 self.addEventListener('install', (event) => {
-  console.log('[Service Worker] Installing...');
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      console.log('[Service Worker] Precaching static assets');
-      return cache.addAll(PRECACHE_ASSETS.map(url => new Request(url, { cache: 'reload' })));
-    }).catch((err) => {
-      console.error('[Service Worker] Precache failed:', err);
-    })
-  );
-  self.skipWaiting();
+  event.waitUntil(caches.open(STATIC_CACHE).then((cache) => cache.addAll(PRECACHE)));
+  // No skipWaiting here: the page asks for it, so an update never reloads mid-entry.
 });
 
-// Activate event - clean up old caches
 self.addEventListener('activate', (event) => {
-  console.log('[Service Worker] Activating...');
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames.map((cacheName) => {
-          if (cacheName !== CACHE_NAME && cacheName !== RUNTIME_CACHE) {
-            console.log('[Service Worker] Deleting old cache:', cacheName);
-            return caches.delete(cacheName);
-          }
-        })
-      );
-    })
+    caches
+      .keys()
+      .then((names) => Promise.all(names.filter((n) => !KEEP.includes(n)).map((n) => caches.delete(n))))
+      .then(() => self.clients.claim())
   );
-  return self.clients.claim();
 });
 
-// Fetch event - serve from cache, fallback to network
+self.addEventListener('message', (event) => {
+  if (event.data?.type === 'SKIP_WAITING') self.skipWaiting();
+});
+
 self.addEventListener('fetch', (event) => {
-  // Skip non-GET requests
-  if (event.request.method !== 'GET') {
+  const { request } = event;
+  if (request.method !== 'GET') return;
+
+  const url = new URL(request.url);
+  if (url.origin !== self.location.origin) return;
+
+  // API responses are per-user; offline reads come from the app's own persisted
+  // query cache, which is wiped on logout. The service worker never stores them.
+  if (url.pathname.startsWith('/api/')) return;
+
+  if (request.mode === 'navigate') {
+    event.respondWith(networkFirstPage(request));
     return;
   }
 
-  // Skip cross-origin requests
-  if (!event.request.url.startsWith(self.location.origin)) {
+  // Hashed build output never changes for a given URL.
+  if (url.pathname.startsWith('/_next/static/')) {
+    event.respondWith(cacheFirst(request, STATIC_CACHE));
     return;
   }
 
-  // API routes - network first, fallback to cache
-  if (event.request.url.includes('/api/')) {
-    event.respondWith(
-      fetch(event.request)
-        .then((response) => {
-          // Clone the response
-          const responseToCache = response.clone();
-          // Cache successful API responses
-          if (response.status === 200) {
-            caches.open(RUNTIME_CACHE).then((cache) => {
-              cache.put(event.request, responseToCache);
-            });
-          }
-          return response;
-        })
-        .catch(() => {
-          // Network failed, try cache
-          return caches.match(event.request).then((cachedResponse) => {
-            if (cachedResponse) {
-              return cachedResponse;
-            }
-            // Return offline response for API calls
-            return new Response(
-              JSON.stringify({ success: false, error: 'You are offline' }),
-              {
-                headers: { 'Content-Type': 'application/json' },
-                status: 503,
-              }
-            );
-          });
-        })
+  if (/\.(?:png|jpg|jpeg|svg|webp|ico|woff2?)$/.test(url.pathname)) {
+    event.respondWith(staleWhileRevalidate(request, ASSETS_CACHE));
+  }
+});
+
+async function networkFirstPage(request) {
+  const cache = await caches.open(PAGES_CACHE);
+  try {
+    const response = await fetch(request);
+    if (response.ok && !response.redirected) cache.put(request, response.clone());
+    return response;
+  } catch {
+    return (
+      (await cache.match(request, { ignoreSearch: true })) ||
+      (await cache.match('/dashboard')) ||
+      new Response(OFFLINE_HTML, { headers: { 'Content-Type': 'text/html; charset=utf-8' } })
     );
-    return;
   }
-
-  // Static assets - cache first, fallback to network
-  event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      if (cachedResponse) {
-        return cachedResponse;
-      }
-      return fetch(event.request).then((response) => {
-        // Don't cache if not a valid response
-        if (!response || response.status !== 200 || response.type !== 'basic') {
-          return response;
-        }
-        // Clone the response
-        const responseToCache = response.clone();
-        caches.open(RUNTIME_CACHE).then((cache) => {
-          cache.put(event.request, responseToCache);
-        });
-        return response;
-      });
-    })
-  );
-});
-
-// Background sync for offline actions
-self.addEventListener('sync', (event) => {
-  if (event.tag === 'sync-data') {
-    event.waitUntil(syncData());
-  }
-});
-
-async function syncData() {
-  // This would sync offline data when connection is restored
-  console.log('[Service Worker] Syncing data...');
-  // Implementation would go here
 }
 
-// Push notifications (for future use)
+async function cacheFirst(request, cacheName) {
+  const cached = await caches.match(request);
+  if (cached) return cached;
+  const response = await fetch(request);
+  if (response.ok) (await caches.open(cacheName)).put(request, response.clone());
+  return response;
+}
+
+async function staleWhileRevalidate(request, cacheName) {
+  const cache = await caches.open(cacheName);
+  const cached = await cache.match(request);
+  const network = fetch(request)
+    .then((response) => {
+      if (response.ok) cache.put(request, response.clone());
+      return response;
+    })
+    .catch(() => cached);
+  return cached || network;
+}
+
 self.addEventListener('push', (event) => {
   const data = event.data ? event.data.json() : {};
-  const title = data.title || 'Personal Tracker';
-  const options = {
-    body: data.body || 'You have a new notification',
-    icon: '/web-app-manifest-192x192.png',
-    badge: '/web-app-manifest-192x192.png',
-  };
   event.waitUntil(
-    self.registration.showNotification(title, options)
-  );
-});
-
-// Notification click handler
-self.addEventListener('notificationclick', (event) => {
-  event.notification.close();
-  
-  // Get the URL from notification data, default to /dashboard
-  const urlToOpen = event.notification.data?.url || '/dashboard';
-  
-  event.waitUntil(
-    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
-      // Check if there's already a window/tab open with the target URL
-      for (let i = 0; i < clientList.length; i++) {
-        const client = clientList[i];
-        if (client.url === urlToOpen && 'focus' in client) {
-          return client.focus();
-        }
-      }
-      // If no existing window, open a new one
-      if (clients.openWindow) {
-        return clients.openWindow(urlToOpen);
-      }
+    self.registration.showNotification(data.title || 'Personal Tracker', {
+      body: data.body || 'You have a new notification',
+      icon: '/web-app-manifest-192x192.png',
+      badge: '/web-app-manifest-192x192.png',
+      data: { url: data.url },
     })
   );
 });
 
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const target = new URL(event.notification.data?.url || '/dashboard', self.location.origin).href;
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((list) => {
+      const existing = list.find((c) => c.url === target && 'focus' in c);
+      if (existing) return existing.focus();
+      if (clients.openWindow) return clients.openWindow(target);
+    })
+  );
+});

@@ -6,7 +6,6 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Plus, Check, Edit, Trash2, Flame, Sparkles } from 'lucide-react';
-import { NavBar } from '@/components/layout/NavBar';
 import { HabitModal } from '@/components/habits/HabitModal';
 import { DateSelector } from '@/components/habits/DateSelector';
 import { DailyGoalsCard } from '@/components/habits/DailyGoalsCard';
@@ -17,6 +16,8 @@ import { calculateStreak } from '@/lib/habits/streak';
 import { getStartOfDay } from '@/lib/utils';
 import { format } from 'date-fns';
 import { handleApiResponse } from '@/lib/api/client';
+import { HabitCheckIns, applyCheckIn, fetchCheckInsByHabit } from '@/lib/habits/checkins';
+import { CHECKIN_KEY, CheckInVars } from '@/lib/offline/queue';
 
 export default function HabitsPage() {
     const queryClient = useQueryClient();
@@ -33,7 +34,6 @@ export default function HabitsPage() {
             return handleApiResponse<Habit[]>(res);
         },
         staleTime: 0,
-        gcTime: 0,
         refetchOnMount: true,
         refetchOnWindowFocus: true,
     });
@@ -42,19 +42,8 @@ export default function HabitsPage() {
     const selectedDateStart = getStartOfDay(selectedDate);
     const { data: checkInsData } = useQuery({
         queryKey: ['checkins', selectedDateStart.toISOString()],
-        queryFn: async () => {
-            if (!habitsData) return [];
-            const checkIns = await Promise.all(
-                habitsData.map(async (habit) => {
-                    const res = await fetch(`/api/habits/${habit._id}/checkins?startDate=${selectedDateStart.toISOString()}&endDate=${selectedDateStart.toISOString()}`, { cache: 'no-store' });
-                    const data = await res.json();
-                    return { habitId: habit._id, checkIns: data.success ? data.data : [] };
-                })
-            );
-            return checkIns;
-        },
+        queryFn: () => fetchCheckInsByHabit(habitsData ?? [], selectedDateStart),
         staleTime: 0,
-        gcTime: 0,
         refetchOnMount: true,
         refetchOnWindowFocus: true,
         enabled: !!habitsData,
@@ -63,17 +52,7 @@ export default function HabitsPage() {
     // Fetch all check-ins for streak calculation
     const { data: allCheckInsData } = useQuery({
         queryKey: ['checkins', 'all'],
-        queryFn: async () => {
-            if (!habitsData) return [];
-            const checkIns = await Promise.all(
-                habitsData.map(async (habit) => {
-                    const res = await fetch(`/api/habits/${habit._id}/checkins`);
-                    const data = await res.json();
-                    return { habitId: habit._id, checkIns: data.success ? data.data : [] };
-                })
-            );
-            return checkIns;
-        },
+        queryFn: () => fetchCheckInsByHabit(habitsData ?? []),
         enabled: !!habitsData,
     });
 
@@ -129,22 +108,15 @@ export default function HabitsPage() {
     });
 
     // Check-in mutation
-    const checkInMutation = useMutation({
-        mutationFn: async ({ habitId, value }: { habitId: string; value: boolean | number }) => {
-            const res = await fetch(`/api/habits/${habitId}/checkins`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    date: selectedDateStart.toISOString(),
-                    value,
-                }),
-            });
-            const data = await res.json();
-            if (!data.success) throw new Error(data.error);
-            return data.data;
-        },
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['checkins'] });
+    // Goes through the offline queue (sending is defined in lib/offline/queue.ts).
+    // The tap shows at once; the server overwrites by day, so a retry is harmless.
+    const checkInMutation = useMutation<unknown, Error, CheckInVars>({
+        mutationKey: CHECKIN_KEY,
+        onMutate: async ({ habitId, date, value }) => {
+            await queryClient.cancelQueries({ queryKey: ['checkins'] });
+            const update = (old?: HabitCheckIns[]) => old && applyCheckIn(old, habitId, date, value);
+            queryClient.setQueryData(['checkins', date], update);
+            queryClient.setQueryData(['checkins', 'all'], update);
         },
     });
 
@@ -168,13 +140,13 @@ export default function HabitsPage() {
     };
 
     const handleCheckIn = async (habitId: string, value: boolean | number) => {
-        await checkInMutation.mutateAsync({ habitId, value });
+        checkInMutation.mutate({ habitId, date: selectedDateStart.toISOString(), value });
     };
 
     const handleCircleClick = async (habitId: string, circleIndex: number, currentValue: number, target: number) => {
         // Toggle the specific circle
         const newValue = circleIndex <= currentValue ? circleIndex - 1 : circleIndex;
-        await checkInMutation.mutateAsync({ habitId, value: Math.max(0, newValue) });
+        checkInMutation.mutate({ habitId, date: selectedDateStart.toISOString(), value: Math.max(0, newValue) });
     };
 
     const habits = habitsData || [];
@@ -397,7 +369,6 @@ export default function HabitsPage() {
                 onSave={handleSave}
                 habit={editingHabit}
             />
-            <NavBar />
         </div>
     );
 }

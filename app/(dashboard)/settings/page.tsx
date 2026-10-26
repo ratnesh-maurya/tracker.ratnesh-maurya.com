@@ -2,12 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { clearUserData } from '@/lib/query/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ArrowLeft, Settings, User, Moon, Volume2, LogOut, ExternalLink, Copy, Check } from 'lucide-react';
-import { NavBar } from '@/components/layout/NavBar';
 import { useRouter } from 'next/navigation';
 import { handleApiResponse } from '@/lib/api/client';
 
@@ -33,7 +33,6 @@ export default function SettingsPage() {
             return handleApiResponse(res);
         },
         staleTime: 0,
-        gcTime: 0,
         refetchOnMount: true,
         refetchOnWindowFocus: true,
     });
@@ -56,7 +55,13 @@ export default function SettingsPage() {
     });
 
     const handleLogout = async () => {
+        // Logging out wipes this device's queue, so unsynced saves would be lost
+        const unsynced = queryClient.getMutationCache().findAll({ mutationKey: ['offline'], status: 'pending' }).length;
+        if (unsynced > 0 && !confirm(`${unsynced} saved change(s) have not synced yet and will be lost. Log out anyway?`)) {
+            return;
+        }
         await fetch('/api/auth/logout', { method: 'POST' });
+        await clearUserData();
         router.push('/login');
     };
 
@@ -381,7 +386,6 @@ export default function SettingsPage() {
                 </div>
                 </div>
             </main>
-            <NavBar />
         </div>
     );
 }

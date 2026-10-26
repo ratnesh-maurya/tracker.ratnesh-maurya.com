@@ -5,6 +5,7 @@ import { z } from 'zod';
 import connectDB from '@/lib/db/connect';
 import Food from '@/models/Food';
 import { requireAuth } from '@/lib/auth/middleware';
+import { clientIdSchema, saveOnce } from '@/lib/api/idempotent';
 import { ApiResponse } from '@/types';
 import { getStartOfDay, getEndOfDay } from '@/lib/utils';
 
@@ -18,6 +19,7 @@ const foodSchema = z.object({
   mealType: z.enum(['breakfast', 'lunch', 'dinner', 'snack']),
   items: z.array(mealItemSchema).min(1),
   notes: z.string().max(500).optional(),
+  clientId: clientIdSchema,
 });
 
 export async function GET(request: NextRequest) {
@@ -98,19 +100,20 @@ export async function POST(request: NextRequest) {
 
     const food = new Food({
       userId: auth.userId,
+      clientId: validatedData.clientId,
       date: startOfDay,
       mealType: validatedData.mealType,
       items: validatedData.items,
       notes: validatedData.notes,
     });
 
-    await food.save();
+    const { doc, created } = await saveOnce(Food, food, auth.userId, validatedData.clientId);
 
     return NextResponse.json<ApiResponse>({
       success: true,
-      data: food,
-      message: 'Food entry created successfully',
-    }, { status: 201 });
+      data: doc,
+      message: created ? 'Food entry created successfully' : 'Food entry already saved',
+    }, { status: created ? 201 : 200 });
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json<ApiResponse>({ success: false, error: error.errors[0].message }, { status: 400 });

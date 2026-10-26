@@ -13,6 +13,8 @@ export interface IFood extends Document {
   items: IMealItem[];
   totalCalories?: number;
   notes?: string;
+  // Made on the device; lets a retried offline save return the first copy
+  clientId?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -64,6 +66,10 @@ const FoodSchema = new Schema<IFood>(
       type: String,
       maxlength: [500, 'Notes cannot exceed 500 characters'],
     },
+    clientId: {
+      type: String,
+      maxlength: 64,
+    },
   },
   {
     timestamps: true,
@@ -80,6 +86,11 @@ FoodSchema.pre('save', function (next) {
 
 // Indexes
 FoodSchema.index({ userId: 1, date: -1 });
+// Partial: entries saved before clientId existed have none
+FoodSchema.index(
+  { userId: 1, clientId: 1 },
+  { unique: true, partialFilterExpression: { clientId: { $type: 'string' } } }
+);
 FoodSchema.index({ userId: 1, mealType: 1, date: -1 });
 
 const Food: Model<IFood> = mongoose.models.Food || mongoose.model<IFood>('Food', FoodSchema);

@@ -3,6 +3,7 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import { clearUserData } from '@/lib/query/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Eye, EyeOff, ArrowRight, Sparkles, Zap } from 'lucide-react';
@@ -60,7 +61,10 @@ function LoginForm() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email: em, password: pw, rememberMe: remember }),
         });
-        return res.json();
+        const data = await res.json();
+        // Never show a previous account's cached data to this one
+        if (data.success) await clearUserData();
+        return data;
     };
 
     const handleSubmit = async (e: React.FormEvent) => {

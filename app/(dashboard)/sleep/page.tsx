@@ -10,8 +10,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Modal } from '@/components/ui/modal';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { useToast } from '@/components/ui/toast-provider';
+import { SAVED_OFFLINE_MESSAGE, useOfflineCreate } from '@/lib/offline/useOfflineCreate';
 import { ArrowLeft, Plus, Bed, Edit2, Trash2 } from 'lucide-react';
-import { NavBar } from '@/components/layout/NavBar';
 import { formatDate, formatTime, getLocalDateString } from '@/lib/utils';
 import { Pagination } from '@/components/ui/pagination';
 import { SkeletonList } from '@/components/ui/skeleton';
@@ -37,33 +37,19 @@ export default function SleepPage() {
             return handleApiResponse(res);
         },
         staleTime: 0,
-        gcTime: 0,
         refetchOnMount: true,
         refetchOnWindowFocus: true,
     });
 
-    const createMutation = useMutation({
-        mutationFn: async (sleep: { date: string; startTime: string; endTime: string; notes?: string }) => {
-            const res = await fetch('/api/sleep', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(sleep),
-            });
-            const data = await res.json();
-            if (!data.success) throw new Error(data.error);
-            return data.data;
-        },
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['sleep'] });
+    // Goes through the offline queue: works without a connection, syncs later
+    const createMutation = useOfflineCreate('sleep', {
+        onSaved: (queued) => {
             setPage(1);
             setIsModalOpen(false);
             setStartTime('');
             setEndTime('');
             setNotes('');
-            toast.success('Sleep entry added successfully!');
-        },
-        onError: () => {
-            toast.error('Failed to add sleep entry. Please try again.');
+            toast.success(queued ? SAVED_OFFLINE_MESSAGE : 'Sleep entry added successfully!');
         },
     });
 
@@ -119,7 +105,7 @@ export default function SleepPage() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         const today = getLocalDateString();
-        await createMutation.mutateAsync({
+        createMutation.create({
             date: today,
             startTime: `${today}T${startTime}`,
             endTime: `${today}T${endTime}`,
@@ -408,7 +394,6 @@ export default function SleepPage() {
                 isLoading={deleteMutation.isPending}
             />
 
-            <NavBar />
         </div>
     );
 }

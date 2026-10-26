@@ -15,7 +15,6 @@ import {
     DollarSign,
     FileText,
 } from 'lucide-react';
-import { NavBar } from '@/components/layout/NavBar';
 import { formatDate, getStartOfDay, getEndOfDay } from '@/lib/utils';
 import { cn } from '@/lib/utils';
 
@@ -378,7 +377,6 @@ export default function CalendarPage() {
                 )}
             </main>
 
-            <NavBar />
         </div>
     );
 }

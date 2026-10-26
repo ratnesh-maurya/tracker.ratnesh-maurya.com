@@ -8,10 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Select } from '@/components/ui/select';
 import { ArrowLeft, TrendingUp, Sparkles, Bed, GraduationCap, IndianRupee } from 'lucide-react';
 import { format } from 'date-fns';
-import { NavBar } from '@/components/layout/NavBar';
-import { PieChart } from '@mui/x-charts/PieChart';
-import { BarChart } from '@mui/x-charts/BarChart';
-import { createTheme, ThemeProvider } from '@mui/material/styles';
+import { BarChart, ChartTheme, PieChart } from '@/components/charts/lazy';
 import { handleApiResponse } from '@/lib/api/client';
 
 const COLORS = ['#6366f1', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'];
@@ -31,10 +28,6 @@ function useIsDark() {
 export default function AnalyticsPage() {
     const [dateRange, setDateRange] = useState<'daily' | 'weekly' | 'mtd' | 'ytd'>('weekly');
     const isDark = useIsDark();
-    const chartTheme = createTheme({
-        palette: { mode: isDark ? 'dark' : 'light' },
-        typography: { fontSize: 11 },
-    });
 
     const { data: analyticsData, isLoading, isFetching } = useQuery({
         queryKey: ['analytics', dateRange],
@@ -43,7 +36,6 @@ export default function AnalyticsPage() {
             return handleApiResponse(res);
         },
         staleTime: 0,
-        gcTime: 0,
         refetchOnMount: true,
         refetchOnWindowFocus: true,
     });
@@ -239,7 +231,7 @@ export default function AnalyticsPage() {
                                 </CardTitle>
                             </CardHeader>
                             <CardContent className="flex justify-center">
-                                <ThemeProvider theme={chartTheme}>
+                                <ChartTheme mode={isDark ? 'dark' : 'light'} fontSize={11}>
                                     <PieChart
                                         series={[{
                                             data: expenseChartData.map((entry, index) => ({
@@ -258,7 +250,7 @@ export default function AnalyticsPage() {
                                         height={280}
                                         slotProps={{ legend: { position: { vertical: 'middle', horizontal: 'end' } } }}
                                     />
-                                </ThemeProvider>
+                                </ChartTheme>
                             </CardContent>
                         </Card>
 
@@ -270,7 +262,7 @@ export default function AnalyticsPage() {
                                 </CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <ThemeProvider theme={chartTheme}>
+                                <ChartTheme mode={isDark ? 'dark' : 'light'} fontSize={11}>
                                     <div className="w-full overflow-x-auto">
                                         <BarChart
                                             xAxis={[{
@@ -292,7 +284,7 @@ export default function AnalyticsPage() {
                                             sx={{ width: '100%' }}
                                         />
                                     </div>
-                                </ThemeProvider>
+                                </ChartTheme>
                             </CardContent>
                         </Card>
                     </div>
@@ -389,7 +381,6 @@ export default function AnalyticsPage() {
                     </Card>
                 </div>
             </main>
-            <NavBar />
         </div>
     );
 }

@@ -1,37 +1,35 @@
 'use client';
 
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { useState } from 'react';
+import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import { ToastProvider } from '@/components/ui/toast-provider';
 import { DarkModeInit } from '@/components/dark-mode-init';
+import { getQueryClient, PERSIST_BUSTER, PERSIST_MAX_AGE } from '@/lib/query/client';
+import { idbPersister } from '@/lib/query/persister';
+import { isOfflineMutation } from '@/lib/offline/queue';
 
 export function Providers({ children }: { children: React.ReactNode }) {
-    const [queryClient] = useState(
-        () =>
-            new QueryClient({
-                defaultOptions: {
-                    queries: {
-                        staleTime: 60 * 1000, // 1 minute
-                        refetchOnWindowFocus: false,
-                        retry: (failureCount, error: any) => {
-                            // Don't retry on 401 errors
-                            if (error?.status === 401 || error?.response?.status === 401) {
-                                return false;
-                            }
-                            return failureCount < 3;
-                        },
-                    },
-                },
-            })
-    );
+    const queryClient = getQueryClient();
 
     return (
-        <QueryClientProvider client={queryClient}>
+        <PersistQueryClientProvider
+            client={queryClient}
+            persistOptions={{
+                persister: idbPersister,
+                maxAge: PERSIST_MAX_AGE,
+                buster: PERSIST_BUSTER,
+                dehydrateOptions: {
+                    shouldDehydrateQuery: (query) => query.state.status === 'success',
+                    // Only queued saves: they have registered defaults, so they can resume
+                    shouldDehydrateMutation: (mutation) => mutation.state.isPaused && isOfflineMutation(mutation),
+                },
+            }}
+            // Send saves queued in an earlier session (no-op while still offline)
+            onSuccess={() => queryClient.resumePausedMutations()}
+        >
             <ToastProvider>
                 <DarkModeInit />
                 {children}
             </ToastProvider>
-        </QueryClientProvider>
+        </PersistQueryClientProvider>
     );
 }
-

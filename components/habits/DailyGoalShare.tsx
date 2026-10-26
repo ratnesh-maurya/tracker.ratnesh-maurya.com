@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Share2, CheckCircle2 } from 'lucide-react';
 import { shareAchievement } from '@/lib/social/share';
 import { getStartOfDay } from '@/lib/utils';
+import { fetchCheckInsByHabit } from '@/lib/habits/checkins';
 
 export function DailyGoalShare() {
     const [allCompleted, setAllCompleted] = useState(false);
@@ -22,17 +23,7 @@ export function DailyGoalShare() {
 
     const { data: checkInsData } = useQuery({
         queryKey: ['checkins', 'today'],
-        queryFn: async () => {
-            if (!habitsData) return [];
-            const checkIns = await Promise.all(
-                habitsData.map(async (habit: any) => {
-                    const res = await fetch(`/api/habits/${habit._id}/checkins?startDate=${today.toISOString()}&endDate=${today.toISOString()}`);
-                    const data = await res.json();
-                    return { habitId: habit._id, checkIns: data.success ? data.data : [] };
-                })
-            );
-            return checkIns;
-        },
+        queryFn: () => fetchCheckInsByHabit(habitsData ?? [], today),
         enabled: !!habitsData,
     });
 

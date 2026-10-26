@@ -6,7 +6,6 @@ import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, User, Trophy, Activity, ExternalLink } from 'lucide-react';
-import { NavBar } from '@/components/layout/NavBar';
 import { SocialShare } from '@/components/ui/social-share';
 
 export default function ProfilePage() {
@@ -224,7 +223,6 @@ export default function ProfilePage() {
                     </Card>
                 )}
             </main>
-            <NavBar />
         </div>
     );
 }

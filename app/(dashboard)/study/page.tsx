@@ -10,8 +10,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Modal } from '@/components/ui/modal';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { useToast } from '@/components/ui/toast-provider';
+import { PendingTag } from '@/components/ui/pending-tag';
+import { SAVED_OFFLINE_MESSAGE, useOfflineCreate } from '@/lib/offline/useOfflineCreate';
 import { ArrowLeft, Plus, GraduationCap, Tag, Edit2, Trash2 } from 'lucide-react';
-import { NavBar } from '@/components/layout/NavBar';
 import { formatDate, getLocalDateString } from '@/lib/utils';
 import { Pagination } from '@/components/ui/pagination';
 import { Chip } from '@/components/ui/chip';
@@ -46,24 +47,14 @@ export default function StudyPage() {
             return handleApiResponse(res);
         },
         staleTime: 0,
-        gcTime: 0,
         refetchOnMount: true,
         refetchOnWindowFocus: true,
     });
 
-    const createMutation = useMutation({
-        mutationFn: async (study: any) => {
-            const res = await fetch('/api/study', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(study),
-            });
-            const data = await res.json();
-            if (!data.success) throw new Error(data.error);
-            return data.data;
-        },
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['study'] });
+    // Goes through the offline queue: works without a connection, syncs later
+    const createMutation = useOfflineCreate('study', {
+        optimistic: true,
+        onSaved: (queued) => {
             setPage(1); // Reset to first page after creating new entry
             setIsModalOpen(false);
             setSelectedTopic('');
@@ -73,10 +64,7 @@ export default function StudyPage() {
             setCustomTags('');
             setProjectReference('');
             setNotes('');
-            toast.success('Study entry added successfully!');
-        },
-        onError: () => {
-            toast.error('Failed to add study entry. Please try again.');
+            toast.success(queued ? SAVED_OFFLINE_MESSAGE : 'Study entry added successfully!');
         },
     });
 
@@ -152,7 +140,7 @@ export default function StudyPage() {
             .filter((t) => t !== '');
         const allTags = [...selectedTags, ...customTagArray];
 
-        await createMutation.mutateAsync({
+        createMutation.create({
             date: today,
             topic: finalTopic,
             timeSpent: parseInt(timeSpent),
@@ -333,22 +321,28 @@ export default function StudyPage() {
                                                     </div>
                                                 </div>
                                                 <div className="flex gap-2">
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="icon"
-                                                        onClick={() => handleEdit(entry)}
-                                                        className="rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
-                                                    >
-                                                        <Edit2 className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                                                    </Button>
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="icon"
-                                                        onClick={() => handleDeleteClick(entry._id)}
-                                                        className="rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
-                                                    >
-                                                        <Trash2 className="h-4 w-4 text-red-600 dark:text-red-400" />
-                                                    </Button>
+                                                    {entry.pending ? (
+                                                        <PendingTag />
+                                                    ) : (
+                                                        <>
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="icon"
+                                                                onClick={() => handleEdit(entry)}
+                                                                className="rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+                                                            >
+                                                                <Edit2 className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                                                            </Button>
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="icon"
+                                                                onClick={() => handleDeleteClick(entry._id)}
+                                                                className="rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+                                                            >
+                                                                <Trash2 className="h-4 w-4 text-red-600 dark:text-red-400" />
+                                                            </Button>
+                                                        </>
+                                                    )}
                                                 </div>
                                             </div>
                                         </div>
@@ -637,7 +631,6 @@ export default function StudyPage() {
                 isLoading={deleteMutation.isPending}
             />
 
-            <NavBar />
         </div>
     );
 }

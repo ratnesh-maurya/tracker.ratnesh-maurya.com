@@ -8,6 +8,8 @@ export interface IStudy extends Document {
   tags: string[];
   projectReference?: string;
   notes?: string;
+  // Made on the device; lets a retried offline save return the first copy
+  clientId?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -52,6 +54,10 @@ const StudySchema = new Schema<IStudy>(
       type: String,
       maxlength: [1000, 'Notes cannot exceed 1000 characters'],
     },
+    clientId: {
+      type: String,
+      maxlength: 64,
+    },
   },
   {
     timestamps: true,
@@ -60,6 +66,11 @@ const StudySchema = new Schema<IStudy>(
 
 // Indexes
 StudySchema.index({ userId: 1, date: -1 });
+// Partial: entries saved before clientId existed have none
+StudySchema.index(
+  { userId: 1, clientId: 1 },
+  { unique: true, partialFilterExpression: { clientId: { $type: 'string' } } }
+);
 StudySchema.index({ userId: 1, tags: 1 });
 
 const Study: Model<IStudy> = mongoose.models.Study || mongoose.model<IStudy>('Study', StudySchema);

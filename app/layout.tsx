@@ -4,7 +4,7 @@ import "./globals.css";
 import { Providers } from "@/components/providers";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { PWAInstaller } from "@/components/pwa/PWAInstaller";
-import { PWAMeta } from "@/components/pwa/PWAMeta";
+import { UpdatePrompt } from "@/components/pwa/UpdatePrompt";
 import { SEO } from "@/components/SEO";
 
 const balooBhai2 = Baloo_Bhai_2({
@@ -26,8 +26,8 @@ export const viewport: Viewport = {
     initialScale: 1,
     maximumScale: 5,
     themeColor: [
-        { media: "(prefers-color-scheme: dark)", color: "#0d0d1a" },
-        { media: "(prefers-color-scheme: light)", color: "#6366f1" },
+        { media: "(prefers-color-scheme: dark)", color: "#0E0D0B" },
+        { media: "(prefers-color-scheme: light)", color: "#FBFAF7" },
     ],
 };
 
@@ -99,7 +99,7 @@ export const metadata: Metadata = {
     },
     category: "productivity",
     other: {
-        "msapplication-TileColor": "#6366f1",
+        "msapplication-TileColor": "#0E0D0B",
     },
 };
 
@@ -155,12 +155,12 @@ export default function RootLayout({
                 />
             </head>
             <body className={balooBhai2.className}>
-                <PWAMeta />
                 <SEO />
                 <ErrorBoundary>
                     <Providers>
                         {children}
                         <PWAInstaller />
+                        <UpdatePrompt />
                     </Providers>
                 </ErrorBoundary>
             </body>

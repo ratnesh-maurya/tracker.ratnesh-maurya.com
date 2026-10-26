@@ -6,13 +6,13 @@ import Link from 'next/link';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { NavBar } from '@/components/layout/NavBar';
 import { Modal } from '@/components/ui/modal';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Chip } from '@/components/ui/chip';
 import { FoodInput } from '@/components/ui/food-input';
 import { useToast } from '@/components/ui/toast-provider';
+import { SAVED_OFFLINE_MESSAGE, useOfflineCreate } from '@/lib/offline/useOfflineCreate';
 import {
     Sparkles,
     IndianRupee,
@@ -31,16 +31,9 @@ import {
 } from 'lucide-react';
 import { format, subDays } from 'date-fns';
 import { getStartOfDay, getEndOfDay } from '@/lib/utils';
-import { LineChart } from '@mui/x-charts/LineChart';
-import { ThemeProvider, createTheme } from '@mui/material/styles';
+import { ChartTheme, LineChart } from '@/components/charts/lazy';
 import { HabitReminderManager } from '@/components/habits/HabitReminderManager';
 import { handleApiResponse } from '@/lib/api/client';
-
-const chartTheme = createTheme({
-    palette: {
-        mode: 'light',
-    },
-});
 
 const MEAL_TYPES = [
     { value: 'breakfast', label: 'Breakfast' },
@@ -68,7 +61,6 @@ interface MealItem {
 
 export default function DashboardPage() {
     const router = useRouter();
-    const [loading, setLoading] = useState(true);
     const [isFoodModalOpen, setIsFoodModalOpen] = useState(false);
     const [isSleepModalOpen, setIsSleepModalOpen] = useState(false);
     const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
@@ -83,15 +75,14 @@ export default function DashboardPage() {
         return () => window.removeEventListener('resize', checkMobile);
     }, []);
 
+    // Session check runs in the background so cached data shows at once. Only a
+    // real "not signed in" answer redirects; a network error (offline) does not.
     useEffect(() => {
         fetch('/api/auth/refresh', { method: 'POST' })
             .then((res) => {
-                if (!res.ok) {
-                    router.push('/login');
-                }
+                if (res.status === 401) router.push('/login');
             })
-            .catch(() => router.push('/login'))
-            .finally(() => setLoading(false));
+            .catch(() => {});
     }, [router]);
 
     const endDate = new Date();
@@ -106,7 +97,6 @@ export default function DashboardPage() {
             return handleApiResponse(res);
         },
         staleTime: 0,
-        gcTime: 0,
         refetchOnMount: true,
         refetchOnWindowFocus: true,
     });
@@ -129,7 +119,6 @@ export default function DashboardPage() {
             return data.success ? data.data : {};
         },
         staleTime: 0,
-        gcTime: 0,
         refetchOnMount: true,
         refetchOnWindowFocus: true,
     });
@@ -142,7 +131,6 @@ export default function DashboardPage() {
             return Array.isArray(data) ? data : (data?.entries || []);
         },
         staleTime: 0,
-        gcTime: 0,
         refetchOnMount: true,
         refetchOnWindowFocus: true,
     });
@@ -155,7 +143,6 @@ export default function DashboardPage() {
             return Array.isArray(data) ? data : (data?.entries || []);
         },
         staleTime: 0,
-        gcTime: 0,
         refetchOnMount: true,
         refetchOnWindowFocus: true,
     });
@@ -168,7 +155,6 @@ export default function DashboardPage() {
             return Array.isArray(data) ? data : (data?.entries || []);
         },
         staleTime: 0,
-        gcTime: 0,
         refetchOnMount: true,
         refetchOnWindowFocus: true,
     });
@@ -208,13 +194,6 @@ export default function DashboardPage() {
     const totalHabits = habits.totalHabits || 0;
     const perfectDays = Math.round((completionRate / 100) * 30); // Approximate
 
-    if (loading) {
-        return (
-            <div className="min-h-screen bg-background flex items-center justify-center">
-                <div className="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
-            </div>
-        );
-    }
 
     return (
         <div className="min-h-screen bg-background">
@@ -266,7 +245,7 @@ export default function DashboardPage() {
                     {/* Left column — chart + quick access */}
                     <div className="lg:col-span-2 space-y-6">
                         {/* Chart */}
-                        <ThemeProvider theme={chartTheme}>
+                        <ChartTheme mode="light">
                             <Card className="border border-border shadow-sm bg-card">
                                 <CardHeader className="pb-2">
                                     <CardTitle className="text-base font-semibold flex items-center gap-2 text-foreground">
@@ -293,7 +272,7 @@ export default function DashboardPage() {
                                     />
                                 </CardContent>
                             </Card>
-                        </ThemeProvider>
+                        </ChartTheme>
 
                         {/* Quick Access grid */}
                         <div>
@@ -374,7 +353,6 @@ export default function DashboardPage() {
             <QuickAddFoodModal isOpen={isFoodModalOpen} onClose={() => setIsFoodModalOpen(false)} />
             <QuickAddSleepModal isOpen={isSleepModalOpen} onClose={() => setIsSleepModalOpen(false)} />
             <QuickAddExpenseModal isOpen={isExpenseModalOpen} onClose={() => setIsExpenseModalOpen(false)} />
-            <NavBar />
         </div>
     );
 }
@@ -383,11 +361,10 @@ function QuickAddFoodModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =
     const [mealType, setMealType] = useState<'breakfast' | 'lunch' | 'dinner' | 'snack'>('breakfast');
     const [items, setItems] = useState<MealItem[]>([{ name: '', calories: undefined }]);
     const [notes, setNotes] = useState('');
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const queryClient = useQueryClient();
+    const { create } = useOfflineCreate('food');
     const toast = useToast();
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         const filteredItems = items.filter((item) => item.name.trim() !== '');
         if (filteredItems.length === 0) {
@@ -395,35 +372,16 @@ function QuickAddFoodModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =
             return;
         }
 
-        setIsSubmitting(true);
-        try {
-            const today = new Date();
-            const res = await fetch('/api/food', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    date: format(today, 'yyyy-MM-dd'),
-                    mealType,
-                    items: filteredItems,
-                    notes: notes.trim() || undefined,
-                }),
-            });
-            const data = await res.json();
-            if (res.ok && data.success) {
-                await queryClient.invalidateQueries({ queryKey: ['food'] });
-                await queryClient.refetchQueries({ queryKey: ['food'] });
-                toast.success('Food added successfully!');
-                onClose();
-                setItems([{ name: '', calories: undefined }]);
-                setNotes('');
-            } else {
-                toast.error(data.error || 'Failed to add food entry');
-            }
-        } catch (error) {
-            toast.error('Failed to add food entry');
-        } finally {
-            setIsSubmitting(false);
-        }
+        const { queued } = create({
+            date: format(new Date(), 'yyyy-MM-dd'),
+            mealType,
+            items: filteredItems,
+            notes: notes.trim() || undefined,
+        });
+        toast.success(queued ? SAVED_OFFLINE_MESSAGE : 'Food added successfully!');
+        onClose();
+        setItems([{ name: '', calories: undefined }]);
+        setNotes('');
     };
 
     const addItem = () => {
@@ -505,8 +463,8 @@ function QuickAddFoodModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =
 
                 <div className="flex justify-end space-x-2 pt-4">
                     <Button type="button" variant="outline" onClick={onClose} className="rounded-lg">Cancel</Button>
-                    <Button type="submit" disabled={isSubmitting} className="bg-green-600 hover:bg-green-700 rounded-lg">
-                        {isSubmitting ? 'Saving...' : 'Save'}
+                    <Button type="submit" className="bg-green-600 hover:bg-green-700 rounded-lg">
+                        Save
                     </Button>
                 </div>
             </form>
@@ -518,47 +476,27 @@ function QuickAddSleepModal({ isOpen, onClose }: { isOpen: boolean; onClose: () 
     const [startTime, setStartTime] = useState('');
     const [endTime, setEndTime] = useState('');
     const [notes, setNotes] = useState('');
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const queryClient = useQueryClient();
+    const { create } = useOfflineCreate('sleep');
     const toast = useToast();
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (!startTime || !endTime) {
             toast.warning('Please enter both start and end times');
             return;
         }
 
-        setIsSubmitting(true);
-        try {
-            const today = new Date();
-            const res = await fetch('/api/sleep', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    date: format(today, 'yyyy-MM-dd'),
-                    startTime,
-                    endTime,
-                    notes: notes.trim() || undefined,
-                }),
-            });
-            const data = await res.json();
-            if (res.ok && data.success) {
-                await queryClient.invalidateQueries({ queryKey: ['sleep'] });
-                await queryClient.refetchQueries({ queryKey: ['sleep'] });
-                toast.success('Sleep logged successfully!');
-                onClose();
-                setStartTime('');
-                setEndTime('');
-                setNotes('');
-            } else {
-                toast.error(data.error || 'Failed to log sleep');
-            }
-        } catch (error) {
-            toast.error('Failed to log sleep');
-        } finally {
-            setIsSubmitting(false);
-        }
+        const { queued } = create({
+            date: format(new Date(), 'yyyy-MM-dd'),
+            startTime,
+            endTime,
+            notes: notes.trim() || undefined,
+        });
+        toast.success(queued ? SAVED_OFFLINE_MESSAGE : 'Sleep logged successfully!');
+        onClose();
+        setStartTime('');
+        setEndTime('');
+        setNotes('');
     };
 
     return (
@@ -608,8 +546,8 @@ function QuickAddSleepModal({ isOpen, onClose }: { isOpen: boolean; onClose: () 
 
                 <div className="flex justify-end space-x-2 pt-4">
                     <Button type="button" variant="outline" onClick={onClose} className="rounded-lg">Cancel</Button>
-                    <Button type="submit" disabled={isSubmitting} className="bg-indigo-600 hover:bg-indigo-700 rounded-lg">
-                        {isSubmitting ? 'Saving...' : 'Save'}
+                    <Button type="submit" className="bg-indigo-600 hover:bg-indigo-700 rounded-lg">
+                        Save
                     </Button>
                 </div>
             </form>
@@ -622,48 +560,28 @@ function QuickAddExpenseModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
     const [category, setCategory] = useState('');
     const [currency, setCurrency] = useState('INR');
     const [notes, setNotes] = useState('');
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const queryClient = useQueryClient();
+    const { create } = useOfflineCreate('expenses');
     const toast = useToast();
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (!amount || !category) {
             toast.warning('Please enter amount and category');
             return;
         }
 
-        setIsSubmitting(true);
-        try {
-            const today = new Date();
-            const res = await fetch('/api/expenses', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    date: format(today, 'yyyy-MM-dd'),
-                    amount: parseFloat(amount),
-                    category,
-                    currency,
-                    notes: notes.trim() || undefined,
-                }),
-            });
-            const data = await res.json();
-            if (res.ok && data.success) {
-                await queryClient.invalidateQueries({ queryKey: ['expenses'] });
-                await queryClient.refetchQueries({ queryKey: ['expenses'] });
-                toast.success('Expense added successfully!');
-                onClose();
-                setAmount('');
-                setCategory('');
-                setNotes('');
-            } else {
-                toast.error(data.error || 'Failed to add expense');
-            }
-        } catch (error) {
-            toast.error('Failed to add expense');
-        } finally {
-            setIsSubmitting(false);
-        }
+        const { queued } = create({
+            date: format(new Date(), 'yyyy-MM-dd'),
+            amount: parseFloat(amount),
+            category,
+            currency,
+            notes: notes.trim() || undefined,
+        });
+        toast.success(queued ? SAVED_OFFLINE_MESSAGE : 'Expense added successfully!');
+        onClose();
+        setAmount('');
+        setCategory('');
+        setNotes('');
     };
 
     return (
@@ -729,8 +647,8 @@ function QuickAddExpenseModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
 
                 <div className="flex justify-end space-x-2 pt-4">
                     <Button type="button" variant="outline" onClick={onClose} className="rounded-lg">Cancel</Button>
-                    <Button type="submit" disabled={isSubmitting} className="bg-yellow-600 hover:bg-yellow-700 rounded-lg">
-                        {isSubmitting ? 'Saving...' : 'Save'}
+                    <Button type="submit" className="bg-yellow-600 hover:bg-yellow-700 rounded-lg">
+                        Save
                     </Button>
                 </div>
             </form>

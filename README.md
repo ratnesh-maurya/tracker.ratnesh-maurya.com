@@ -1,3 +1,4 @@
+
 # Personal Life + Developer Tracker
 
 A production-ready, mobile-first personal tracker web app built with Next.js, TypeScript, and MongoDB.
@@ -31,29 +32,33 @@ A production-ready, mobile-first personal tracker web app built with Next.js, Ty
 
 ### Prerequisites
 
-- Node.js 18+ 
+- Node.js 18+
 - MongoDB Atlas account (or local MongoDB)
 - npm or yarn
 
 ### Installation
 
 1. Clone the repository:
+
 ```bash
 git clone <repository-url>
 cd tracker.ratnesh-maurya.com
 ```
 
 2. Install dependencies:
+
 ```bash
 npm install
 ```
 
 3. Set up environment variables:
+
 ```bash
 cp .env.example .env.local
 ```
 
 Edit `.env.local` and add your MongoDB URI:
+
 ```
 MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/
 JWT_SECRET=your-super-secret-jwt-key
@@ -62,6 +67,7 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
 
 4. Run the development server:
+
 ```bash
 npm run dev
 ```
@@ -92,12 +98,14 @@ npm run dev
 ## API Routes
 
 ### Authentication
+
 - `POST /api/auth/register` - Register new user
 - `POST /api/auth/login` - Login user
 - `POST /api/auth/refresh` - Refresh access token
 - `POST /api/auth/logout` - Logout user
 
 ### Tracking Modules
+
 - `GET /api/habits` - Get all habits
 - `POST /api/habits` - Create habit
 - `GET /api/habits/[id]` - Get habit
@@ -109,9 +117,11 @@ npm run dev
 Similar patterns for `/api/sleep`, `/api/food`, `/api/study`, `/api/expenses`, `/api/journal`
 
 ### Analytics
+
 - `GET /api/analytics/summary` - Get analytics summary
 
 ### Recommendations
+
 - `GET /api/recommendations/daily` - Get food recommendations
 
 ## Scripts

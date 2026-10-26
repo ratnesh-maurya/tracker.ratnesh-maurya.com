@@ -11,9 +11,10 @@ import { Textarea } from '@/components/ui/textarea';
 import { Modal } from '@/components/ui/modal';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { useToast } from '@/components/ui/toast-provider';
+import { PendingTag } from '@/components/ui/pending-tag';
+import { SAVED_OFFLINE_MESSAGE, useOfflineCreate } from '@/lib/offline/useOfflineCreate';
 import { FoodTagInput } from '@/components/ui/food-tag-input';
 import { ArrowLeft, Plus, Coffee, X, Edit2, Trash2 } from 'lucide-react';
-import { NavBar } from '@/components/layout/NavBar';
 import { formatDate, getLocalDateString } from '@/lib/utils';
 import { Pagination } from '@/components/ui/pagination';
 import { SkeletonList } from '@/components/ui/skeleton';
@@ -51,32 +52,19 @@ export default function FoodPage() {
             return handleApiResponse(res);
         },
         staleTime: 0,
-        gcTime: 0,
         refetchOnMount: true,
         refetchOnWindowFocus: true,
     });
 
-    const createMutation = useMutation({
-        mutationFn: async (food: { date: string; mealType: string; items: MealItem[]; notes?: string }) => {
-            const res = await fetch('/api/food', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(food),
-            });
-            const data = await res.json();
-            if (!data.success) throw new Error(data.error);
-            return data.data;
-        },
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['food'] });
+    // Goes through the offline queue: works without a connection, syncs later
+    const createMutation = useOfflineCreate('food', {
+        optimistic: true,
+        onSaved: (queued) => {
             setPage(1);
             setIsModalOpen(false);
             setItemNames([]);
             setNotes('');
-            toast.success('Food entry added successfully!');
-        },
-        onError: () => {
-            toast.error('Failed to add food entry. Please try again.');
+            toast.success(queued ? SAVED_OFFLINE_MESSAGE : 'Food entry added successfully!');
         },
     });
 
@@ -135,7 +123,7 @@ export default function FoodPage() {
             return;
         }
         const today = getLocalDateString();
-        await createMutation.mutateAsync({
+        createMutation.create({
             date: today,
             mealType,
             items: itemNames.map(name => ({ name })),
@@ -259,22 +247,28 @@ export default function FoodPage() {
                                                     <h3 className="font-semibold capitalize text-base text-gray-800 dark:text-gray-100">{entry.mealType}</h3>
                                                     <div className="flex items-center gap-2">
                                                         <Coffee className="h-4 w-4 text-green-500 dark:text-green-400" />
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="icon"
-                                                            onClick={() => handleEdit(entry)}
-                                                            className="h-6 w-6 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
-                                                        >
-                                                            <Edit2 className="h-3 w-3 text-blue-600 dark:text-blue-400" />
-                                                        </Button>
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="icon"
-                                                            onClick={() => handleDeleteClick(entry._id)}
-                                                            className="h-6 w-6 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
-                                                        >
-                                                            <Trash2 className="h-3 w-3 text-red-600 dark:text-red-400" />
-                                                        </Button>
+                                                        {entry.pending ? (
+                                                            <PendingTag />
+                                                        ) : (
+                                                            <>
+                                                                <Button
+                                                                    variant="ghost"
+                                                                    size="icon"
+                                                                    onClick={() => handleEdit(entry)}
+                                                                    className="h-6 w-6 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+                                                                >
+                                                                    <Edit2 className="h-3 w-3 text-blue-600 dark:text-blue-400" />
+                                                                </Button>
+                                                                <Button
+                                                                    variant="ghost"
+                                                                    size="icon"
+                                                                    onClick={() => handleDeleteClick(entry._id)}
+                                                                    className="h-6 w-6 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+                                                                >
+                                                                    <Trash2 className="h-3 w-3 text-red-600 dark:text-red-400" />
+                                                                </Button>
+                                                            </>
+                                                        )}
                                                     </div>
                                                 </div>
                                                 <ul className="space-y-1.5">
@@ -438,7 +432,6 @@ export default function FoodPage() {
                 isLoading={deleteMutation.isPending}
             />
 
-            <NavBar />
         </div>
     );
 }

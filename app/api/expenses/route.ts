@@ -5,6 +5,7 @@ import { z } from 'zod';
 import connectDB from '@/lib/db/connect';
 import Expense from '@/models/Expense';
 import { requireAuth } from '@/lib/auth/middleware';
+import { clientIdSchema, saveOnce } from '@/lib/api/idempotent';
 import { ApiResponse } from '@/types';
 import { getStartOfDay, getEndOfDay } from '@/lib/utils';
 
@@ -14,6 +15,7 @@ const expenseSchema = z.object({
   category: z.string().min(1).max(50),
   currency: z.string().length(3).default('USD'),
   notes: z.string().max(500).optional(),
+  clientId: clientIdSchema,
 });
 
 export async function GET(request: NextRequest) {
@@ -99,6 +101,7 @@ export async function POST(request: NextRequest) {
 
     const expense = new Expense({
       userId: auth.userId,
+      clientId: validatedData.clientId,
       date: startOfDay,
       amount: validatedData.amount,
       category: validatedData.category,
@@ -106,13 +109,13 @@ export async function POST(request: NextRequest) {
       notes: validatedData.notes,
     });
 
-    await expense.save();
+    const { doc, created } = await saveOnce(Expense, expense, auth.userId, validatedData.clientId);
 
     return NextResponse.json<ApiResponse>({
       success: true,
-      data: expense,
-      message: 'Expense created successfully',
-    }, { status: 201 });
+      data: doc,
+      message: created ? 'Expense created successfully' : 'Expense already saved',
+    }, { status: created ? 201 : 200 });
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json<ApiResponse>({ success: false, error: error.errors[0].message }, { status: 400 });

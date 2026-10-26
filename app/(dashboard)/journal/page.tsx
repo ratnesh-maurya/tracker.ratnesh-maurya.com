@@ -10,8 +10,8 @@ import { Input } from '@/components/ui/input';
 import { Modal } from '@/components/ui/modal';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { useToast } from '@/components/ui/toast-provider';
+import { SAVED_OFFLINE_MESSAGE, useOfflineCreate } from '@/lib/offline/useOfflineCreate';
 import { ArrowLeft, Plus, FileText, Star, Edit2, Trash2, X } from 'lucide-react';
-import { NavBar } from '@/components/layout/NavBar';
 import { formatDate, getLocalDateString } from '@/lib/utils';
 import { Pagination } from '@/components/ui/pagination';
 import { handleApiResponse } from '@/lib/api/client';
@@ -35,32 +35,18 @@ export default function JournalPage() {
             return handleApiResponse(res);
         },
         staleTime: 0,
-        gcTime: 0,
         refetchOnMount: true,
         refetchOnWindowFocus: true,
     });
 
-    const createMutation = useMutation({
-        mutationFn: async (journal: any) => {
-            const res = await fetch('/api/journal', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(journal),
-            });
-            const data = await res.json();
-            if (!data.success) throw new Error(data.error);
-            return data.data;
-        },
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['journal'] });
+    // Goes through the offline queue: works without a connection, syncs later
+    const createMutation = useOfflineCreate('journal', {
+        onSaved: (queued) => {
             setPage(1); // Reset to first page after creating new entry
             setIsModalOpen(false);
             setSummary('');
             setHighlights(['']);
-            toast.success('Journal entry added successfully!');
-        },
-        onError: () => {
-            toast.error('Failed to add journal entry. Please try again.');
+            toast.success(queued ? SAVED_OFFLINE_MESSAGE : 'Journal entry added successfully!');
         },
     });
 
@@ -117,7 +103,7 @@ export default function JournalPage() {
         const filteredHighlights = highlights.filter((h) => h.trim() !== '');
         const today = getLocalDateString();
 
-        await createMutation.mutateAsync({
+        createMutation.create({
             date: today,
             summary,
             highlights: filteredHighlights,
@@ -427,7 +413,6 @@ export default function JournalPage() {
                 isLoading={deleteMutation.isPending}
             />
 
-            <NavBar />
         </div>
     );
 }

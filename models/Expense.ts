@@ -7,6 +7,8 @@ export interface IExpense extends Document {
   category: string;
   currency: string;
   notes?: string;
+  // Made on the device; lets a retried offline save return the first copy
+  clientId?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -46,6 +48,10 @@ const ExpenseSchema = new Schema<IExpense>(
       type: String,
       maxlength: [500, 'Notes cannot exceed 500 characters'],
     },
+    clientId: {
+      type: String,
+      maxlength: 64,
+    },
   },
   {
     timestamps: true,
@@ -54,6 +60,11 @@ const ExpenseSchema = new Schema<IExpense>(
 
 // Indexes
 ExpenseSchema.index({ userId: 1, date: -1 });
+// Partial: entries saved before clientId existed have none
+ExpenseSchema.index(
+  { userId: 1, clientId: 1 },
+  { unique: true, partialFilterExpression: { clientId: { $type: 'string' } } }
+);
 ExpenseSchema.index({ userId: 1, category: 1, date: -1 });
 ExpenseSchema.index({ userId: 1, currency: 1 });
 
